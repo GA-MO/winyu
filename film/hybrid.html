@@ -6,7 +6,7 @@
 <title>Winyu Hybrid Film</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=block" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="sound.js"></script>
 <style>
@@ -187,16 +187,73 @@ svg.i{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .lock6{position:absolute;left:30px;top:70px;height:62px;gap:12px;color:#3730a3;opacity:0}
 .lock6 .lk{width:56px;height:56px;border-radius:50%;background:#fff;box-shadow:0 6px 18px -6px rgba(30,27,75,.35);display:flex;align-items:center;justify-content:center}
 
-.t34{font-size:34px;line-height:1.35;font-weight:500}
 .t40{font-size:40px;line-height:1.3;font-weight:600}
-.t56{font-size:56px;line-height:1.2;font-weight:700;letter-spacing:-.01em}
-.t96{font-size:96px;line-height:1.05;font-weight:700;letter-spacing:-.02em}
-.qpill{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
-.qpill .qp{display:inline-flex;align-items:center;gap:14px;height:76px;padding:0 30px 0 22px;border-radius:38px;border:2px solid #e2e4ee;background:#fff;color:var(--s-ink);white-space:nowrap;box-shadow:0 10px 24px -16px rgba(30,27,75,.3)}
-.qpill .qp svg.i{width:30px;height:30px;color:#6366f1}
-.qpill .why{display:inline-flex;align-items:center;gap:8px;padding-left:26px;color:var(--s-muted);white-space:nowrap}
-.qpill.mem .qp{border-color:transparent;background:linear-gradient(#fff,#fff) padding-box,var(--grad) border-box}
-.qpill.mem .why{color:#6d28d9;font-weight:600}
+.app{font-family:'Noto Sans Thai',sans-serif;color:#0f172a;-webkit-font-smoothing:antialiased;letter-spacing:-.005em}
+.app .ab{position:absolute}
+.app .row{display:flex;align-items:center}
+.app .card{position:absolute;background:#fff;border:1px solid #e6e8f0;border-radius:24px;box-shadow:0 1px 2px rgba(15,23,42,.04),0 10px 30px -18px rgba(30,27,75,.22)}
+.app .eyebrow{font-size:12px;line-height:16px;color:#64748b}
+.app .verdict{font-size:19px;line-height:1.35;font-weight:600;letter-spacing:-.01em}
+.app .title{font-size:15px;line-height:1.35;font-weight:600;letter-spacing:-.01em}
+.app .hero{font-size:30px;line-height:1;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.app .unit{font-size:14px;color:#64748b}
+.app .body{font-size:14px;line-height:20px}
+.app .small{font-size:13px;line-height:18px}
+.app .cap{font-size:12px;line-height:16px;color:#64748b}
+.app .tiny{font-size:11px;line-height:14px}
+.app .strong{font-weight:600}
+.app .muted{color:#64748b}
+.app .num{font-variant-numeric:tabular-nums}
+.app .tile{background:#f6f7fb;border-radius:16px;padding:10px 12px}
+.app .tile .v{font-size:20px;line-height:26px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.app .chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;border:1px solid #e6e8f0;background:#fff;font-size:14px;color:#0f172a;white-space:nowrap;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.app .chip svg{width:16px;height:16px;flex:none;color:#6366f1}
+.app .tag{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+.app .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 16px;border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap}
+.app .btn svg{width:15px;height:15px}
+.app .ask{position:absolute;padding:6px 14px;border-radius:18px 18px 6px 18px;background:#4f46e5;color:#fff;font-size:14px;line-height:20px;white-space:nowrap;transform-origin:100% 100%}
+.app .track{height:6px;border-radius:3px;background:#eef0f5;overflow:hidden;margin-top:6px}
+.app .fill{height:6px;border-radius:3px;background:#6366f1}
+.app svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app .ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
+.app .lpill{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;border:1px solid #e6e8f0;background:#fff;font-size:12px;font-weight:500;color:#64748b;white-space:nowrap;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.app .lpill svg.i{width:14px;height:14px}
+.app .lpill.mem{color:#0f172a;border-color:transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#4f46e5,#7c3aed 60%,#fb7185) border-box}
+.app .lpill.mem svg.i{color:#7c3aed}
+.app .tip{position:absolute;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:10px;background:#1e1b4b;color:#fff;font-size:12px;font-weight:500;white-space:nowrap;transform-origin:50% 100%}
+.app .tip:after{content:'';position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:#1e1b4b}
+.app .tip svg.i{width:13px;height:13px;color:#c4b5fd}
+.app .composer{position:absolute;display:flex;align-items:flex-end;gap:8px;border-radius:28px;border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#7c3aed,#4f46e5 50%,#22d3ee) border-box;padding:14px 14px 14px 18px;box-shadow:0 10px 30px -18px rgba(30,27,75,.3)}
+.app .composer .field{flex:1;min-height:56px;font-size:16px;line-height:26px;white-space:nowrap;overflow:hidden}
+.app .composer .send{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;background:#e7e9f0;color:#94a3b8}
+.app .composer .send svg.i{width:20px;height:20px}
+.app .wline{height:8px;border-radius:4px;background:#e4e6ee;margin-bottom:11px}
+.app .pane-lab{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px 0 4px;border-radius:12px;font-size:12px;font-weight:600;white-space:nowrap}
+.win.app{border-radius:16px}
+.win.app .tb{height:40px}
+.win.app .lights{left:16px;top:15px;gap:7px}
+.win.app .lights i{width:10px;height:10px}
+.win.app .side{top:40px;width:64px}
+.win.app .side .logo{left:16px;top:14px;width:32px;height:32px;border-radius:10px}
+.win.app .side .logo svg{width:24px;height:24px}
+.win.app .sbtn{left:22px;width:20px;height:20px}
+.win.app .sbtn svg.i{width:18px;height:18px}
+.win.app .sact{left:16px;width:32px;height:32px;border-radius:10px}
+.win.app .chat{left:64px;top:40px}
+.app .cursor{width:18px;height:18px}
+.app .cursor svg{width:18px;height:18px;filter:drop-shadow(0 2px 3px rgba(15,23,42,.28))}
+.app .ripple{width:36px;height:36px;margin:-18px 0 0 -18px;border-width:2px}
+#split.app .win{border-radius:14px}
+#split.app .tb{height:28px}
+#split.app .lights{left:12px;top:10px;gap:5px}
+#split.app .lights i{width:8px;height:8px}
+.app .who{position:absolute;left:50%;right:auto;top:4px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 9px 0 3px;border-radius:10px;background:#eef2ff;color:#3730a3;font-size:11px;font-weight:600;white-space:nowrap}
+.app .who .av{width:14px;height:14px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+.app .who svg.i{width:10px;height:10px}
+.app .tog{position:relative;width:40px;height:22px;border-radius:11px;flex:none}
+.app .tog .knob{position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.3)}
+#phone.app{width:376px;height:736px;border-radius:64px;background:#1c1b29;padding:12px}
+#phone.app #pscr{width:352px;height:712px;border-radius:52px}
 #transport{position:absolute;left:0;right:0;bottom:0;height:64px;display:flex;align-items:center;gap:16px;padding:0 24px;font:500 14px/1 'Anuphan',system-ui,sans-serif;color:#4a4566}
 #transport button{width:40px;height:40px;border-radius:50%;border:0;background:#1f1b3a;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
 #transport input{flex:1;accent-color:#4f46e5}
@@ -266,16 +323,16 @@ const FACTS = await (await fetch('facts.json')).json();
 const T = {
   sysAt: (i) => 0.55 + i * 0.1, fold: 2.3, qIn: 2.85, q: [3.1, 0.8], ask: 4.5,
   sun: 5.6, shops: 6.6, alert: 7.2, morningOut: 13.2,
-  win1: [7.4, 13.7], push1: 8.2, card1: 9.4, pull1: 12.3,
+  win1: [7.4, 13.7], push1: 8.2, pull1: 12.3,
   memIn: 14.45, say1: 14.7, memc: 15.65, memDrop: 17.25, day: 17.75,
-  win2: [17.15, 41.65], push2: 18.65, pills: 19.85, memPill: 20.65, tap: 22.25, card2: 22.55, pull2: 25.25,
-  wall: 26.75, push3: 27.35, ask3: 28.65, panes: 28.85,
-  dyn: 31.85, chips: [32.05, 32.45, 32.85],
+  win2: [17.15, 41.65], push2: 18.65, memPill: 20.45, tap: 21.65, askSend: 22.2, card2: 22.45, pull2: 25.25,
+  wall: 26.75, push3: 27.35,
+  dyn: 31.85,
   fwd: 36.65, fwdClick: 37.55, pop: 37.7, sendClick: 38.45, sent: 38.6, pull3: 39.25,
   envFly: [40.45, 1.0], bell: 41.5, mini: 41.95, fwdOut: 43.25,
   leaveIn: 43.65, phone: [43.95, 54.75], push4: 44.65, leaveQ: [45.95, 0.55], bal: 46.85, scroll: 49.35,
   leave: [49.45, 0.85], conf: 50.65, press: 51.65, done: 51.95, pull4: 52.85, approved: 54.15, leaveOut: 54.65,
-  permIn: 55.05, split: [55.65, 63.65], push5: 56.55, nums: 57.75, flip: 59.35, lock: 59.6, pull5: 62.15, permOut: 63.35,
+  permIn: 55.05, split: [55.65, 63.65], push5: 56.55, flip: 59.35, lock: 59.6, pull5: 62.15, permOut: 63.35,
   connIn: 63.7, plug: [64.75, 0.45], win3: [64.45, 71.6], push6: 65.4, connClick: 66.85, connected: 67.55, assets: 67.95,
   pull6: 70.1, logo: 71.5, endOut: 74.55, hlRein: 74.95,
 };
@@ -285,7 +342,15 @@ const LENGTH = Math.round(75.95 * 30) / 30;
 const GRID = Sound.grid({ tempo: { on: T.memc } }, LENGTH);
 for (const key of MOVES) { const at = GRID.snap(T[key]); T[key] = [at, at + MOVE_BEATS * GRID.beat]; }
 T.logo = GRID.snap(T.logo, 0.25);
-const HLS = [['hl0', -1, T.ask + 0.7], ['hl1', T.sun + 0.15, T.pull1[1] - 0.25], ['hl2', T.memIn - 0.4, T.wall - 0.35], ['hlA', T.wall, T.dyn - 0.35], ['hlB', T.dyn, T.fwd - 0.35], ['hl3', T.fwd, T.leaveIn - 0.4], ['hl4', T.leaveIn - 0.05, T.permIn - 0.4], ['hl5', T.permIn, T.connIn - 0.4], ['hl6', T.connIn, T.pull6[1]]].map(([id, a, b]) => [id, a < 0 ? a : GRID.snap(a, 2), b]);
+T.card1 = T.push1[1] - 0.45;
+T.pills = T.push2[1] - 0.15;
+T.panes = T.push3[1] - 0.35;
+T.ask3 = T.panes;
+T.nums = T.push5[1] - 0.35;
+T.chips = [T.dyn - 0.05, T.dyn + 0.2, T.dyn + 0.45];
+const HL_IN = [['hl0', -1], ['hl1', T.sun + 0.15], ['hl2', T.memIn - 0.4], ['hlA', T.wall], ['hlB', T.dyn], ['hl3', T.fwd], ['hl4', T.leaveIn - 0.05], ['hl5', T.permIn], ['hl6', T.connIn]].map(([id, a]) => [id, a < 0 ? a : GRID.snap(a, 2)]);
+const HL_GAP = 0.45;
+const HLS = HL_IN.map(([id, a], i) => [id, a, i === 0 ? T.ask + 0.7 : i < HL_IN.length - 1 ? HL_IN[i + 1][1] - HL_GAP : T.pull6[1]]);
 const UNIT = 72;
 const FIG = 1.35;
 const C30 = Math.cos(Math.PI / 6);
@@ -310,11 +375,14 @@ const Q = graphemes('ภาคไหนยอดลดมากที่สุ�
 const LEAVE_Q = graphemes('เหลือวันลากี่วัน');
 const LEAVE = graphemes(`ขอลาพักร้อน ${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}`);
 const ANNUAL = FACTS.leaveBalance[0];
+const PHONE_SCROLL = 232;
 const TEAM_SHOWN = 3;
 const CREDIT = FACTS.drops[0].hypothesis.match(/น่าจะติดปัญหา\S+/)[0];
 const CHIPS = [{ label: `แนวโน้ม${FACTS.spotlight}`, reason: `เพราะคุณสนใจ${FACTS.spotlight}` }, ...FACTS.chips];
 const SHARE_COLORS = ['#4f46e5', '#a78bfa', '#10b981', '#f59e0b'];
 const SEVERITY_P1 = 'ต้องรีบดู';
+const COMPOSER_PLACEHOLDER = 'ถาม Winyu เรื่องยอดขาย สต๊อก แคมเปญ หรือการเงิน…';
+const WALL_LINES = [100, 96, 99, 92, 97, 94, 100, 95, 98, 72];
 const DENIED = 'นอกขอบเขตข้อมูล';
 const short = role => role.split(' ')[0];
 
@@ -510,72 +578,77 @@ function donut(rows, r = 120, w = 44) {
 
 function buildWindow() {
   const weeks = FACTS.trend.weeks;
-  const pill = (c, i) => `<div class="qpill ab${i ? '' : ' mem'}" id="qp${i}" style="left:120px;top:${70 + i * 170}px"><span class="qp t40">${i ? ICON.hist : ICON.spark}${c.label}</span><span class="why t34">${c.reason}</span></div>`;
+  const pill = (c, i) => `<span class="lpill${i ? '' : ' mem'}" id="qp${i}">${i ? ICON.hist : ICON.spark}${c.label}</span>`;
   const maxCover = Math.max(...FACTS.cover.rows.map(r => r.days));
-  const team = FACTS.team.slice(0, TEAM_SHOWN).map((m) => `<div class="prow" style="height:96px"><img src="${m.photo}" alt="" style="width:72px;height:72px"><div class="t34 b6" style="white-space:nowrap">${m.name.replace(/^คุณ/, '')}</div></div>`).join('');
+  const team = FACTS.team.slice(0, TEAM_SHOWN).map((m) => `<div class="row" style="gap:10px;height:40px"><img src="${m.photo}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover"><span class="small strong" style="white-space:nowrap">${m.name.replace(/^คุณ/, '')}</span></div>`).join('');
+  const verdict = parseFloat(FACTS.close.projected) < 100 ? 'คาดปิดเดือนไม่ถึงเป้า' : 'คาดปิดเดือนถึงเป้า';
+  $('win').classList.add('app');
   $('win').innerHTML = `
     <div class="tb"><div class="lights"><i></i><i></i><i></i></div></div>
-    <div class="side">${logoBox(44, 32).replace('class="logo"', 'class="logo" style="position:absolute;left:20px;top:18px"')}<div class="sact" id="sact"></div>
-      ${[ICON.menu, ICON.chat, ICON.grid, ICON.inbox, ICON.fwd, ICON.search, ICON.hist].map((ic, i) => `<div class="sbtn" style="top:${86 + i * 60}px">${ic}</div>`).join('')}</div>
+    <div class="side">${logoBox(32, 24).replace('class="logo"', 'class="logo" style="position:absolute;left:16px;top:14px"')}<div class="sact" id="sact"></div>
+      ${[ICON.menu, ICON.chat, ICON.grid, ICON.inbox, ICON.fwd, ICON.search, ICON.hist].map((ic, i) => `<div class="sbtn" style="top:${66 + i * 44}px">${ic}</div>`).join('')}</div>
     <div class="chat">
       <div class="layer" id="L1">
-        <div class="sc-card" style="left:150px;top:70px;width:1090px;padding:36px 44px 40px">
-          <div class="sc-row piece" id="w1a" style="gap:16px"><span style="width:60px;height:60px;border-radius:18px;background:var(--s-amberbg);color:#d97706;display:flex;align-items:center;justify-content:center">${ICON.sun.replace('class="i"', 'class="i" style="width:36px;height:36px"')}</span><span class="sc-pill t34" style="height:56px;padding:0 24px;border-radius:28px;background:var(--s-redbg);color:var(--s-red)">${SEVERITY_P1}</span></div>
-          ${FACTS.drops.map((d, i) => `<div class="sc-row piece" id="w1r${i}" style="height:110px;gap:22px;${i ? 'border-top:1.5px solid #eef0f5' : 'margin-top:12px'}"><span style="width:68px;height:68px;border-radius:20px;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.store.replace('class="i"', 'class="i" style="width:36px;height:36px"')}</span><span class="t48" style="flex:1;white-space:nowrap">${d.agent}</span><span class="t34" style="color:var(--s-muted);white-space:nowrap">ตั้งแต่ ${dayMonth(d.since)}</span></div>`).join('')}
-          <div class="piece" id="w1c" style="margin-top:18px"><span class="sc-pill t40" style="background:var(--s-amberbg);color:var(--s-amber);height:68px;padding:0 30px;border-radius:34px;gap:12px">${ICON.spark.replace('class="i"', 'class="i" style="width:30px;height:30px"')}${CREDIT}</span></div>
+        <div class="card" style="left:328px;top:250px;width:560px;padding:18px 20px">
+          <div class="row" id="w1a" style="gap:8px"><span class="ic" style="width:28px;height:28px;background:#fef3c7;color:#d97706">${ICON.sun}</span><span class="tag" style="background:#ffe4e6;color:#e11d48">${SEVERITY_P1}</span></div>
+          ${FACTS.drops.map((d, i) => `<div class="row" id="w1r${i}" style="gap:12px;height:52px;${i ? 'border-top:1px solid #eef0f5' : 'margin-top:8px'}"><span class="ic" style="background:#eef2ff;color:#4f46e5">${ICON.store}</span><span class="title" style="flex:1;white-space:nowrap">${d.agent}</span><span class="small muted" style="white-space:nowrap">ตั้งแต่ ${dayMonth(d.since)}</span></div>`).join('')}
+          <div id="w1c" style="margin-top:10px"><span class="tag" style="height:28px;padding:0 12px;font-size:13px;font-weight:500;background:#fef3c7;color:#b45309">${ICON.spark}${CREDIT}</span></div>
         </div>
       </div>
-      <div class="layer" id="L2">${CHIPS.map(pill).join('')}</div>
+      <div class="layer" id="L2">
+        <div class="tip" id="qtip">${ICON.spark}${CHIPS[0].reason}</div>
+        <div class="ab row" id="qrow" style="left:294px;top:306px;width:628px;gap:8px;justify-content:center">${CHIPS.map(pill).join('')}</div>
+        <div class="composer" id="qbox2" style="left:294px;top:352px;width:628px"><div class="field"><span id="qtyped"></span><span id="qcaret" style="display:inline-block;width:2px;height:20px;margin-left:1px;vertical-align:-4px;background:#4f46e5;border-radius:1px"></span><span id="qph" class="muted">${COMPOSER_PLACEHOLDER}</span></div><div class="send" id="qsend">${ICON.up}</div></div>
+      </div>
       <div class="layer" id="L3">
-        <div class="sc-card" style="left:150px;top:60px;width:1090px;height:520px;padding:34px 44px">
-          <div class="t34 b6" style="color:var(--s-muted)">${FACTS.trend.metric}</div>
-          <div style="position:relative;margin-top:10px;width:1000px;height:400px"><svg id="trend" width="1000" height="400" viewBox="0 0 1000 400" style="position:absolute;left:0;top:0;overflow:visible"></svg>
-          <div class="ab t48" id="trA" style="color:#4338ca;white-space:nowrap">${weeks[0].label}</div><div class="ab t48" id="trB" style="color:#e11d48;white-space:nowrap">${weeks[weeks.length - 1].label}</div></div>
+        <div class="ask" id="w2q" style="right:294px;top:230px">${CHIPS[0].label}</div>
+        <div class="card" style="left:328px;top:276px;width:560px;height:204px;padding:16px 20px">
+          <div class="eyebrow">${FACTS.trend.metric}</div>
+          <div class="title">แนวโน้ม${FACTS.spotlight}</div>
+          <div style="position:relative;margin-top:6px;width:520px;height:128px"><svg id="trend" width="520" height="128" viewBox="0 0 520 128" style="position:absolute;left:0;top:0;overflow:visible"></svg>
+          <div class="ab small strong num" id="trA" style="color:#4338ca;white-space:nowrap">${weeks[0].label}</div><div class="ab small strong num" id="trB" style="color:#e11d48;white-space:nowrap">${weeks[weeks.length - 1].label}</div></div>
         </div>
       </div>
       <div class="layer" id="L4">
-        <div class="sc-bubble t40" id="w3q" style="right:150px;top:24px">ขายผ่านช่องทางไหน</div>
-        <div class="dpane" id="w3a" style="left:40px;width:600px;height:480px;top:110px">
-          <div class="dlab t34 b6" style="height:56px;background:#f1f2f6;color:var(--s-muted)"><span style="width:40px;height:40px;border-radius:12px;background:#cbd2de;color:#fff;display:flex;align-items:center;justify-content:center">${ICON.bot}</span>แชตบอททั่วไป</div>
-          <div class="ab" style="left:28px;right:28px;top:110px">${[100, 96, 99, 92, 97, 94, 100, 95, 98, 90, 72].map((w, i) => `<div class="wline" id="ww${i}" style="width:${w}%"></div>`).join('')}</div>
+        <div class="card" id="w3a" style="left:294px;top:240px;width:306px;height:232px;padding:16px 18px">
+          <span class="pane-lab" style="background:#f1f2f6;color:#64748b"><span style="width:18px;height:18px;border-radius:6px;background:#cbd2de;color:#fff;display:flex;align-items:center;justify-content:center">${ICON.bot.replace('style="width:20px;height:20px"', 'style="width:12px;height:12px"')}</span>แชตบอททั่วไป</span>
+          <div style="margin-top:16px">${WALL_LINES.map((w, i) => `<div class="wline" id="ww${i}" style="width:${w}%"></div>`).join('')}</div>
         </div>
-        <div class="dpane" id="w3b" style="left:700px;width:600px;height:480px;top:110px">
-          <div class="dlab t34 b6" style="height:56px;background:var(--s-ind50);color:#3730a3">${logoBox(40, 30)}Winyu</div>
-          <div class="ab" id="w3donut" style="left:50%;top:94px;transform:translateX(-50%)">${donut(FACTS.channels.rows)}<div class="ab" style="inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span class="t56">${FACTS.channels.rows[0].share.toFixed(1)}%</span><span class="t34" style="color:var(--s-muted)">${FACTS.channels.rows[0].label}</span></div></div>
+        <div class="card" id="w3b" style="left:616px;top:240px;width:306px;height:232px;padding:16px 18px">
+          <span class="pane-lab" style="background:#eef2ff;color:#3730a3">${logoBox(18, 14)}Winyu</span>
+          <div class="ab" id="w3donut" style="left:50%;top:50px;width:164px;height:164px;transform:translateX(-50%)">${donut(FACTS.channels.rows, 70, 24)}<div class="ab" style="inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:20px;line-height:24px;font-weight:600;letter-spacing:-.01em" class="num">${FACTS.channels.rows[0].share.toFixed(1)}%</span><span class="tiny muted">${FACTS.channels.rows[0].label}</span></div></div>
         </div>
       </div>
       <div class="layer" id="L5">
-        <div class="qchip t34" id="w4q0" style="left:40px;height:60px">ทีมขายมีใครบ้าง</div>
-        <div class="qchip t34" id="w4q1" style="left:487px;height:60px">สต๊อกพอขายกี่วัน</div>
-        <div class="qchip t34" id="w4q2" style="left:934px;height:60px">พนักงานทั้งหมด</div>
-        <div class="rcard" id="w4c0" style="left:40px;width:420px;height:470px;top:116px;padding:30px">${team}</div>
-        <div class="rcard" id="w4c1" style="left:487px;width:420px;height:470px;top:116px;padding:30px">${FACTS.cover.rows.map((r) => `<div style="margin-bottom:26px"><div class="sc-row t34" style="justify-content:space-between;white-space:nowrap"><span>${r.label}</span><span class="b6">${r.value}</span></div><div class="track" style="height:16px;border-radius:8px"><div class="fill" style="height:16px;border-radius:8px;width:${(r.days / maxCover * 100).toFixed(1)}%"></div></div></div>`).join('')}</div>
-        <div class="rcard" id="w4c2" style="left:934px;width:420px;height:470px;top:116px;padding:30px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:18px"><span style="width:84px;height:84px;border-radius:24px;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.people.replace('class="i"', 'class="i" style="width:48px;height:48px"')}</span><span class="t96">${FACTS.headcount.value.replace(/\s.*$/, '')}</span><span class="sc-row" style="gap:14px"><span class="t40 b6">คน</span><span class="sc-pill t34" style="height:52px;padding:0 18px;border-radius:26px;background:var(--s-greenbg);color:var(--s-green)">${FACTS.headcount.delta > 0 ? '+' : '−'}${Math.abs(FACTS.headcount.delta).toFixed(1)}%</span></span></div>
+        ${['ทีมขายมีใครบ้าง', 'สต๊อกพอขายกี่วัน', 'พนักงานทั้งหมด'].map((q, i) => `<div class="ask" id="w4q${i}" style="left:${294 + i * 216}px;top:228px">${q}</div>`).join('')}
+        <div class="card" id="w4c0" style="left:294px;top:274px;width:196px;height:200px;padding:14px 16px">${team}</div>
+        <div class="card" id="w4c1" style="left:510px;top:274px;width:196px;height:200px;padding:14px 16px">${FACTS.cover.rows.map((r) => `<div style="margin-bottom:12px"><div class="row small" style="justify-content:space-between;white-space:nowrap"><span>${r.label}</span><span class="strong num">${r.value}</span></div><div class="track"><div class="fill" style="width:${(r.days / maxCover * 100).toFixed(1)}%"></div></div></div>`).join('')}</div>
+        <div class="card" id="w4c2" style="left:726px;top:274px;width:196px;height:200px;padding:16px 18px;display:flex;flex-direction:column;justify-content:center;gap:10px"><span class="ic" style="background:#eef2ff;color:#4f46e5">${ICON.people}</span><span class="hero">${FACTS.headcount.value.replace(/\s.*$/, '')}</span><span class="row" style="gap:8px"><span class="unit">คน</span><span class="tag" style="background:#e7f8ef;color:#047857">${FACTS.headcount.delta > 0 ? '+' : '−'}${Math.abs(FACTS.headcount.delta).toFixed(1)}%</span></span></div>
       </div>
       <div class="layer" id="L6">
-        <div class="sc-card" id="w6card" style="left:150px;top:70px;width:1090px;padding:40px 48px 44px">
-          <div class="t40 b6" style="color:var(--s-muted)">คาดปิดเดือน</div>
-          <div class="sc-row" style="gap:22px;align-items:baseline;margin-top:6px"><span class="t96" style="color:var(--s-red)">${FACTS.close.projected}</span><span class="t40 b6">ของเป้า</span></div>
-          <div style="position:relative;margin-top:26px;height:28px;border-radius:14px;background:#f0f1f6;overflow:hidden"><div class="ab" style="left:0;top:0;bottom:0;width:${parseFloat(FACTS.close.projected)}%;background:#fecdd3"></div><div class="ab" style="left:0;top:0;bottom:0;width:${parseFloat(FACTS.close.toDate)}%;background:linear-gradient(90deg,#fb7185,#e11d48);border-radius:14px"></div></div>
-          <div class="sc-row" style="justify-content:flex-end;margin-top:34px"><span class="fwd t40 b6" id="fwdBtn" style="height:68px;padding:0 30px;border-radius:34px;gap:12px">${ICON.fwd.replace('class="i"', 'class="i" style="width:30px;height:30px"')}ส่งต่อ</span></div>
+        <div class="card" id="w6card" style="left:328px;top:248px;width:560px;padding:18px 20px">
+          <div class="eyebrow">มูลค่าขายเข้า</div>
+          <div class="verdict">${verdict}</div>
+          <div class="row" style="gap:10px;margin-top:12px;align-items:stretch"><div class="tile" style="flex:1"><div class="tiny muted">คาดปิดเดือน</div><div class="v" style="color:#e11d48">${FACTS.close.projected}</div><div class="tiny muted">ของเป้าทั้งเดือน</div></div><div class="tile" style="flex:1"><div class="tiny muted">ทำได้แล้ว</div><div class="v">${FACTS.close.toDate}</div><div class="tiny muted">ของเป้าทั้งเดือน</div></div></div>
+          <div class="row" style="margin-top:26px"><span class="btn" id="fwdBtn" style="border:1px solid #dfe2ea;color:#334155;background:#fff">${ICON.fwd}ส่งต่อ</span></div>
         </div>
-        <div class="sc-card" id="pop" style="left:700px;top:150px;width:460px;padding:28px;border-radius:28px;box-shadow:0 40px 80px -24px rgba(30,27,75,.38),0 0 0 1px rgba(15,23,42,.04);transform-origin:100% 100%;opacity:0">
-          <div class="sc-row" style="height:64px;gap:16px"><span style="width:60px;height:60px;border-radius:50%;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.user}</span><span class="t40 b6">CEO</span></div>
-          <div style="position:relative;margin-top:22px;height:68px">
-            <div class="sc-btn bgrad t40 ab" id="popSend" style="left:0;top:0;width:100%;height:68px;border-radius:34px">${ICON.send}ส่ง</div>
-            <div class="sc-btn t40 ab" id="popDone" style="left:0;top:0;width:100%;height:68px;border-radius:34px;background:var(--s-greenbg);color:var(--s-green);opacity:0">${ICON.ok}ส่งแล้ว</div>
+        <div class="card" id="pop" style="left:600px;top:150px;width:232px;padding:12px;border-radius:18px;transform-origin:0 100%;opacity:0">
+          <div class="row" style="height:32px;gap:8px"><span class="ic" style="width:28px;height:28px;border-radius:50%;background:#eef2ff;color:#4f46e5">${ICON.user}</span><span class="body strong">CEO</span></div>
+          <div style="position:relative;margin-top:10px;height:36px">
+            <div class="btn ab" id="popSend" style="left:0;top:0;width:100%;background:linear-gradient(135deg,#4f46e5,#7c3aed 55%,#fb7185);color:#fff">${ICON.send}ส่ง</div>
+            <div class="btn ab" id="popDone" style="left:0;top:0;width:100%;background:#e7f8ef;color:#047857;opacity:0">${ICON.ok}ส่งแล้ว</div>
           </div>
         </div>
       </div>
       <div class="layer" id="L7">
-        <div class="sc-row ab" id="cRow" style="left:150px;top:40px;width:1090px;height:180px;padding:0 44px;gap:28px;border-radius:32px;background:#fff;border:1.5px solid var(--s-line);box-shadow:0 26px 60px -30px rgba(49,46,129,.28)"><span style="width:92px;height:92px;border-radius:26px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center">${ICON.laptop.replace('class="i"', 'class="i" style="width:50px;height:50px"')}</span><span class="t56">ทะเบียนทรัพย์สิน</span><span style="flex:1"></span>
-          <span style="position:relative;width:300px;height:76px">
-            <span class="sc-btn bdark t40 ab" id="cBtn" style="right:0;top:0;height:76px;padding:0 36px;border-radius:38px">${ICON.plug.replace('class="i"', 'class="i" style="width:30px;height:30px"')}เชื่อม</span>
-            <span class="sc-pill t40 ab" id="cIng" style="right:0;top:4px;height:68px;padding:0 26px;border-radius:34px;background:var(--s-amberbg);color:var(--s-amber);gap:12px;opacity:0"><svg class="i" id="cSpin" viewBox="0 0 24 24" style="width:30px;height:30px"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>กำลังเชื่อม…</span>
-            <span class="sc-pill t40 ab" id="cOk" style="right:0;top:4px;height:68px;padding:0 28px;border-radius:34px;background:var(--s-greenbg);color:var(--s-green);gap:12px;opacity:0"><i style="width:14px;height:14px;border-radius:50%;background:#10b981"></i>เชื่อมแล้ว</span>
+        <div class="card row" id="cRow" style="left:328px;top:250px;width:560px;height:68px;padding:0 16px;gap:12px"><span class="ic" style="width:36px;height:36px;background:var(--grad);color:#fff">${ICON.laptop}</span><span class="title">ทะเบียนทรัพย์สิน</span><span class="tag" style="background:#eef2ff;color:#3730a3">MCP</span><span style="flex:1"></span>
+          <span style="position:relative;width:132px;height:36px">
+            <span class="btn ab" id="cBtn" style="right:0;top:0;background:#0f172a;color:#fff">${ICON.plug}เชื่อม</span>
+            <span class="btn ab" id="cIng" style="right:0;top:0;background:#fef3c7;color:#b45309;opacity:0"><svg class="i" id="cSpin" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>กำลังเชื่อม…</span>
+            <span class="btn ab" id="cOk" style="right:0;top:0;background:#e7f8ef;color:#047857;opacity:0"><i style="width:7px;height:7px;border-radius:50%;background:#10b981"></i>เชื่อมแล้ว</span>
           </span>
         </div>
-        <div class="sc-row ab" id="w6a" style="left:150px;top:250px;width:1090px;gap:24px;align-items:stretch">${FACTS.assets.map((a, i) => `<div class="piece" id="w6t${i}" style="flex:1;background:#fff;border:1.5px solid var(--s-line);box-shadow:0 26px 60px -30px rgba(49,46,129,.28);border-radius:26px;padding:28px 34px"><div class="sc-row t40 b6" style="gap:14px;color:var(--s-muted)"><span style="color:var(--s-indigo);display:flex">${(ASSET_ICON[a.label] ?? ICON.laptop).replace('class="i"', 'class="i" style="width:40px;height:40px"')}</span>${a.label}</div><div class="t96" style="margin-top:8px">${a.count}<span class="t40 b6" style="margin-left:14px">เครื่อง</span></div></div>`).join('')}</div>
+        <div class="ab row" id="w6a" style="left:328px;top:334px;width:560px;gap:12px;align-items:stretch">${FACTS.assets.map((a, i) => `<div class="card" id="w6t${i}" style="position:relative;flex:1;padding:14px 16px"><div class="row tiny muted" style="gap:6px">${(ASSET_ICON[a.label] ?? ICON.laptop)}${a.label}</div><div style="margin-top:4px"><span class="hero">${a.count}</span><span class="unit" style="margin-left:6px">เครื่อง</span></div></div>`).join('')}</div>
       </div>
       <div class="cursor" id="wcur">${CURSOR}</div>
       <div class="ripple" id="wrip"></div>
@@ -583,40 +656,41 @@ function buildWindow() {
 }
 
 function buildPhone() {
+  $('phone').classList.add('app');
   $('phone').innerHTML = `<div id="pscr">
     <div class="island"></div>
-    <div class="sc-row ab" style="left:18px;top:58px;gap:12px">${logoBox(48, 36)}</div>
-    <div class="ab" style="left:0;right:0;top:122px;height:1px;background:#eef0f5"></div>
-    <div class="ab" style="left:0;right:0;top:123px;bottom:118px;overflow:hidden">
-      <div class="ab" id="pscroll" style="left:0;right:0;top:0;height:900px">
-        <div class="sc-bubble t34" id="pq0" style="right:16px;top:18px;padding:12px 22px;border-radius:26px 26px 6px 26px"></div>
-        <div class="sc-card" id="pbal" style="left:16px;top:108px;width:320px;padding:22px 24px 24px;border-radius:26px"><div class="t34 b6" style="color:var(--s-muted)">${ANNUAL.label}</div><div style="margin-top:2px"><span class="t96">${ANNUAL.left}</span><span class="t40 b6" style="color:var(--s-muted)">/${ANNUAL.entitled} วัน</span></div><div class="track" style="height:14px;border-radius:7px;margin-top:12px"><div class="fill" id="pbf" style="height:14px;border-radius:7px;width:${(ANNUAL.left / ANNUAL.entitled * 100).toFixed(1)}%"></div></div></div>
-        <div class="sc-bubble t34" id="pq1" style="right:16px;top:392px;white-space:normal;width:290px;padding:12px 22px;border-radius:26px 26px 6px 26px"></div>
-        <div class="sc-card" id="plv" style="left:16px;top:520px;width:320px;padding:24px;border-radius:26px">
-          <div class="t34 b6" style="color:var(--s-muted)">ยื่นใบลา</div>
-          <div class="t40 b6" style="margin-top:4px;white-space:nowrap">${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}</div>
-          <div style="position:relative;margin-top:18px;height:68px">
-            <div class="sc-btn bdark t40 ab" id="plvOk" style="left:0;top:0;width:272px;height:68px;border-radius:34px;padding:0">ยื่นใบลา</div>
-            <div class="sc-btn t34 ab" id="plvDone" style="left:0;top:0;width:272px;height:68px;border-radius:34px;padding:0;background:var(--s-greenbg);color:var(--s-green);opacity:0">${ICON.ok}ส่ง HR แล้ว</div>
+    <div class="ab" style="left:20px;top:58px">${logoBox(32, 24)}</div>
+    <div class="ab" style="left:0;right:0;top:330px;height:226px;overflow:hidden">
+      <div class="ab" id="pscroll" style="left:0;right:0;top:0;height:480px">
+        <div class="ask" id="pq0" style="right:16px;top:8px"></div>
+        <div class="card" id="pbal" style="left:16px;top:52px;width:320px;padding:14px 16px"><div class="cap">${ANNUAL.label}</div><div style="margin-top:4px"><span class="hero">${ANNUAL.left}</span><span class="unit">/${ANNUAL.entitled} วัน</span></div><div class="track"><div class="fill" id="pbf" style="width:${(ANNUAL.left / ANNUAL.entitled * 100).toFixed(1)}%"></div></div></div>
+        <div class="ask" id="pq1" style="right:16px;top:240px;white-space:normal;width:236px"></div>
+        <div class="card" id="plv" style="left:16px;top:314px;width:320px;padding:14px 16px">
+          <div class="cap">ยื่นใบลา</div>
+          <div class="title" style="margin-top:2px;white-space:nowrap">${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}</div>
+          <div style="position:relative;margin-top:10px;height:36px">
+            <div class="btn ab" id="plvOk" style="left:0;top:0;width:100%;background:#0f172a;color:#fff">ยื่นใบลา</div>
+            <div class="btn ab" id="plvDone" style="left:0;top:0;width:100%;background:#e7f8ef;color:#047857;opacity:0">${ICON.ok}ส่ง HR แล้ว</div>
           </div>
         </div>
       </div>
     </div>
-    <div class="pcomp t34" style="min-height:72px"><span id="ptyped"></span><span class="pcaret" id="pcaret" style="height:34px"></span><div class="psend">${ICON.up}</div></div>
+    <div class="ab row body" style="left:16px;right:16px;top:568px;height:44px;border-radius:22px;padding:0 48px 0 16px;border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#7c3aed,#4f46e5 50%,#22d3ee) border-box;white-space:nowrap"><span id="ptyped"></span><span id="pcaret" style="display:inline-block;width:2px;height:18px;margin-left:2px;background:#4f46e5;border-radius:1px"></span><div class="psend" style="right:5px;bottom:5px;width:32px;height:32px">${ICON.up}</div></div>
     <div class="home-ind"></div>
-    <div class="touch" id="ptouch"></div>
+    <div class="touch" id="ptouch" style="width:30px;height:30px;margin:-15px 0 0 -15px"></div>
   </div>`;
 }
 
 function buildSplit() {
-  const answer = (id, extra = '') => `<div class="sc-card" id="${id}" style="left:40px;top:172px;width:760px;height:200px;padding:24px 36px;box-shadow:none"><div class="t40 b6" style="color:var(--s-muted)">อัตรากำไรขั้นต้น</div>${extra}<div id="${id}v" class="t96" style="margin-top:6px">${FACTS.margin.value}</div></div>`;
-  const lock = `<div class="sc-row lock6" id="s6lock" style="top:90px;height:76px;gap:16px"><span class="lk" style="width:72px;height:72px">${ICON.lockS.replace('class="i"', 'class="i" style="width:36px;height:36px"')}</span><span class="t40 b6">${DENIED}</span></div>`;
-  const head = (role) => `<div class="tb" style="height:64px"><div class="lights" style="top:25px"><i></i><i></i><i></i></div><div class="who t34 b6 mid" style="height:52px;top:6px;padding:0 22px 0 8px"><span class="av" style="width:38px;height:38px">${ICON.user}</span>${role}</div></div>`;
+  const head = (role) => `<div class="tb"><div class="lights"><i></i><i></i><i></i></div><div class="who"><span class="av">${ICON.user}</span>${role}</div></div>`;
+  const answer = (id, extra = '') => `<div class="ab" id="${id}" style="left:14px;right:14px;top:72px"><div class="eyebrow">อัตรากำไรขั้นต้น</div><div id="${id}v" class="hero" style="margin-top:4px">${FACTS.margin.value}</div>${extra}</div>`;
+  const lock = `<div class="ab row lock6" id="s6lock" style="left:0;top:20px;gap:6px;height:30px;opacity:0"><span class="ic" style="width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 8px -2px rgba(30,27,75,.3);color:#3730a3">${ICON.lockS}</span><span class="small strong" style="color:#3730a3">${DENIED}</span></div>`;
+  $('split').classList.add('app');
   $('split').innerHTML = `
-    <div class="win" id="s6a" style="left:0;top:0;width:840px;height:400px">${head('CEO')}<div class="sc-bubble t40" id="s6qa" style="right:40px;top:80px">กำไรเดือนนี้</div>${answer('s6ka')}</div>
-    <div class="win" id="s6b" style="left:888px;top:0;width:840px;height:400px">${head(short(FACTS.rep.role))}<div class="sc-bubble t40" id="s6qb" style="right:40px;top:80px">กำไรเดือนนี้</div>${answer('s6kb', lock)}</div>
-    <div class="win" id="s6c" style="left:504px;top:448px;width:720px;height:252px">${head('ฝ่ายไอที')}
-      <div class="sc-row ab" style="left:40px;right:40px;top:64px;height:188px;gap:24px"><span style="width:76px;height:76px;border-radius:22px;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.shield}</span><div style="flex:1"><div class="t40 b6">${short(FACTS.rep.role)}</div><div class="t34" style="color:var(--s-muted)">ดูกำไร</div></div><div class="tog" id="tog"><div class="ab" id="togOn" style="inset:0;border-radius:28px;background:var(--grad)"></div><div class="ab" id="togOff" style="inset:0;border-radius:28px;background:#cfd5e1;opacity:0"></div><div class="knob" id="knob"></div></div></div>
+    <div class="win" id="s6a" style="left:340px;top:262px;width:322px;height:150px">${head('CEO')}<div class="ask" id="s6qa" style="right:14px;top:36px">กำไรเดือนนี้</div>${answer('s6ka')}</div>
+    <div class="win" id="s6b" style="left:682px;top:262px;width:322px;height:150px">${head(short(FACTS.rep.role))}<div class="ask" id="s6qb" style="right:14px;top:36px">กำไรเดือนนี้</div>${answer('s6kb', lock)}</div>
+    <div class="win" id="s6c" style="left:452px;top:430px;width:440px;height:104px">${head('ฝ่ายไอที')}
+      <div class="ab row" style="left:16px;right:16px;top:28px;height:76px;gap:12px"><span class="ic" style="background:#eef2ff;color:#4f46e5">${ICON.shield.replace('style="width:32px;height:32px"', '')}</span><div style="flex:1"><div class="body strong">${short(FACTS.rep.role)}</div><div class="cap">ดูกำไร</div></div><div class="tog" id="tog"><div class="ab" id="togOn" style="inset:0;border-radius:11px;background:var(--grad)"></div><div class="ab" id="togOff" style="inset:0;border-radius:11px;background:#cfd5e1;opacity:0"></div><div class="knob" id="knob"></div></div></div>
       <div class="cursor" id="scur">${CURSOR}</div></div>`;
 }
 
@@ -626,17 +700,19 @@ buildSplit();
 $('memtext').textContent = `จำไว้แล้ว · สนใจ${FACTS.spotlight}`;
 $('mini').innerHTML = `<span class="t40 muted">คาดปิดเดือน</span><span class="t76 num" style="color:var(--coral-ink)">${FACTS.close.projected}</span>`;
 
+/** Every screen is drawn at the app's own type scale and pushed in by the same factor, with its focal content centred on FOCUS. */
+const ZOOM = 2.75, PHONE_ZOOM = 2.0, FOCUS = { x: 960, y: 650 }, PHONE_X = 1240;
 const DEV = {
-  win: { el: $('win'), lw: 1480, lh: 690, ww: 2.7, flat: [960, 652, 1.22] },
-  phone: { el: $('phone'), lw: 376, lh: 736, ww: 0.62, flat: [1250, 600, 1.18] },
-  split: { el: $('split'), lw: 1728, lh: 700, ww: 3.2, flat: [960, 652, 1.0] },
+  win: { el: $('win'), lw: 1280, lh: 800, ww: 2.7, flat: [FOCUS.x - (672 - 640) * ZOOM, FOCUS.y, ZOOM] },
+  phone: { el: $('phone'), lw: 376, lh: 736, ww: 0.62, flat: [PHONE_X, FOCUS.y - (483 - 368) * PHONE_ZOOM, PHONE_ZOOM] },
+  split: { el: $('split'), lw: 1280, lh: 800, ww: 3.2, flat: [FOCUS.x - (672 - 640) * ZOOM, FOCUS.y, ZOOM] },
 };
-DEV.win.el.style.width = DEV.win.lw + 'px'; DEV.win.el.style.height = DEV.win.lh + 'px';
+for (const d of [DEV.win, DEV.split]) { d.el.style.width = d.lw + 'px'; d.el.style.height = d.lh + 'px'; }
 const PLINTH = 0.06;
 const VISITS = [
   { dev: DEV.win, at: [3.7, -3.1], show: T.win1, moves: [[T.push1, T.pull1]] },
   { dev: DEV.win, at: [1.6, 4.4], show: T.win2, moves: [[T.push2, T.pull2], [T.push3, T.pull3]] },
-  { dev: DEV.phone, at: [8.6, 4.5], show: T.phone, moves: [[T.push4, T.pull4]], town: true },
+  { dev: DEV.phone, at: [11.6, 7.5], show: T.phone, moves: [[T.push4, T.pull4]], town: { pin: [1240, 820] } },
   { dev: DEV.split, at: [2.2, 3.8], show: T.split, moves: [[T.push5, T.pull5]] },
   { dev: DEV.win, at: [3.4, 3.0], show: T.win3, moves: [[T.push6, T.pull6]] },
 ];
@@ -659,7 +735,7 @@ function pose(v, W, u) {
   const sc = Math.exp(lerp(Math.log(kk), Math.log(as), u));
   const w = u <= 0 ? 0 : u >= 1 ? 1 : (1 / kk - 1 / sc) / (1 / kk - 1 / as);
   const r = 1 - EIO3(clamp(u / 0.92));
-  return { k: kk, S: sc, x: lerp(hx, fx, w), y: lerp(hy, fy, w), ax: ISO_X * r, az: ISO_Z * r };
+  return { k: kk, S: sc, x: lerp(hx, fx, w), y: lerp(hy, fy, w), w, ax: ISO_X * r, az: ISO_Z * r };
 }
 function applyPose(d, p, o) {
   if (o <= 0.003) { d.el.style.visibility = 'hidden'; d.el.style.opacity = '0'; return; }
@@ -674,7 +750,7 @@ const V = {
   morning: look(1.6, -4.6, 1010, 600, 1.0),
   memory: look(1.2, 3.0, 980, 770, 1.0),
   forward: look(2.8, 1.6, 1000, 660, 0.98),
-  leave: look(7.0, 5.6, 960, 520, 1.0),
+  leave: look(9.4, 9.6, 960, 540, 1.0),
   perm: look(2.0, 2.0, 960, 610, 0.98),
   conn: look(2.4, 2.0, 980, 640, 1.0),
   wide: look(1.2, 0.8, 960, 650, 0.92),
@@ -704,7 +780,8 @@ function solve(t) {
   if (active) {
     const p = pose(active, W, visitU(active, t));
     poses.set(active, p);
-    world = look(active.at[0], active.at[1], p.x, p.y, W.z * townZoom(p.S / p.k, active.town ? TOWN_ZOOM_CAP : ZOOM_CAP), PLINTH);
+    const [fx, fy] = active.dev.flat, pin = active.town?.pin ?? [fx, fy];
+    world = look(active.at[0], active.at[1], p.x + (pin[0] - fx) * p.w, p.y + (pin[1] - fy) * p.w, W.z * townZoom(p.S / p.k, active.town ? TOWN_ZOOM_CAP : ZOOM_CAP), PLINTH);
   }
   for (const v of VISITS) if (!poses.has(v)) poses.set(v, pose(v, world, visitU(v, t)));
   const shown = VISITS.filter(v => !v.town && t > v.show[0] && t < v.show[1]);
@@ -871,7 +948,7 @@ function townForward(acc, t, winCenter) {
   setUI($('mini'), mi, fhx - 330, fhy - 330 + (1 - mi) * 40, lerp(0.85, 1, mi));
 }
 
-const REP_AT = [7.6, 7.1], HR_AT = [5.1, 7.4];
+const REP_AT = [9.6, 10.6], HR_AT = [6.6, 11.4];
 function townLeave(acc, t) {
   if (t < T.leaveIn - 0.4 || t > T.leaveOut + 0.6) return;
   const exit = k(t, T.leaveOut, 0.45, EI3);
@@ -883,7 +960,7 @@ function townLeave(acc, t) {
   acc.items.push({ d: HR_AT[0] + HR_AT[1], s: building(HR_AT[0], HR_AT[1], 1.4, 1.7 * hr, M.coral, clamp(hr * 3)) });
   const [lx, ly] = P(HR_AT[0], HR_AT[1], 1.7 * hr + 0.2);
   const ok = k(t, T.approved, 0.5, EBK);
-  label('hr7', `<span class="pill t40">HR${ok > 0.01 ? `<span class="chip ok t34" style="padding:2px 12px;transform:scale(${ok.toFixed(3)})">${ICON.check}</span>` : ''}</span>`, lx, ly, k(t, T.leaveIn + 0.4, 0.5) * (1 - exit));
+  label('hr7', `<span class="pill t40">HR${ok > 0.01 ? `<span class="chip ok t40" style="padding:2px 12px;transform:scale(${ok.toFixed(3)})">${ICON.check}</span>` : ''}</span>`, lx, ly, k(t, T.leaveIn + 0.4, 0.5) * (1 - exit));
   const toHr = [[REP_AT[0] - 0.4, REP_AT[1] + 0.1], [HR_AT[0] + 0.8, REP_AT[1] + 0.1], [HR_AT[0] + 0.8, HR_AT[1]]];
   acc.under.push(groundPath(toHr, k(t, T.leaveIn + 0.4, 0.5) * (1 - exit)));
   flowDots(acc, toHr, t, T.done - 0.1, T.approved + 0.3, { n: 3, speed: 1.6, color: '#fb7185' });
@@ -945,8 +1022,8 @@ function townConnect(acc, t) {
   flowDots(acc, [[AX - 0.75, 0], [1.4, 0]], t, T.connected, T.logo - 0.3, { n: 3, speed: 1.0, color: '#059669', z: 0.3 });
   const [lx, ly] = P(AX, AY, 2.0);
   const status = t < T.connected
-    ? `<span class="chip soft t34"><span class="spin" style="transform:rotate(${f1(RT * 400)}deg)"></span>กำลังเชื่อม…</span>`
-    : `<span class="chip ok t34">${ICON.check}เชื่อมแล้ว</span>`;
+    ? `<span class="chip soft t40"><span class="spin" style="transform:rotate(${f1(RT * 400)}deg)"></span>กำลังเชื่อม…</span>`
+    : `<span class="chip ok t40">${ICON.check}เชื่อมแล้ว</span>`;
   label('reg', `<div class="stack"><span class="pill t40">ทะเบียนทรัพย์สิน</span>${status}</div>`, lx, ly, k(t, T.connIn + 0.6, 0.5) * (1 - exit), { s: lerp(0.9, 1, k(t, T.connIn + 0.6, 0.5, EBK)) });
 }
 
@@ -956,17 +1033,17 @@ function measure() {
   const chat = $('L2').parentElement;
   const [fx, fy] = centerIn($('fwdBtn'), chat);
   const pop = $('pop');
-  pop.style.left = f1(fx + $('fwdBtn').offsetWidth / 2 - pop.offsetWidth) + 'px';
-  pop.style.top = f1(fy - $('fwdBtn').offsetHeight / 2 - pop.offsetHeight - 16) + 'px';
+  pop.style.left = f1(fx - $('fwdBtn').offsetWidth / 2) + 'px';
+  pop.style.top = f1($('w6card').offsetTop + 74) + 'px';
   const [sx, sy] = centerIn($('popSend'), chat), [cx, cy] = centerIn($('cBtn'), chat);
-  const [px, py] = centerIn($('qp0').firstElementChild, chat);
+  const [px, py] = centerIn($('qp0'), chat), [sx2, sy2] = centerIn($('qsend'), chat);
   CUR_KEYS = {
-    pill: [[T.memPill + 0.2, px + 760, py + 360], [T.tap, px + 40, py], [T.tap + 0.6, px + 120, py + 140]],
-    fwd: [[T.fwd + 0.2, fx + 160, fy + 120], [T.fwdClick, fx, fy], [T.fwdClick + 0.5, fx - 30, fy + 30], [T.sendClick, sx, sy], [T.sendClick + 0.6, sx + 90, sy + 140]],
-    conn: [[T.push6[1], cx + 120, cy + 170], [T.connClick, cx, cy], [T.connClick + 0.8, cx + 80, cy + 140]],
+    pill: [[T.memPill + 0.2, px + 260, py + 120], [T.tap, px + 10, py + 4], [T.tap + 0.25, px + 30, py + 30], [T.askSend - 0.05, sx2, sy2], [T.askSend + 0.4, sx2 + 30, sy2 + 40]],
+    fwd: [[T.fwd + 0.2, fx + 120, fy + 70], [T.fwdClick, fx, fy + 4], [T.fwdClick + 0.5, fx + 30, fy - 20], [T.sendClick, sx, sy + 4], [T.sendClick + 0.6, sx + 50, sy + 60]],
+    conn: [[T.push6[1], cx + 60, cy + 110], [T.connClick, cx, cy + 4], [T.connClick + 0.8, cx + 40, cy + 70]],
   };
   const scr = $('pscr'), send = centerIn($('pcaret').parentElement.querySelector('.psend'), scr), ok = centerIn($('plvOk'), scr);
-  PHONE_TAPS = [[T.leaveQ[0] + T.leaveQ[1] + 0.05, ...send], [T.leave[0] + T.leave[1] + 0.05, ...send], [T.press, ok[0], ok[1] - 376]];
+  PHONE_TAPS = [[T.leaveQ[0] + T.leaveQ[1] + 0.05, ...send], [T.leave[0] + T.leave[1] + 0.05, ...send], [T.press, ok[0], ok[1] - PHONE_SCROLL]];
 }
 function cursorAt(keys, t) {
   if (t <= keys[0][0]) return [keys[0][1], keys[0][2]];
@@ -976,22 +1053,22 @@ function cursorAt(keys, t) {
 function trendSvg(prog) {
   const weeks = FACTS.trend.weeks, vals = weeks.map(w => w.value);
   const lo = Math.min(...vals), hi = Math.max(...vals), n = weeks.length - 1;
-  const pt = i => [24 + i / n * 950, 70 + (hi - vals[i]) / (hi - lo) * 250];
+  const pt = i => [8 + i / n * 504, 24 + (hi - vals[i]) / (hi - lo) * 84];
   const shown = [];
   for (let i = 0; i <= n; i++) { if (i <= prog) shown.push(pt(i)); else { const q = prog - (i - 1); if (q > 0) { const a = pt(i - 1), b = pt(i); shown.push([lerp(a[0], b[0], q), lerp(a[1], b[1], q)]); } break; } }
-  let s = `<line x1="0" y1="380" x2="1000" y2="380" stroke="#eceef4" stroke-width="2"/>`;
+  let s = `<line x1="0" y1="122" x2="520" y2="122" stroke="#eceef4" stroke-width="1"/>`;
   if (shown.length > 1) {
     const last = shown[shown.length - 1];
     s += `<defs><linearGradient id="trg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6366f1" stop-opacity=".22"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></linearGradient></defs>`;
-    s += `<polygon points="${f1(shown[0][0])},380 ${pts(shown)} ${f1(last[0])},380" fill="url(#trg)"/><polyline points="${pts(shown)}" fill="none" stroke="#6366f1" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`;
+    s += `<polygon points="${f1(shown[0][0])},122 ${pts(shown)} ${f1(last[0])},122" fill="url(#trg)"/><polyline points="${pts(shown)}" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
   }
-  for (let i = 0; i <= n && i <= prog + 1e-6; i++) { const [x, y] = pt(i); s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${i === 0 || i === n ? 13 : 7}" fill="#fff" stroke="${i === n ? '#e11d48' : '#6366f1'}" stroke-width="5"/>`; }
+  for (let i = 0; i <= n && i <= prog + 1e-6; i++) { const [x, y] = pt(i); s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${i === 0 || i === n ? 4.5 : 2.5}" fill="#fff" stroke="${i === n ? '#e11d48' : '#6366f1'}" stroke-width="2"/>`; }
   return { svg: s, a: pt(0), b: pt(n) };
 }
 const LAYERS = [['L1', T.pull1[1] + 0.5], ['L2', T.card2], ['L3', T.wall], ['L4', T.dyn], ['L5', T.fwd], ['L6', T.pull3[1] + 0.5], ['L7', Infinity]];
 const layerOf = (t) => LAYERS.find(([, until]) => t < until)[0];
 const SWAPS = [T.card2, T.wall, T.dyn, T.fwd];
-const LAYER_SWAP = 0.35;
+const LAYER_SWAP = 0.22;
 function screenWin(t) {
   const near = SWAPS.find(s => Math.abs(t - s) < LAYER_SWAP);
   const cur = layerOf(t);
@@ -1004,30 +1081,45 @@ function screenWin(t) {
     }
     fade($(id), o);
   });
-  $('sact').style.top = (cur === 'L7' ? 204 : 144) + 'px';
+  $('sact').style.top = (cur === 'L7' ? 148 : 104) + 'px';
 
   [['w1a', 0], ...FACTS.drops.map((_, i) => ['w1r' + i, 0.3 + i * 0.2]), ['w1c', 0.9]].forEach(([id, d]) => rise($(id), k(t, T.card1 + d, 0.45, EOX)));
 
-  CHIPS.forEach((_, i) => rise($('qp' + i), k(t, T.pills + i * 0.15, 0.45, EOX), 24));
+  rise($('qbox2'), k(t, T.pills - 0.2, 0.45, EOX), 16);
+  CHIPS.forEach((_, i) => rise($('qp' + i), k(t, T.pills + i * 0.15, 0.45, EOX), 12));
   const lit = k(t, T.memPill, 0.5, EIO3), tap = bump(t, T.tap, 0.25);
-  const mem = $('qp0').firstElementChild;
-  mem.style.boxShadow = `0 0 0 ${f1(8 * lit)}px rgba(124,58,237,${(0.18 * lit).toFixed(3)}),0 ${f1(10 + 14 * lit)}px ${f1(24 + 20 * lit)}px -16px rgba(79,70,229,${(0.3 + 0.3 * lit).toFixed(3)})`;
-  mem.style.transform = `scale(${(1 + 0.05 * lit - 0.05 * tap).toFixed(3)})`;
+  const mem = $('qp0');
+  const [mx, my] = centerIn(mem, $('L2'));
+  const tip = $('qtip'), to = k(t, T.memPill + 0.1, 0.35, EBK) * (1 - k(t, T.tap + 0.2, 0.2, LIN));
+  tip.style.opacity = clamp(to).toFixed(3);
+  tip.style.transform = `translate(${f1(mx - tip.offsetWidth / 2)}px,${f1(my - 16 - 10 - tip.offsetHeight + (1 - clamp(to)) * 6)}px) scale(${lerp(0.9, 1, clamp(to)).toFixed(3)})`;
+  const fill = graphemes(CHIPS[0].label), nf = Math.round(k(t, T.tap + 0.1, 0.3, LIN) * fill.length), sentQ = t >= T.askSend;
+  const qv = sentQ ? '' : fill.slice(0, nf).join('');
+  const qt = $('qtyped'); if (qt._h !== qv) { qt.textContent = qv; qt._h = qv; }
+  $('qph').style.display = qv || (t > T.tap && !sentQ) ? 'none' : 'inline';
+  $('qcaret').style.opacity = (qv || Math.floor(RT * 2.4) % 2 === 0) ? '1' : '0';
+  const ready = qv.length > 0;
+  $('qsend').style.background = ready ? '#0f172a' : '#e7e9f0';
+  $('qsend').style.color = ready ? '#fff' : '#94a3b8';
+  $('qsend').style.transform = `scale(${(1 - bump(t, T.askSend - 0.05, 0.25) * 0.1).toFixed(3)})`;
+  rise($('w2q'), k(t, T.card2 - 0.1, 0.35, EBK), 10);
+  mem.style.boxShadow = `0 0 0 ${f1(4 * lit)}px rgba(124,58,237,${(0.16 * lit).toFixed(3)}),0 1px 2px rgba(15,23,42,.05)`;
+  mem.style.color = mixHex('#64748b', '#0f172a', lit);
+  mem.style.transform = `scale(${(1 - 0.04 * tap).toFixed(3)})`;
   mem.style.transformOrigin = '0 50%';
 
   const tr = trendSvg(clamp((t - T.card2 - 0.2) / 1.0) * (FACTS.trend.weeks.length - 1));
   const sv = $('trend'); if (sv._h !== tr.svg) { sv.innerHTML = tr.svg; sv._h = tr.svg; }
   const ta = $('trA'), tb = $('trB');
-  ta.style.left = f1(tr.a[0] - 10) + 'px'; ta.style.top = f1(tr.a[1] - 76) + 'px'; ta.style.opacity = k(t, T.card2 + 0.3, 0.3).toFixed(3);
-  tb.style.right = '0px'; tb.style.top = f1(tr.b[1] + 26) + 'px'; tb.style.opacity = k(t, T.card2 + 1.2, 0.3).toFixed(3);
+  ta.style.left = f1(tr.a[0] + 10) + 'px'; ta.style.top = f1(tr.a[1] - 24) + 'px'; ta.style.opacity = k(t, T.card2 + 0.3, 0.3).toFixed(3);
+  tb.style.right = f1(520 - tr.b[0] + 12) + 'px'; tb.style.top = f1(tr.b[1] - 2) + 'px'; tb.style.opacity = k(t, T.card2 + 1.2, 0.3).toFixed(3);
 
-  rise($('w3q'), k(t, T.ask3, 0.4, EBK), 10);
   rise($('w3a'), k(t, T.panes, 0.5, EOX), 24);
   rise($('w3b'), k(t, T.panes + 0.2, 0.5, EOX), 24);
-  for (let i = 0; i < 11; i++) $('ww' + i).style.opacity = k(t, T.panes + 0.2 + i * 0.07, 0.15, LIN).toFixed(3);
+  for (let i = 0; i < WALL_LINES.length; i++) $('ww' + i).style.opacity = k(t, T.panes + 0.2 + i * 0.07, 0.15, LIN).toFixed(3);
   const dn = k(t, T.panes + 0.5, 0.7, EOX);
   $('w3donut').style.opacity = dn.toFixed(3);
-  $('w3donut').style.transform = `translateX(-50%) rotate(${f1(-40 * (1 - dn))}deg) scale(${lerp(0.85, 1, dn).toFixed(3)})`;
+  $('w3donut').style.transform = `translateX(-50%) scale(${lerp(0.9, 1, dn).toFixed(3)})`;
 
   T.chips.forEach((c, i) => { rise($('w4q' + i), k(t, c, 0.4, EBK), 10); rise($('w4c' + i), k(t, c + 0.15, 0.5, EOX), 24); });
 
@@ -1053,7 +1145,7 @@ function screenWin(t) {
   rise($('w6a'), k(t, T.assets, 0.45, EOX));
   FACTS.assets.forEach((_, i) => rise($('w6t' + i), k(t, T.assets + 0.2 + i * 0.15, 0.45, EOX)));
 
-  const pillCur = t > T.memPill && t < T.card2 + 0.3;
+  const pillCur = t > T.memPill && t < T.card2 + 0.2;
   const fwdCur = t > T.fwd && t < T.pull3[0];
   const connCur = t > T.push6[1] - 0.2 && t < T.connected + 0.5;
   const keys = pillCur ? CUR_KEYS.pill : fwdCur ? CUR_KEYS.fwd : CUR_KEYS.conn;
@@ -1061,7 +1153,7 @@ function screenWin(t) {
   const co = pillCur ? k(t, T.memPill + 0.2, 0.3) * (1 - k(t, T.card2, 0.3)) : fwdCur ? k(t, T.fwd + 0.2, 0.3) * (1 - k(t, T.pull3[0] - 0.4, 0.3)) : connCur ? k(t, T.push6[1], 0.3) * (1 - k(t, T.connected + 0.2, 0.3)) : 0;
   const cur2 = $('wcur');
   cur2.style.opacity = co.toFixed(3);
-  const clickT = [T.tap, T.fwdClick, T.sendClick, T.connClick].find(c => t > c - 0.1 && t < c + 0.5);
+  const clickT = [T.tap, T.askSend, T.fwdClick, T.sendClick, T.connClick].find(c => t > c - 0.1 && t < c + 0.5);
   cur2.style.transform = `translate(${f1(cx - 11)}px,${f1(cy - 6)}px) scale(${(1 - (clickT ? bump(t, clickT, 0.25) * 0.12 : 0)).toFixed(3)})`;
   const rip = $('wrip'), rp = clickT ? clamp((t - clickT) / 0.5) : 0;
   rip.style.opacity = (rp > 0 && rp < 1 ? 1 - rp : 0).toFixed(3);
@@ -1081,7 +1173,7 @@ function screenPhone(t) {
   q1.style.opacity = clamp(b1).toFixed(3); q1.style.transform = `scale(${lerp(0.7, 1, clamp(b1)).toFixed(3)})`;
   rise($('pbal'), k(t, T.bal, 0.45, EOX), 24);
   $('pbf').style.width = (ANNUAL.left / ANNUAL.entitled * 100 * k(t, T.bal + 0.2, 0.6, EOX)).toFixed(1) + '%';
-  $('pscroll').style.transform = `translateY(${f1(-k(t, T.scroll, 0.5, EIO3) * 376)}px)`;
+  $('pscroll').style.transform = `translateY(${f1(-k(t, T.scroll, 0.5, EIO3) * PHONE_SCROLL)}px)`;
   rise($('plv'), k(t, T.conf, 0.5, EOX), 30);
   const okP = bump(t, T.press, 0.3);
   $('plvOk').style.transform = `scale(${(1 - okP * 0.08).toFixed(3)})`;
@@ -1101,16 +1193,17 @@ function screenSplit(t) {
   rise($('s6ka'), k(t, T.nums, 0.5, EOX), 24);
   rise($('s6kb'), k(t, T.nums + 0.2, 0.5, EOX), 24);
   const flip = k(t, T.flip, 0.35, EIO3);
-  $('knob').style.transform = `translateX(${f1((1 - flip) * 44)}px)`;
+  $('knob').style.transform = `translateX(${f1((1 - flip) * 18)}px)`;
   $('togOff').style.opacity = flip.toFixed(3);
   const blur = k(t, T.lock - 0.1, 0.5, EIO3);
   const v = $('s6kbv');
-  v.style.filter = `blur(${f1(blur * 18)}px)`;
+  v.style.filter = `blur(${f1(blur * 7)}px)`;
   v.style.opacity = (1 - blur * 0.55).toFixed(3);
   const lk = k(t, T.lock, 0.45, EBK);
   $('s6lock').style.opacity = clamp(lk).toFixed(3);
   $('s6lock').style.transform = `scale(${lerp(0.8, 1, clamp(lk)).toFixed(3)})`;
-  const [cx, cy] = cursorAt([[T.push5[1], 600, 250], [T.flip - 0.05, 630, 160], [T.flip + 0.6, 670, 230]], t);
+  const tg = centerIn($('tog'), $('s6c'));
+  const [cx, cy] = cursorAt([[T.push5[1], tg[0] - 60, tg[1] + 50], [T.flip - 0.05, tg[0], tg[1]], [T.flip + 0.6, tg[0] + 30, tg[1] + 40]], t);
   const sc = $('scur');
   sc.style.opacity = (k(t, T.push5[1], 0.3) * (1 - k(t, T.flip + 0.7, 0.3))).toFixed(3);
   sc.style.transform = `translate(${f1(cx)}px,${f1(cy)}px) scale(${(1 - bump(t, T.flip - 0.1, 0.25) * 0.12).toFixed(3)})`;
@@ -1223,6 +1316,7 @@ const SOUND = {
     ...CHIPS.map((_, i) => ({ at: T.pills + i * 0.15, sfx: 'pop', step: i + 1 })),
     { at: T.memPill, sfx: 'memory' },
     { at: T.tap, sfx: 'click' },
+    { at: T.askSend, sfx: 'send' },
     { at: T.ask3, sfx: 'send' },
     ...T.chips.map((at) => ({ at, sfx: 'pop', step: 2 })),
     { at: T.fwdClick, sfx: 'click' },
