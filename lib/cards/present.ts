@@ -1678,7 +1678,7 @@ export function presentGap(input: PresentGapInput): CardParts {
     verdict: spaced(verdict),
     hero: rule.hero(facts),
     tiles: NO_TILES,
-    body: { kind: "exceptions", strip: { form: "line", baseline: 0, low: 0, high: PERCENT, overall: null, rows }, fold: foldLine ? { line: foldLine, rows: folded } : null },
+    body: { kind: "exceptions", strip: { form: "line", baseline: 0, low: 0, high: PERCENT, overall: null, total: null, rows }, fold: foldLine ? { line: foldLine, rows: folded } : null },
     primary: null,
     more: NO_ACTIONS,
     footer: { line: [compactPeriod(answer.period_label), ...(answer.scope_labels ?? [])].join(" · "), verified: false, details: joined([answer.projection?.basis ?? null, answer.share_note ?? null]) },

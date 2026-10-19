@@ -843,7 +843,8 @@ describe("scorecards and one-row cards keep to the card rules (AI-156)", () => {
     expect(card.hero?.label).toBe(named);
     const strip = stripOf(card.body);
     expect(strip.overall?.label).toBe(named);
-    expect(strip.overall?.sub).toContain(result.headline.value);
+    expect(strip.total).toContain(result.headline.value);
+    expect(strip.overall?.sub ?? "").not.toContain(result.headline.value);
     expect(strip.rows.map((row) => row.label)).not.toContain(named);
   });
 

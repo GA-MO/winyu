@@ -594,9 +594,10 @@ describe("a change ranking leads with the row that answers (R4, AI-294)", () => 
     expect(stripOf(card.body).overall).toMatchObject({ label: "อีสานรุ่งโรจน์ ค้าส่ง", tone: "bad" });
   });
 
-  test("the four agents' total moves to the note under the first row", () => {
+  test("the first row keeps its own detail under its name, and the four agents' total is a separate line saying what it is compared with", () => {
     const strip = stripOf(card.body);
-    expect(strip.overall?.sub).toContain("รวม 4 เอเย่นต์ +16.1%");
+    expect(strip.overall?.sub).toBe("32.3 → 26.8 ล้านบาท");
+    expect(strip.total).toBe("รวม 4 เอเย่นต์ +16.1% เทียบช่วงก่อนหน้า");
     expect(strip.rows.map((row) => row.label)).toEqual(["อุบลศรีสุข เทรดดิ้ง", "ขอนแก่นมหาชัย", "โคราชสหภัณฑ์"]);
   });
 });

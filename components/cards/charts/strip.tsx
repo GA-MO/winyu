@@ -31,12 +31,13 @@ function Bar({ strip, value, className }: { strip: Strip; value: number; classNa
   return <div className={cn("absolute top-1/2 -translate-y-1/2", className)} style={{ left: `${from}%`, width: `${width}%`, borderRadius: value < strip.baseline ? FREE_START : FREE_END }} />;
 }
 
-function OverallLabel({ row }: { row: ReadRow }) {
+function OverallLabel({ row, total }: { row: ReadRow; total: string | null }) {
   return (
     <div className="flex min-w-0 flex-col text-[12px] leading-snug text-muted-foreground">
       <span className="truncate">{row.label}</span>
       {row.sub ? <span className="line-clamp-4 break-words text-[11px]">{row.sub}</span> : null}
       {row.second ? <span className="break-words text-[11px]">{row.second}</span> : null}
+      {total ? <span className="break-words text-[11px]">{total}</span> : null}
     </div>
   );
 }
@@ -65,7 +66,8 @@ function DecidingLine({ strip, gridRow }: { strip: Strip; gridRow: string }) {
 
 function LineStrip({ strip }: { strip: Strip }) {
   const overall = strip.overall;
-  const overallLines = overall ? [overall.sub, overall.second].filter((line): line is string => line !== null) : [];
+  const leadSub = strip.total !== null ? overall?.sub : null;
+  const overallLines = overall ? (strip.total !== null ? [overall.second, strip.total] : [overall.sub, overall.second]).filter((line): line is string => line !== null) : [];
   const headRows = overall ? (overallLines.length > 0 ? 3 : 2) : 0;
   const rowsLine = `${overall ? headRows : 1} / span ${strip.rows.length + (overall ? 1 : 0)}`;
   return (
@@ -77,6 +79,7 @@ function LineStrip({ strip }: { strip: Strip }) {
           <div className="flex min-w-0 flex-col text-muted-foreground" style={{ gridColumn: overall.measure === null ? "1 / 3" : 1, gridRow: 1 }}>
             <span title={overall.label} className="line-clamp-2 break-words text-[12px] leading-snug">{nameOf(overall.label)}</span>
             {placeOf(overall.label) ? <span className="truncate text-[11px] leading-snug">{placeOf(overall.label)}</span> : null}
+            {leadSub ? <span title={leadSub} className="truncate text-[11px] leading-snug tabular-nums">{leadSub}</span> : null}
           </div>
           {overall.measure !== null ? (
             <div className="relative h-6" style={{ gridColumn: 2, gridRow: 1 }}>
@@ -155,7 +158,7 @@ function BoardStrip({ strip }: { strip: Strip }) {
     <div className="flex flex-col gap-2.5">
       {overall ? (
         <div className="flex items-end justify-between gap-3 border-b border-border/70 pb-2.5">
-          <OverallLabel row={overall} />
+          <OverallLabel row={overall} total={strip.total} />
           <div className="flex shrink-0 items-center gap-2">
             <span className="text-[20px] font-semibold leading-none tracking-tight tabular-nums text-foreground">{overall.text}</span>
             {overall.change ? <ChangeChip text={overall.change} tone={overall.tone} /> : null}

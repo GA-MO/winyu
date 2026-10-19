@@ -13,14 +13,14 @@ function render(body: CardBody): string {
 describe("strip rows named along two splits", () => {
   test("show the first part as the name and the second on its own line, so a phone never cuts the province off (AI-103)", () => {
     const row = { label: "อุบลศรีสุข เทรดดิ้ง · อุบลราชธานี", sub: null, second: null, measure: 60.5, fill: 0.6, text: "60.5%", change: null, tone: "bad" as const, exception: true, valued: true };
-    const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 50, high: 110, overall: null, rows: [row] } });
+    const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 50, high: 110, total: null, overall: null, rows: [row] } });
     expect(html).toContain(">อุบลศรีสุข เทรดดิ้ง</span>");
     expect(html).toContain(">อุบลราชธานี</span>");
   });
 
   test("a long name wraps onto a second line instead of being cut with an ellipsis, so กรุงเทพฯ และปริมณฑล reads whole on a phone (AI-254)", () => {
     const row = { label: "กรุงเทพฯ และปริมณฑล", sub: null, second: null, measure: 86.5, fill: 0.86, text: "86.5%", change: null, tone: "bad" as const, exception: true, valued: true };
-    const html = render({ kind: "strip", strip: { form: "line", baseline: 86.7, low: 70, high: 90, overall: null, rows: [row] } });
+    const html = render({ kind: "strip", strip: { form: "line", baseline: 86.7, low: 70, high: 90, total: null, overall: null, rows: [row] } });
     const name = html.match(/<span title="กรุงเทพฯ และปริมณฑล" class="([^"]*)">/)?.[1] ?? "";
     expect(name).toContain("line-clamp-2");
     expect(name).not.toContain("truncate");
@@ -111,6 +111,7 @@ describe("strip (style B)", () => {
       strip: {
         form: "board",
         baseline: 0,
+        total: null,
         low: 0,
         high: 30,
         overall: { ...ROW, label: "ทั้งประเทศ", measure: null, text: "108.8 ล้านบาท", change: "-29.3%", tone: "good", exception: true },
@@ -132,6 +133,7 @@ describe("strip (style B)", () => {
       strip: {
         form: "line",
         baseline: 100,
+        total: null,
         low: 88,
         high: 103,
         overall: { ...ROW, label: "ทั้งประเทศ", sub: "ของเป้า", measure: 98.6, text: "98.6%", tone: "bad", exception: true },
@@ -153,7 +155,7 @@ describe("exceptions (style A)", () => {
   test("draws only the exception rows and folds the rest into one line that expands", () => {
     const html = render({
       kind: "exceptions",
-      strip: { form: "line", baseline: 100, low: 80, high: 104, overall: null, rows: [{ ...ROW, label: "อุบลราชธานี", measure: 81.7, text: "81.7%", tone: "bad", exception: true }] },
+      strip: { form: "line", baseline: 100, low: 80, high: 104, total: null, overall: null, rows: [{ ...ROW, label: "อุบลราชธานี", measure: 81.7, text: "81.7%", tone: "bad", exception: true }] },
       fold: { line: "อีก 21 จังหวัดเกินเป้า 100.3–103.5%", rows: [{ ...ROW, label: "เลย", measure: 103.5, text: "103.5%", tone: "neutral", exception: false }] },
     });
     expect(html).toContain("อุบลราชธานี");
@@ -191,7 +193,7 @@ test("none of the new chart bodies render a raw hex colour", () => {
       y: { label: "Y", format: "number", median: 1, medianText: "1" },
       r: 0,
     },
-    { kind: "strip", strip: { form: "board", baseline: 0, low: 0, high: 1, overall: null, rows: [{ ...ROW, label: "A", measure: 1, text: "1", tone: "bad", exception: true }] } },
+    { kind: "strip", strip: { form: "board", baseline: 0, low: 0, high: 1, total: null, overall: null, rows: [{ ...ROW, label: "A", measure: 1, text: "1", tone: "bad", exception: true }] } },
     { kind: "funnel", stages: [{ label: "A", value: 1, valueText: "1", width: 1, dropText: null, dropTone: "neutral" }] },
   ];
   for (const body of bodies) expect(render(body)).not.toMatch(HEX_COLOR);
@@ -199,8 +201,8 @@ test("none of the new chart bodies render a raw hex colour", () => {
 
 test("a strip row draws its second line under its name: the base it moved from or a second comparison (AI-66, AI-68)", () => {
   const row = { ...ROW, label: "ภาคใต้", sub: "5.1 ล้านบาท · ปีก่อน 1.3 ล้านบาท", measure: 1, text: "+297.5%", tone: "bad" as const, exception: true };
-  for (const form of ["line", "board"] as const) expect(render({ kind: "strip", strip: { form, baseline: 0, low: 0, high: 1, overall: null, rows: [row] } })).toContain("ปีก่อน 1.3 ล้านบาท");
-  expect(render({ kind: "exceptions", strip: { form: "line", baseline: 0, low: 0, high: 1, overall: null, rows: [row] }, fold: null })).toContain("ปีก่อน 1.3 ล้านบาท");
+  for (const form of ["line", "board"] as const) expect(render({ kind: "strip", strip: { form, baseline: 0, low: 0, high: 1, total: null, overall: null, rows: [row] } })).toContain("ปีก่อน 1.3 ล้านบาท");
+  expect(render({ kind: "exceptions", strip: { form: "line", baseline: 0, low: 0, high: 1, total: null, overall: null, rows: [row] }, fold: null })).toContain("ปีก่อน 1.3 ล้านบาท");
 });
 
 test("scatter x ticks keep both ends and drop a middle label that would touch them (AI-70)", () => {
@@ -214,7 +216,7 @@ test("a paired reading shows under every row of a line strip, not only the excep
     { ...ROW, label: "ภาคอีสาน", second: "28.2% · +1.8 จุด", measure: 77, text: "77.3%", tone: "bad" as const, exception: true },
     { ...ROW, label: "ภาคกลาง", second: "26.7% · -0.4 จุด", measure: 86, text: "86.0%", tone: "neutral" as const, exception: false },
   ];
-  const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 70, high: 100, overall: null, rows } });
+  const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 70, high: 100, total: null, overall: null, rows } });
   expect(html).toContain(">28.2% · +1.8 จุด</span>");
   expect(html).toContain(">26.7% · -0.4 จุด</span>");
   expect(html.match(/<span class="([^"]*)">26\.7%/)?.[1]).not.toContain("truncate");
@@ -222,13 +224,20 @@ test("a paired reading shows under every row of a line strip, not only the excep
 
 test("a line strip's overall detail sits on its own full-width line instead of under the overall name", () => {
   const overall = { ...ROW, label: "ทั้งประเทศ", sub: "ของเป้าทั้งเดือน · ถึงวันนี้ควรได้ 86.7%", measure: 83.9, text: "83.9%", tone: "bad" as const, exception: true };
-  const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 70, high: 100, overall, rows: [] } });
+  const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 70, high: 100, total: null, overall, rows: [] } });
   expect(html).toMatch(/grid-column:1 \/ -1;grid-row:2"><p>ของเป้าทั้งเดือน/);
 });
 
 test("a line strip exception's detail stays one line under its name, the full text kept in the name's tooltip", () => {
   const row = { ...ROW, label: "ภาคอีสาน", sub: "30.5 → 25.6 ล้านบาท", measure: -16, text: "-16.0%", tone: "bad" as const, exception: true };
-  const html = render({ kind: "strip", strip: { form: "line", baseline: 0, low: -20, high: 5, overall: null, rows: [row] } });
+  const html = render({ kind: "strip", strip: { form: "line", baseline: 0, low: -20, high: 5, total: null, overall: null, rows: [row] } });
   expect(html.match(/<span class="([^"]*)">30\.5 → 25\.6 ล้านบาท<\/span>/)?.[1]).toContain("truncate");
   expect(html).toContain('title="ภาคอีสาน\n30.5 → 25.6 ล้านบาท"');
+});
+
+test("a lead row on top of a line strip keeps its own detail under its name and the whole list's total on its own full-width line", () => {
+  const overall = { ...ROW, label: "อีสานรุ่งโรจน์ ค้าส่ง", sub: "32.3 → 26.8 ล้านบาท", measure: -17, text: "-17.0%", tone: "bad" as const, exception: true };
+  const html = render({ kind: "strip", strip: { form: "line", baseline: 0, low: -20, high: 40, overall, total: "รวม 4 เอเย่นต์ +16.1% เทียบช่วงก่อนหน้า", rows: [] } });
+  expect(html).toMatch(/grid-column:1;grid-row:1">(?:(?!grid-row).)*>32\.3 → 26\.8 ล้านบาท<\/span>/);
+  expect(html).toMatch(/grid-column:1 \/ -1;grid-row:2"><p>รวม 4 เอเย่นต์ \+16\.1% เทียบช่วงก่อนหน้า<\/p><\/div>/);
 });

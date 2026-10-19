@@ -27,8 +27,8 @@ export type ReadRow = {
 /** How a strip draws its bars: from a deciding line (target, low cover, zero change, a reference level) or from zero as a leaderboard. */
 export type StripForm = "line" | "board";
 
-/** Style B's one strip of bars on a shared scale, the overall row on top (null when the verdict already carries the count). */
-export type Strip = { form: StripForm; baseline: number; low: number; high: number; overall: ReadRow | null; rows: ReadRow[] };
+/** Style B's one strip of bars on a shared scale, the overall row on top (null when the verdict already carries the count); `total` is the whole list in one line when a row it leads with took the overall row's place, that row's own detail then under its name like any row's. */
+export type Strip = { form: StripForm; baseline: number; low: number; high: number; overall: ReadRow | null; total: string | null; rows: ReadRow[] };
 
 /** Style A's folded rows: one muted line that expands to the rows themselves. */
 export type Fold = { line: string; rows: ReadRow[] };

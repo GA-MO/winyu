@@ -113,6 +113,7 @@ export type Breakdown = {
   verdict: string;
   hero: CardHero;
   lead: { row: string; hero: CardHero } | null;
+  total: string | null;
   pickWhenNone: number;
   fold: (rest: ReadRow[], drawn: number) => string;
 };
@@ -181,6 +182,7 @@ function aboveLineReading(input: BreakdownInput, line: LevelLine): Breakdown {
     verdict,
     hero: { label: TH.dash.rowHero(TH.dash.highest, topLabel), value: topText, unit: null, delta: null, trend: "neutral", tone: "neutral", detail: `${input.scope} ${result.headline.value}` },
     lead: null,
+    total: null,
     pickWhenNone: LEADERS,
     fold: foldLine(input.unit, () => null, measuresOf, (value) => formatMetricValue(query.metric, value)),
   };
@@ -245,6 +247,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       verdict: thresholdVerdict(count, of, input.unit, line.underLabel),
       hero: { label: line.underLabel, value: TH.dash.countOf(count, of, input.unit), unit: null, delta: null, trend: "neutral", tone: count > 0 ? "bad" : "neutral", detail: null },
       lead: null,
+      total: null,
       pickWhenNone: 0,
       fold,
     };
@@ -272,6 +275,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       ? { label: input.scope, value: month.attainment, unit: TH.read.ofMonthTarget, delta: null, trend: overallUnder ? "down" : "neutral", tone: overallTone, detail: monthDetail }
       : { label: input.scope, value: overallText, unit: ofTarget ? goalUnit : null, delta: change.delta, trend: change.trend, tone: ofTarget ? overallTone : change.tone, detail: ofTarget ? null : result.headline.compareLabel },
     lead: null,
+    total: null,
     pickWhenNone: 0,
     fold,
   };
@@ -358,6 +362,7 @@ function changeReading(input: BreakdownInput): Breakdown {
       slice: input.capped ? TH.read.topMovers(input.rows.length, input.unit, input.falling ? TH.read.fell : TH.read.rose) : someOf(input),
     }),
     hero: { label: input.scope, value: overall.delta ?? result.headline.value, unit: null, delta: null, trend: overall.trend, tone: overall.tone, detail: input.baseTotal ?? result.headline.compareLabel },
+    total: null,
     lead: leadRow && leading > 0 ? { row: labelOf(query, leadRow.row), hero: { label: labelOf(query, leadRow.row), value: valueTextOf(query, leadRow.row), unit: null, ...rowMove(query, leadRow.row), detail: baseOf(query, leadRow.row) ?? result.headline.compareLabel } } : null,
     pickWhenNone: wrongWay ? 0 : LEADERS,
     fold: foldLine(input.unit, (rest) => (sameWay(rest) ? (input.falling ? TH.read.fell : TH.read.rose) : null), (rest) => measuresOf(rest).map((value) => (sameWay(rest) ? Math.abs(value) : value)), (value) => (inPoints ? format(value) : percentText(value))),
@@ -395,6 +400,7 @@ function boardReading(input: BreakdownInput): Breakdown {
     verdict: boardVerdict({ unit: input.unit, labels: rows.map((row) => row.label), changes, notable, format, slice: input.capped ? TH.read.shown(rows.length, input.unit) : someOf(input) }),
     hero: { label: input.scope, value: result.headline.value, unit: null, ...overall, detail: result.headline.compareLabel },
     lead: null,
+    total: null,
     pickWhenNone: LEADERS,
     fold: foldLine(input.unit, () => null, measuresOf, (value) => formatMetricValue(query.metric, value)),
   };
@@ -441,6 +447,7 @@ function referenceReading(input: BreakdownInput): Breakdown {
     verdict: referenceVerdict({ unit: input.unit, labels: rows.map((row) => row.label), values, texts: rows.map((row) => row.text), outliers }),
     hero: { label: input.scope, value: result.headline.value, unit: null, ...overall, detail: result.headline.compareLabel },
     lead: null,
+    total: null,
     pickWhenNone: 0,
     fold: foldLine(input.unit, () => null, measuresOf, format),
   };
@@ -470,6 +477,7 @@ export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHer
     verdict: input.verdict,
     hero,
     lead: null,
+    total: null,
     pickWhenNone: 0,
     fold: foldLine(input.unit, () => null, measuresOf, percentText),
   };
@@ -481,12 +489,12 @@ export function readBreakdown(input: BreakdownInput): Breakdown {
   return withLeadOnTop(input.asked.size === 0 ? reading : withAskedRows(reading, input));
 }
 
-/** The row a reading leads with (the first of a change ranking, R4, AI-294; the one row the question named) takes the overall row's place on top of the strip, the overall line under it as its note, so the picture leads with the answer and never with a total that moved the other way. */
+/** The row a reading leads with (the first of a change ranking, R4, AI-294; the one row the question named) takes the overall row's place on top of the strip with its own detail, and the overall row becomes the strip's separate total line, so the picture leads with the answer and never with a total that moved the other way. */
 function withLeadOnTop(reading: Breakdown): Breakdown {
   const { lead, overall } = reading;
   const top = lead ? reading.rows.find((row) => row.label === lead.row) : undefined;
   if (!lead || !overall || !top) return reading;
-  return { ...reading, overall: { ...top, sub: joinedText([top.sub, overallLine(overall)]) }, rows: reading.rows.filter((row) => row !== top), hero: lead.hero };
+  return { ...reading, overall: top, total: overallLine(overall), rows: reading.rows.filter((row) => row !== top), hero: lead.hero };
 }
 
 /** Rows that carry their value whatever else the strip mutes: both ends of the measure and the rows close behind them, so the rows furthest in either direction always say how far (AI-173, AI-228); a row whose bar is too short to see, so a listed row never reads as empty (AI-228); and every row of a style B strip (up to 8 rows), where one bar without a number reads as missing (AI-188). */
@@ -636,9 +644,9 @@ function withAskedRows(reading: Breakdown, input: BreakdownInput): Breakdown {
   return { ...reading, rows, verdict, lead: { row: label, hero } };
 }
 
-/** The overall row in one line under the named row that took its place on top ("เฉลี่ยทุกกลุ่มธุรกิจ 27.3% +0.8 จุด"). */
+/** The overall row in one line under the row that took its place on top, with what it is compared with ("รวมทุกเอเย่นต์ +23.1% เทียบช่วงก่อนหน้า"). */
 function overallLine(row: ReadRow): string {
-  return [row.label, row.text, row.change].filter(Boolean).join(" ");
+  return [row.label, row.text, row.change, row.sub].filter(Boolean).join(" ");
 }
 
 function scaleOf(form: StripForm, baseline: number, measures: number[]): { low: number; high: number } {
@@ -657,7 +665,7 @@ export function fitsOneStrip(reading: Breakdown): boolean {
 /** Style B: every row on one shared scale around the deciding line (or from zero), the overall row on top. */
 export function stripOf(reading: Breakdown): Strip {
   const measures = measuresOf(reading.overall ? [reading.overall, ...reading.rows] : reading.rows);
-  return { form: reading.form, baseline: reading.baseline, ...scaleOf(reading.form, reading.baseline, measures), overall: reading.overall, rows: reading.rows };
+  return { form: reading.form, baseline: reading.baseline, ...scaleOf(reading.form, reading.baseline, measures), overall: reading.overall, total: reading.overall ? reading.total : null, rows: reading.rows };
 }
 
 /** Style A: only the exception rows drawn (the leaders of a board when nothing stands out), the row the hero already names left out, the rest folded into one line. */
@@ -666,6 +674,6 @@ export function exceptionsOf(reading: Breakdown): { strip: Strip; fold: Fold | n
   const shown = picked.length > 0 ? picked : reading.rows.slice(0, reading.pickWhenNone);
   const drawn = shown.filter((row) => row.label !== reading.lead?.row);
   const rest = reading.rows.filter((row) => !shown.includes(row));
-  const strip = { form: reading.form, baseline: reading.baseline, ...scaleOf(reading.form, reading.baseline, measuresOf(drawn)), overall: null, rows: drawn };
+  const strip = { form: reading.form, baseline: reading.baseline, ...scaleOf(reading.form, reading.baseline, measuresOf(drawn)), overall: null, total: null, rows: drawn };
   return { strip, fold: rest.length === 0 ? null : { line: reading.fold(rest, drawn.length + (reading.lead ? 1 : 0)), rows: rest } };
 }
