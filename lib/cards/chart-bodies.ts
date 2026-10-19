@@ -129,11 +129,19 @@ function gridScaleOf(query: MetricQuery, rows: MetricRow[], scale: ColorScale): 
   const format = metricFormat(query.metric);
   if (scale === "delta") return { divisor: 1, digits: 1, signed: true, unit: format === "percent" ? TH.cards.heat.points : TH.cards.heat.percent };
   if (format === "percent") return { divisor: 1, digits: 1, signed: false, unit: TH.cards.heat.percent };
-  const unit = format === "currency" ? TH.cards.heat.baht : metricUnit(query.metric);
   const peak = Math.max(0, ...rows.map((row) => Math.abs(numericOf(row, "value") ?? 0)));
-  if (peak >= MILLION) return { divisor: MILLION, digits: digitsFor(peak / MILLION), signed: false, unit: TH.cards.heat.millions(unit) };
-  if (peak >= THOUSAND) return { divisor: THOUSAND, digits: digitsFor(peak / THOUSAND), signed: false, unit: TH.cards.heat.thousands(unit) };
-  return { divisor: 1, digits: digitsFor(peak), signed: false, unit };
+  const unit = unitScaleOf(query.metric, peak);
+  return { ...unit, digits: digitsFor(peak / unit.divisor), signed: false };
+}
+
+/** What values up to `peak` are divided by so a label is a short number, and the unit that names it once ("ล้านบาท", "พันลิตร", "%"). */
+function unitScaleOf(metric: MetricId, peak: number): { divisor: number; unit: string } {
+  const format = metricFormat(metric);
+  if (format === "percent") return { divisor: 1, unit: TH.cards.heat.percent };
+  const unit = format === "currency" ? TH.cards.heat.baht : metricUnit(metric);
+  if (peak >= MILLION) return { divisor: MILLION, unit: TH.cards.heat.millions(unit) };
+  if (peak >= THOUSAND) return { divisor: THOUSAND, unit: TH.cards.heat.thousands(unit) };
+  return { divisor: 1, unit };
 }
 
 function cellNumber(value: number, grid: GridScale): string {
@@ -318,7 +326,8 @@ export function joinedRows(first: Source, second: Source): Joined[] {
 
 function axisOf(source: Source, values: number[]): ScatterAxis {
   const middle = median(values);
-  return { label: metricLabel(source.query.metric), format: metricFormat(source.query.metric), median: middle, medianText: formatMetricValue(source.query.metric, middle) };
+  const metric = source.query.metric;
+  return { label: metricLabel(metric), ...unitScaleOf(metric, Math.max(0, ...values.map(Math.abs))), median: middle, medianText: formatMetricValue(metric, middle) };
 }
 
 function comparableScale(left: number, right: number): boolean {

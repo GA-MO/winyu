@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { CardBody, ChartSeries } from "@/lib/cards/present";
 import { CardBodyView } from "./card-body";
 import { lineAxisLabels, spacedTicks } from "@/components/ui/charts";
+import { evenTickLabels } from "./scatter";
 
 const HEX_COLOR = /#[0-9a-f]{3,8}\b/i;
 
@@ -91,8 +92,8 @@ describe("scatter", () => {
         { label: "ตัวแทนขาย ก", x: 100, y: 80, xText: "100", yText: "80", named: true },
         { label: "ตัวแทนขาย ข", x: 50, y: 40, xText: "50", yText: "40", named: false },
       ],
-      x: { label: "ขายเข้า", format: "number", median: 75, medianText: "75" },
-      y: { label: "ขายออก", format: "number", median: 60, medianText: "60" },
+      x: { label: "ขายเข้า", divisor: 1, unit: "ลิตร", median: 75, medianText: "75" },
+      y: { label: "ขายออก", divisor: 1, unit: "ลิตร", median: 60, medianText: "60" },
       r: 0.58,
     });
     expect(html).toContain("ตัวแทนขาย ก");
@@ -108,15 +109,36 @@ describe("scatter", () => {
         { label: "สงขลา", x: 73_700_000, y: 7_000_000, xText: "73.7 ล้านบาท", yText: "7.0 ล้านบาท", named: true },
         { label: "ตราด", x: 10_000_000, y: 1_000_000, xText: "10.0 ล้านบาท", yText: "1.0 ล้านบาท", named: false },
       ],
-      x: { label: "มูลค่าขายเข้า", format: "currency", median: 73_700_000, medianText: "73.7 ล้านบาท" },
-      y: { label: "ยอดค้างชำระ", format: "currency", median: 7_000_000, medianText: "7.0 ล้านบาท" },
+      x: { label: "มูลค่าขายเข้า", divisor: 1_000_000, unit: "ล้านบาท", median: 73_700_000, medianText: "73.7 ล้านบาท" },
+      y: { label: "ยอดค้างชำระ", divisor: 1_000_000, unit: "ล้านบาท", median: 7_000_000, medianText: "7.0 ล้านบาท" },
       r: 0.9,
     });
-    const ticks = [...html.matchAll(/<text[^>]*>([\d.,]+ ล้านบาท)<\/text>/g)].map((match) => Number(match[1].replace(/[^\d.]/g, "")));
-    expect(Math.max(...ticks.filter((tick) => tick > 100))).toBe(250);
+    const ticks = [...html.matchAll(/<text[^>]*>([\d.,]+)<\/text>/g)].map((match) => Number(match[1].replace(/,/g, "")));
+    expect(Math.max(...ticks)).toBe(250);
     expect(ticks).toContain(12);
     expect(ticks).not.toContain(400);
     expect(ticks).not.toContain(20);
+  });
+
+  test("names the unit once in each axis title and writes the ticks as bare numbers on even steps (round 12)", () => {
+    const html = render({
+      kind: "scatter",
+      points: [
+        { label: "กรุงเทพมหานคร", x: 205_000_000, y: 10_200_000, xText: "205.0 ล้านบาท", yText: "10.2 ล้านบาท", named: true },
+        { label: "ตราด", x: 10_000_000, y: 1_000_000, xText: "10.0 ล้านบาท", yText: "1.0 ล้านบาท", named: false },
+      ],
+      x: { label: "มูลค่าขายเข้า", divisor: 1_000_000, unit: "ล้านบาท", median: 100_000_000, medianText: "100.0 ล้านบาท" },
+      y: { label: "ยอดค้างชำระ", divisor: 1_000_000, unit: "ล้านบาท", median: 5_000_000, medianText: "5.0 ล้านบาท" },
+      r: 0.9,
+    });
+    expect(html).toContain("มูลค่าขายเข้า (ล้านบาท)");
+    expect(html).toContain("ยอดค้างชำระ (ล้านบาท)");
+    expect(html).not.toMatch(/<text[^>]*>[\d.,]+ ล้านบาท<\/text>/);
+    const xTicks = [...html.matchAll(/<text[^>]*y="216"[^>]*>([\d.,]+)<\/text>/g)].map((match) => Number(match[1].replace(/,/g, "")));
+    const steps = xTicks.slice(1).map((tick, index) => tick - xTicks[index]);
+    expect(xTicks[0]).toBe(0);
+    expect(xTicks[xTicks.length - 1]).toBe(250);
+    expect(new Set(steps).size).toBe(1);
   });
 });
 
@@ -208,8 +230,8 @@ test("none of the new chart bodies render a raw hex colour", () => {
     {
       kind: "scatter",
       points: [{ label: "A", x: 1, y: 1, xText: "1", yText: "1", named: true }],
-      x: { label: "X", format: "number", median: 1, medianText: "1" },
-      y: { label: "Y", format: "number", median: 1, medianText: "1" },
+      x: { label: "X", divisor: 1, unit: "ลิตร", median: 1, medianText: "1" },
+      y: { label: "Y", divisor: 1, unit: "ลิตร", median: 1, medianText: "1" },
       r: 0,
     },
     { kind: "strip", strip: { form: "board", baseline: 0, low: 0, high: 1, total: null, overall: null, rows: [{ ...ROW, label: "A", measure: 1, text: "1", tone: "bad", exception: true }] } },
@@ -222,6 +244,34 @@ test("a strip row draws its second line under its name: the base it moved from o
   const row = { ...ROW, label: "ภาคใต้", sub: "5.1 ล้านบาท · ปีก่อน 1.3 ล้านบาท", measure: 1, text: "+297.5%", tone: "bad" as const, exception: true };
   for (const form of ["line", "board"] as const) expect(render({ kind: "strip", strip: { form, baseline: 0, low: 0, high: 1, total: null, overall: null, rows: [row] } })).toContain("ปีก่อน 1.3 ล้านบาท");
   expect(render({ kind: "exceptions", strip: { form: "line", baseline: 0, low: 0, high: 1, total: null, overall: null, rows: [row] }, fold: null })).toContain("ปีก่อน 1.3 ล้านบาท");
+});
+
+test("a scatter name moves off a muted dot when a clear spot exists, with a leader when it moves away from its dot (round 12)", () => {
+  const muted = (x: number, y: number) => ({ label: "-", x, y, xText: "", yText: "", named: false });
+  const html = render({
+    kind: "scatter",
+    points: [{ label: "สุราษฎร์ธานี", x: 50, y: 50, xText: "", yText: "", named: true }, muted(56, 55), muted(44, 55), muted(56, 45), muted(44, 45), muted(0, 0), muted(100, 100)],
+    x: { label: "X", divisor: 1, unit: "ลิตร", median: 50, medianText: "50" },
+    y: { label: "Y", divisor: 1, unit: "ลิตร", median: 50, medianText: "50" },
+    r: 0,
+  });
+  const label = html.match(/<text x="([\d.]+)" y="([\d.]+)"[^>]*text-anchor="(start|end)"[^>]*>สุราษฎร์ธานี<\/text>/);
+  expect(label).not.toBeNull();
+  const [x, y] = [Number(label?.[1]), Number(label?.[2])];
+  const width = 9 * 5.6;
+  const left = label?.[3] === "start" ? x : x - width;
+  const dots = [...html.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="4" fill="var\(--muted-foreground\)"/g)].map((match) => ({ cx: Number(match[1]), cy: Number(match[2]) }));
+  expect(dots.length).toBe(6);
+  for (const dot of dots) expect(dot.cx > left - 4 && dot.cx < left + width + 4 && dot.cy > y - 15 && dot.cy < y + 8).toBe(false);
+  expect(html).toMatch(/<line x1="[\d.]+" y1="[\d.]+" x2="[\d.]+" y2="[\d.]+" stroke="var\(--muted-foreground\)" stroke-width="0.75"/);
+});
+
+test("scatter x labels that cannot all fit keep an even step and both ends, never an uneven set (round 12)", () => {
+  const tick = (value: number, at: number, anchor: "start" | "middle" | "end") => ({ value, at, text: `${value} ล้าน`, anchor });
+  const ticks = [0, 50, 100, 150, 200, 250].map((value, index, all) => tick(value, 40 + index * 45, index === 0 ? "start" : index === all.length - 1 ? "end" : "middle"));
+  expect(evenTickLabels(ticks).map((entry) => entry.value)).toEqual([0, 250]);
+  const wide = [0, 50, 100, 150, 200].map((value, index, all) => tick(value, 40 + index * 70, index === 0 ? "start" : index === all.length - 1 ? "end" : "middle"));
+  expect(evenTickLabels(wide).map((entry) => entry.value)).toEqual([0, 100, 200]);
 });
 
 test("scatter x ticks keep both ends and drop a middle label that would touch them (AI-70)", () => {

@@ -67,7 +67,8 @@ export type ColorScale = "value" | "delta";
 export type HeatCell = { text: string; detail: string | null; intensity: number; tone: Tone; exception: boolean };
 export type ShareSlice = { label: string; valueText: string; share: number; shareText: string; isOther: boolean };
 export type ScatterPoint = { label: string; x: number; y: number; xText: string; yText: string; named: boolean };
-export type ScatterAxis = { label: string; format: MetricFormat; median: number; medianText: string };
+/** One axis of a scatter: its metric, the divisor its ticks are written in and the unit named once in its title ("ล้านบาท"). */
+export type ScatterAxis = { label: string; divisor: number; unit: string; median: number; medianText: string };
 export type FunnelStage = { label: string; value: number; valueText: string; width: number; dropText: string | null; dropTone: Tone };
 /** A row a shared card holds back from its viewer: its name only, never a value, a change, a share or a rank. */
 export type LockedRow = { label: string };

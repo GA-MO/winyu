@@ -2015,6 +2015,7 @@ export const TH = {
     stackedArea: "กราฟพื้นที่สะสม",
     donut: "สัดส่วน",
     scatter: "กราฟกระจาย",
+    axisTitle: (label: string, unit: string) => `${label} (${unit})`,
     gap: "ส่วนต่างรายตัว",
     forecast: "กราฟพยากรณ์พร้อมช่วงที่คาด",
     million: "ล้าน",
