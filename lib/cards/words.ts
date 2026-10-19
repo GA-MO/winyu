@@ -30,3 +30,11 @@ export function cardTexts(parts: CardParts): string[] {
 export function cardWords(parts: CardParts): number {
   return cardTexts(parts).reduce((sum, text) => sum + [...SEGMENTER.segment(text)].filter((segment) => segment.isWordLike).length, 0);
 }
+
+/** Labels without the first word they all share ("ปริมาณขายออก", "ปริมาณขายเข้า" → "ขายออก", "ขายเข้า"), for a card whose title already names it; unchanged when they share none or a label is that one word. */
+export function withoutSharedLead(labels: readonly string[]): string[] {
+  const leads = labels.map((label) => [...SEGMENTER.segment(label)][0]?.segment ?? "");
+  const [lead] = leads;
+  const shared = lead !== undefined && lead !== "" && leads.every((each) => each === lead) && labels.every((label) => label.length > lead.length);
+  return shared ? labels.map((label) => label.slice(lead.length).trimStart()) : [...labels];
+}

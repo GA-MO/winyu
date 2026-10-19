@@ -1,6 +1,7 @@
 import { mainCauses } from "@/lib/engine/gap";
 import { HEADLINE_OWN_ROW, metricDef, SNAPSHOT_METRICS } from "@/lib/semantic/metrics";
 import { stepOf } from "./step";
+import { withoutSharedLead } from "./words";
 import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type Grain, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
 import { TH } from "@/lib/i18n/th";
 import { MIN_CELL_SIZE } from "@/lib/access/suppression";
@@ -1285,14 +1286,17 @@ function ratioOf(base: Source, other: Source): { hero: CardHero; verdict: string
   const gap = percentText(Math.abs(ratio - PERCENT));
   const [otherLabel, baseLabel] = [shortMetricLabel(other), shortMetricLabel(base)];
   const verdict = gap === percentText(0) ? TH.read.ratioEven(otherLabel, baseLabel) : ratio > PERCENT ? TH.read.ratioAbove(otherLabel, baseLabel, gap) : TH.read.ratioBelow(otherLabel, baseLabel, gap);
+  const [otherTerm, baseTerm] = withoutSharedLead([otherLabel, baseLabel]);
   return {
-    hero: { label: TH.read.ratio(otherLabel, baseLabel), value: percentText(ratio), unit: null, delta: null, trend: "neutral", tone: "neutral", detail: null },
+    hero: { label: TH.read.ratio, value: percentText(ratio), unit: TH.read.ratioOf(otherTerm, baseTerm), delta: null, trend: "neutral", tone: "neutral", detail: null },
     verdict,
   };
 }
 
-function totalTile(source: Source): Tile {
-  return tileOf(shortMetricLabel(source), formatMetricValue(source.query.metric, rowTotalOf(source)), null);
+/** The total of each overlaid series over the buckets drawn, named without the word the title already gives them all ("ขายเข้า", "ขายออก"). */
+function totalTiles(sources: readonly Source[]): Tile[] {
+  const labels = withoutSharedLead(sources.map(shortMetricLabel));
+  return sources.map((source, index) => tileOf(labels[index], formatMetricValue(source.query.metric, rowTotalOf(source)), null));
 }
 
 function correlationVerdict(scatter: Extract<CardBody, { kind: "scatter" }>): string {
@@ -1311,7 +1315,7 @@ function pairedLead(pairing: Pairing, body: CardBody, indexed: boolean): { hero:
   }
   const ratio = indexed || others.length !== 1 ? null : ratioOf(first, last);
   if (!ratio) return { hero: indexed ? null : heroOf(first.query, first.result), tiles: NO_TILES, verdict: null };
-  return { hero: ratio.hero, tiles: [totalTile(first), totalTile(last)], verdict: ratio.verdict };
+  return { hero: ratio.hero, tiles: totalTiles([first, last]), verdict: ratio.verdict };
 }
 
 function actionsOf(actions: readonly NextAction[]): { primary: NextAction | null; more: NextAction[] } {

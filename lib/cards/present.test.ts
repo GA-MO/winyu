@@ -337,11 +337,13 @@ describe("two metrics on one card", () => {
     new Set(systems).forEach((system) => expect(card.footer?.line).toContain(system));
   });
 
-  test("the funnel's hero says what its ratio is of: sold out over produced, not a bare 'อัตราส่วน'", () => {
+  test("the funnel's hero says what its ratio is of beside the number: sold out over produced, not a bare 'อัตราส่วน'", () => {
     const { query, result } = answer({ metric: "production_output", dims: [] });
     const card = presentCard({ title: "t", query, result, others: [answer({ metric: "net_sales_volume", dims: [] }), answer({ metric: "sell_out_volume", dims: [] })] });
-    expect(card.hero?.label).toBe(`อัตราส่วน${metricLabel("sell_out_volume").replace(/\s*\(.*\)$/, "")}ต่อ${metricLabel("production_output").replace(/\s*\(.*\)$/, "")}`);
+    expect(card.hero?.label).toBe(TH.read.ratio);
+    expect(card.hero?.unit).toBe(TH.read.ratioOf("ขายออก", "การผลิต"));
   });
+
 
   test("metrics in different units over the same months are indexed lines", () => {
     const { query, result } = answer({ metric: "net_sales_volume", dims: ["month"], range: SIX_MONTHS });
