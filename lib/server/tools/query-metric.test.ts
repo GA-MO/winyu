@@ -284,3 +284,35 @@ describe("query_metric tells the model what each metric accepts", () => {
     expect(targets).not.toContain("gross_margin");
   });
 });
+
+describe("a sell-out breakdown asked against sell-in (AI-332)", () => {
+  const QUESTION = "เอเย่นต์อีสานไหนขายออกต่ำกว่าขายเข้ามาก";
+  const BY_AGENT = { dims: ["agent"], filters: { region: ["northeast"] }, grain: "month", compare: "none", limit: null, period: "this_month" };
+
+  async function ask(question: string, metric: MetricId) {
+    const user = findUser("u_thana");
+    if (!user) throw new Error("no u_thana");
+    const tool = winyuTools().query_metric;
+    const turn = { turnId: null, threadId: null, question, queries: [] };
+    return (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse({ ...BY_AGENT, metric }))))) as Extract<MetricResult, { ok: true }> & {
+      parity?: { verdict: string; overall: string; rows: { label: string; share: string; short: boolean }[] };
+    };
+  }
+
+  test("the sell-out result carries the parity card's own verdict and the rows it marks short, so the reply can name the same agents", async () => {
+    const sellIn = await ask(QUESTION, "net_sales_volume");
+    const sellOut = await ask(QUESTION, "sell_out_volume");
+    const card = presentCard({ title: "t", query: sellIn.query, result: sellIn, others: [{ query: sellOut.query, result: sellOut }] });
+    if (card.body.kind !== "strip") throw new Error(`not a strip: ${card.body.kind}`);
+    const parity = sellOut.parity;
+    if (!parity) throw new Error("no parity reading");
+    expect(card.verdict).toBe(parity.verdict);
+    expect(parity.rows.filter((row) => row.short).map((row) => row.label)).toEqual(card.body.strip.rows.filter((row) => row.exception).map((row) => row.label));
+    expect(card.body.strip.rows.map((row) => row.text)).toEqual(parity.rows.map((row) => row.share));
+    expect(sellIn).not.toHaveProperty("parity");
+  });
+
+  test("a sell-out question that does not ask about sell-in carries no parity reading", async () => {
+    expect(await ask("ขายออกรายเอเย่นต์อีสานเดือนนี้", "sell_out_volume")).not.toHaveProperty("parity");
+  });
+});

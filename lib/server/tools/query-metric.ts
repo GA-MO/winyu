@@ -2,6 +2,7 @@ import { metricAccess } from "@/lib/access/grants";
 import { outOfScopeFilters, type OutOfScope } from "@/lib/access/enforce";
 import { REGIONS, metricQueryInputSchema, type AccessContext, type Dim, type MetricId, type MetricQuery, type MetricQueryInput, type MetricResult, type MetricRow, type MonthEndProjection } from "@/lib/contracts";
 import { attainmentOf } from "@/lib/cards/breakdown";
+import { parityForModel, type ParityForModel } from "@/lib/cards/chart-bodies";
 import { monthElapsedOf, yearBehindOf } from "@/lib/cards/present";
 import { percentText } from "@/lib/cards/reading";
 import { ownAgentsFilter } from "@/lib/data/entities/agents";
@@ -31,6 +32,7 @@ const MIN_NAME_LENGTH = 3;
 const SPACES = /\s+/g;
 const SUMMARY_SEPARATOR = " · ";
 const PACED_FIELDS = ["compare_value", "delta_pct"] as const;
+const PARITY = { metric: "sell_out_volume", base: "net_sales_volume", asked: /ขายเข้า|sell-?in/i } as const satisfies { metric: MetricId; base: MetricId; asked: RegExp };
 
 function squeezed(text: string): string {
   return text.replace(SPACES, "");
@@ -168,8 +170,20 @@ function askedRows(query: MetricQuery, rows: readonly MetricRow[]): string[] {
   return dims.length === 0 ? [] : [...new Set(rows.flatMap((row) => labelAlong(dims, row) ?? []))].filter((label) => focus.includes(label));
 }
 
+/** A sell-out breakdown asked against sell-in carries the parity card's own reading (each row's sell-out as a share of its sell-in, the rows the card marks short and its verdict), so the reply judges the rows the way the card does and never by litre differences (AI-332). */
+async function withParity(answered: Answered, access: AccessContext): Promise<Answered & { parity?: ParityForModel }> {
+  const dim = groupDimsOf(answered.query)[0];
+  const question = askedQuestion();
+  if (answered.query.metric !== PARITY.metric || !dim || timeDimOf(answered.query) || !question || !PARITY.asked.test(question)) return answered;
+  const { scopeApplied: _scope, labels: _labels, ...asked } = answered.query;
+  const base = await runMetric({ ...asked, metric: PARITY.base, compare: "none", limit: null, sort: null, where: null }, access);
+  if (!base.ok) return answered;
+  const parity = parityForModel({ query: base.query, result: base }, { query: answered.query, result: answered }, TH.dash.dimUnit[dim]);
+  return parity ? { ...answered, parity } : answered;
+}
+
 const DESCRIPTION =
-  "Read one certified metric from the semantic layer. Call it for every number you report: volumes, values, attainment, days of cover, margin, AR, headcount. Group with dims, narrow with filters, use compare for prev_period / prev_year / target. With a limit, set sort to the order the question asks (delta_asc = fell most, delta_desc = grew most, value_asc = lowest, value_desc = highest): rows are ranked by it before the limit cuts, so \"top 10 that fell\" really is the ten that fell most. A threshold in the question (\"under 10 days\", \"over 5 million\") goes in where { op: below | above, value } so only the rows that meet it come back. For a period the user names (this week, this month, last month, this year, the last 7 or 30 days) set period and leave range null: the server turns it into dates and says in the summary how far the data reaches; for the last N days, weeks or months (\"12 สัปดาห์ล่าสุด\", \"6 เดือนล่าสุด\") set last { count: N, unit } with grain the same unit and leave range, period and limit null: the server picks exactly N whole buckets; use range only for dates the user gives.";
+  "Read one certified metric from the semantic layer. Call it for every number you report: volumes, values, attainment, days of cover, margin, AR, headcount. Group with dims, narrow with filters, use compare for prev_period / prev_year / target. With a limit, set sort to the order the question asks (delta_asc = fell most, delta_desc = grew most, value_asc = lowest, value_desc = highest): rows are ranked by it before the limit cuts, so \"top 10 that fell\" really is the ten that fell most. A threshold in the question (\"under 10 days\", \"over 5 million\") goes in where { op: below | above, value } so only the rows that meet it come back. For a period the user names (this week, this month, last month, this year, the last 7 or 30 days) set period and leave range null: the server turns it into dates and says in the summary how far the data reaches; for the last N days, weeks or months (\"12 สัปดาห์ล่าสุด\", \"6 เดือนล่าสุด\") set last { count: N, unit } with grain the same unit and leave range, period and limit null: the server picks exactly N whole buckets; use range only for dates the user gives. A sell-out breakdown asked against sell-in comes back with parity, the card's own reading: answer with its verdict and the rows it marks short (each row's sell-out as a share of its sell-in), not with litre differences.";
 
 /** The dims (for both dims and filters) each metric accepts, grouped by shared set, and the metrics that take compare "target"; anything else is refused. */
 export function metricShapeLines(): string {
@@ -206,7 +220,7 @@ export const queryMetricTool = defineTool({
     const summary = [result.summary, ...notes].join(" · ");
     const named = askedRows(result.query, result.rows);
     const closing = Boolean(result.headline.projection) && asksMonthEnd(askedQuestion());
-    const answered = { ...result, headline: { ...result.headline, ...(named.length > 0 ? { asked: named } : {}), ...(closing ? { asksMonthEnd: true } : {}) } };
+    const answered = await withParity({ ...result, headline: { ...result.headline, ...(named.length > 0 ? { asked: named } : {}), ...(closing ? { asksMonthEnd: true } : {}) } }, access);
     const nextActions = actionsForMetric(access, answered, dictionary);
     return { ...answered, summary, provenance, nextActions, followUps: followUpsForMetric(access, answered, dictionary, nextActions) };
   },

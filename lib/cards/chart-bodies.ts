@@ -3,7 +3,7 @@ import { TH } from "@/lib/i18n/th";
 import { formatPercent, periodLabelTh } from "@/lib/i18n/format";
 import { directionOf, formatDelta, formatMetricValue, metricFormat, metricLabel, metricUnit, toneOf, type Tone } from "@/lib/dashboard/metric-display";
 import { changeTextOf, deltaPercentOf, deltaPointsOf, groupDimsOf, labelAlong, labelOf, numericOf, timeDimOf, valueTextOf } from "./rows";
-import { outliersOf } from "./reading";
+import { outliersOf, percentText } from "./reading";
 import type { CardBody, CardHero, ChartSeries, ColorScale, HeatCell, ScatterAxis, ScatterPoint, ShareSlice } from "./present";
 
 export type Source = { query: MetricQuery; result: Extract<MetricResult, { ok: true }> };
@@ -430,6 +430,17 @@ export function gapHero(first: Source, second: Source, unit: string | null): Car
     unit: null,
     detail: short.count > 0 ? shortText(short.count, gaps.length, unit ?? "", other, base, WIDE_GAP_PCT) : TH.dash.gapNoneShort(unit ?? "", other, base, WIDE_GAP_PCT),
   };
+}
+
+/** A parity card's reading in words: its verdict, the overall share and every row's share with whether the card marks it short. */
+export type ParityForModel = { verdict: string; overall: string; rows: { label: string; share: string; short: boolean }[] };
+
+/** What the parity card of these two results reads, for the model to answer from so its reply names the rows the card marks (AI-332); null when the two do not draw as a parity card. */
+export function parityForModel(first: Source, second: Source, unit: string): ParityForModel | null {
+  if (!isParityPair(first, second)) return null;
+  const hero = gapHero(first, second, unit);
+  if (!hero?.detail) return null;
+  return { verdict: hero.detail, overall: `${hero.label} ${hero.value}`, rows: parityGaps(first, second).map((gap) => ({ label: gap.label, share: percentText(gap.ratio), short: gap.short })) };
 }
 
 /** Stages of one flow in the same unit (produced → sold in → sold out), each bar sized against the first, with what was lost between stages. */
