@@ -4321,7 +4321,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-331. 'ขายเข้ากับขายออกรายสัปดาห์ 12 สัปดาห์ล่าสุด': the chart shows 11 weeks (W37–W47) while the tiles add 13 partial weeks (74.0 / 72.7 ล้านลิตร), and the x-axis labels at both ends run into each other
 
-- **สถานะ:** แก้บางส่วน `cf3048e` `bd7273e` · ส่วนการ์ด: hero และไทล์นับเฉพาะสัปดาห์ที่กราฟวาด และท้ายการ์ดบอกช่วงที่วาด ('กราฟและตัวเลขนับ สัปดาห์ 37 – สัปดาห์ 47') ทุกครั้งที่มีสัปดาห์ถูกตัด รวมถึงกรณีที่ `limit` ตัดสัปดาห์แรกไป ป้ายแกน x ที่จะชนกันถูกตัดออก (ปลายทั้งสองข้างยังอยู่) ที่ยังเหลือฝั่ง prompt: คำถาม '12 สัปดาห์ล่าสุด' ยังถามช่วง 13 สัปดาห์แล้วใช้ `limit` ตัด (a)
+- **สถานะ:** แก้แล้ว `cf3048e` `bd7273e` `85366e0` `04c170f` · ส่วนการ์ด: hero และไทล์นับเฉพาะสัปดาห์ที่กราฟวาด และท้ายการ์ดบอกช่วงที่วาดทุกครั้งที่มีสัปดาห์ถูกตัด ป้ายแกน x ที่จะชนกันถูกตัดออก · ส่วน query (รอบ 12 ยืนยันแล้ว): `query_metric` รับ `last` `{ count, unit }` ระบบเลือกช่วงเอง โมเดลส่ง `last` `{count:12, unit:"week"}` ไม่ใช้ `limit` ได้ 12 สัปดาห์เต็ม (สัปดาห์ 36–47, 31 ส.ค. – 22 พ.ย.) ไทล์ 71.2 / 70.1 ล้านลิตรตรงกับผลรวมทั้ง 12 แถว (round 12 Q1)
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The model asked `{"metric":"net_sales_volume","dims":["week"],"range":{"from":"2026-09-01","to":"2026-11-26"},"grain":"week","limit":12}` and the same for `sell_out_volume`. That range holds 13 weeks: W36 starts mid-week and W48 runs to 26 พ.ย. `limit: 12` drops W36 from the rows. The overlay then drops the running W48, which leaves 11 weeks on the chart. The tiles and the 97.7% ratio read the headline of the whole range (74,021,277 ลิตร = all 13 weeks, W36 and W48 included). No footer note says that a week was left out, because `withoutLeadingPartial` looks for W36 and the rows no longer hold it. Labels 'สัปดาห์ 37สัปดาห์ 38' and 'สัปดาห์ 46สัปดาห์ 47' overlap at 1100px. The reply says "12 สัปดาห์ล่าสุด" and names week 48.
 - **ที่ควรเป็น:** The query for "12 สัปดาห์ล่าสุด" covers the last 12 full weeks (W36 is outside the range). The tiles add exactly the buckets the chart draws, or say what span they cover. A dropped bucket is named in the footer. The end labels of the x-axis do not overlap.
@@ -4333,7 +4333,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-332. 'เอเย่นต์อีสานไหนขายออกต่ำกว่าขายเข้ามาก': the card marks วารินพาณิชย์ and นางรองค้าส่ง as the 2 short by more than 5%, and the reply names ขอนแก่นมหาชัย and โคราชสหภัณฑ์ and says none is abnormal
 
-- **สถานะ:** แก้บางส่วน `cc15050` `91a4204` · ส่วนการ์ด: แถบไม่เกิน 8 แถวบอกค่าทุกแถว และแถวที่อยู่ติดกันห่างกันไม่เกิน 0.5 จุดและไม่เกิน 1 จุดจากเส้น 5% ถูกนับเป็นกลุ่มเดียวกับแถวที่เกิน 5% คำตัดสินจึงเป็น '5 จาก 8 เอเย่นต์ … ต่ำกว่าปริมาณขายเข้าราว 5% ขึ้นไป' เท่ากับแถบสีแดง ที่ยังเหลือฝั่ง prompt: คำตอบนับต่างเป็นลิตรและสรุปว่าไม่มีรายผิดปกติ ขัดกับคำตัดสินของการ์ด (c)
+- **สถานะ:** แก้แล้ว `cc15050` `91a4204` `cab08ca` `13b74c9` · ส่วนการ์ด: แถบไม่เกิน 8 แถวบอกค่าทุกแถว และแถวที่ติดกับเส้น 5% ถูกนับเป็นกลุ่มเดียวกัน · ส่วนคำตอบ (รอบ 12 ยืนยันแล้ว): ผลของ `sell_out_volume` แยกรายที่ถามเทียบขายเข้ามี `parity` ซึ่งเป็นคำตัดสินและ % ของการ์ดเอง และพก `parityBase` (ขายเข้าของช่วงเดียวกัน ไม่ส่งให้โมเดล) ให้การ์ดวาดแถบ parity แม้โมเดลไม่ได้ถามขายเข้า คำตอบและการ์ดบอก 5 เอเย่นต์ชุดเดียวกันด้วย % เดียวกัน (round 12 Q2 ถามซ้ำ)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
 - **อาการ:** query_metric `net_sales_volume` and `sell_out_volume` by agent, `filters {"region":["northeast"]}`, this_month, paired as a parity gap. Verdict '2 จาก 8 เอเย่นต์ ปริมาณขายออกต่ำกว่าปริมาณขายเข้าเกิน 5%', with วารินพาณิชย์ 94.8% and นางรองค้าส่ง 95.0% thick and red. ขอนแก่นมหาชัย, โคราชสหภัณฑ์ and ปากช่องเบเวอเรจ sit at about 95.2–95.3% as unvalued grey bars of almost the same length. Five agents sit within 0.5 points of each other, and the 5% cut turns two of them red. The reply ranks by litres ('ขอนแก่นมหาชัย ต่างกัน 51,984 ลิตร', 'โคราชสหภัณฑ์ 48,019 ลิตร'), names neither red agent, and ends 'ไม่พบรายที่ขายออกต่ำกว่าขายเข้าผิดปกติอย่างมีนัยสำคัญ', which contradicts the card's headline. A second card (open alerts for the region) follows. The reply uses it to say อีสานรุ่งโรจน์ and อุบลศรีสุข sell out far more than they buy.
 - **ที่ควรเป็น:** The reply and the card name the same agents on the same base (share or litres). A cut that splits a tight cluster either values every row in the cluster or says that the five are about 95%.
@@ -4342,3 +4342,109 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 	- /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat-q11.png, chat-q11-b.png
 	- call-tool rerun: sell-in / sell-out วารินพาณิชย์ 389,301 / 369,143, นางรองค้าส่ง 505,181 / 479,788, โคราชสหภัณฑ์ 992,487 / 944,468 ลิตร
 - **สาเหตุ:** verified (c): the reply reads the two results as litre differences and ignores the card's verdict. The prompt does not say that a paired card's verdict is what the reply must agree with (guess). verified (b): lib/cards/chart-bodies.ts:386-388 `parityGaps` sets `short` by a fixed `WIDE_GAP_PCT` cut, and lib/cards/breakdown.ts:459 `parityReading` values only `short` rows and the last row, so rows 0.3 points from the cut get no value.
+
+## รอบทดสอบที่ 12 (2026-10-19) ถามซ้ำ AI-330..332 และการ์ดข้อมูล 8 แบบที่ยังไม่เคยถาม บน dev build ของกิ่ง datacard-readability
+
+ถามในแชตจริงที่กว้าง 1100px (baton, Chrome) เป็น u_thana (CEO) หนึ่งบทสนทนาต่อคำถาม ถามครั้งเดียว ยกเว้นข้อ 2 ที่ถามซ้ำหนึ่งครั้งหลังแก้ `13b74c9` dev server `:3100` `WINYU_SCHEDULER=off` เริ่มที่ commit `8d46aa1` แก้ฝั่งการ์ดและ query ระหว่างรอบ (restart server ก่อนข้อ 9 และก่อนถามซ้ำ) ค่าโมเดลวัดจาก `estimatedUsd` ใน `.data/model-calls.json` ที่เพิ่มหลังเริ่มรอบ (แถวที่ 187 เป็นต้นไป): 13 เทิร์น 57 calls $0.5592 (billed $0.1151) ราว $0.04 ต่อคำถาม หยุดหลังถามซ้ำข้อ 2 เพราะคำถามถัดไปอาจเกินงบ $0.60 ข้อ 2 ครั้งแรกค้างที่ "กำลังวางแผนคำตอบ…" 170 วินาทีโดยไม่มี POST `/api/copilotkit/agent/winyu/run` ใน log จึงเปิดบทสนทนาใหม่ถาม (ภาพ /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r12/q2-stuck.png) ต่อมา run ของบทสนทนาที่ค้างนั้นทำงานจนจบเอง (run e3d12891, \$0.0368 นับรวมในยอดข้างต้น) ผล: เหมาะ 4 · ไม่เหมาะ 8 (ไม่มีข้อสูง) แก้แล้ว 4 แก้บางส่วน 3 เปิด 1
+
+| คำถาม | การ์ดที่วาด (กฎ / pairing) | ผล |
+|---|---|---|
+| "ขายเข้ากับขายออกรายสัปดาห์ 12 สัปดาห์ล่าสุด" | สองเส้น 12 สัปดาห์ (36–47), tiles 98.6% · 71.2 · 70.1 ล้านลิตร (R10 `overlay`), query `last {12, week}` | เหมาะ (AI-331 ยืนยัน) |
+| "เอเย่นต์อีสานไหนขายออกต่ำกว่าขายเข้ามาก" ครั้งแรก | อันดับขายออกเป็นลิตร 8 เอเย่นต์ (leaderboard) และรายการความผิดปกติ | ไม่เหมาะ (b) AI-333 |
+| ข้อเดียวกัน ถามซ้ำหลัง `13b74c9` | แถบ parity 5 จาก 8 เอเย่นต์ (R10 `gap` จาก `parityBase`) | เหมาะ (AI-332 ยืนยัน) |
+| "ยอดขายกับหนี้ค้างของแต่ละจังหวัดไปด้วยกันไหม" | scatter แกน 0–250 / 0–12 ล้านบาท ป้ายแกนไม่มีหน่วยซ้ำ (R10 `scatter`) | เหมาะ (AI-330 ยืนยัน) |
+| "ยอดขาย ต.ค. กับ พ.ย. ทำได้ตามเป้าไหม" | แถบเทียบเป้า 2 เดือน (R2 → R3) | ไม่เหมาะ (d) AI-334 |
+| "จำนวนพนักงานรายเดือนปีนี้เปลี่ยนไปยังไง" | เส้นรายเดือน hero ต.ค. เทียบ ก.ย. (R9) | ไม่เหมาะ (b) AI-335 |
+| "สต๊อกพอขายกี่วัน รายสัปดาห์ 3 เดือนที่ผ่านมา" | เส้น 12 สัปดาห์ (R15) query `last {12, week}` | ไม่เหมาะ (d) AI-336 |
+| "ยอดขายเดือนนี้แยกภาคกับแบรนด์" | heatmap ภาค × แบรนด์ เทียบเป้าตามเวลา | ไม่เหมาะ (b)(a) AI-337 |
+| "ยอดขายรายสัปดาห์แยกแบรนด์ 2 เดือนล่าสุด" | stacked bars สัปดาห์ 37–43 | ไม่เหมาะ (a)(b)(c) AI-338 |
+| "ยอดขายรายวันแยกแบรนด์ 30 วันล่าสุด" | stacked bars 20–26 พ.ย. (7 วัน) | ไม่เหมาะ (a)(b)(c) AI-339 |
+| "แต่ละภาคทำได้กี่ % ของเป้า รายเดือนปีนี้" | heatmap เดือน × ภาค การบรรลุเป้า ก.พ.–ต.ค. | ไม่เหมาะ (d) AI-340 |
+| "เอเย่นต์อีสานที่ทำได้ต่ำกว่า 90% ของเป้ามีใครบ้าง" | แถบ 2 จาก 8 เอเย่นต์ต่ำกว่า 90.0% ของเป้า (R7) | เหมาะ |
+
+สิ่งที่เปลี่ยนก่อนถาม ($0):
+- scatter `2c3ea19`: ป้ายแกนเป็นตัวเลขเปล่าทุกขั้นเท่ากัน ('0 50 100 150 200 250') หน่วยอยู่ในชื่อแกนครั้งเดียว ('มูลค่าขายเข้า (ล้านบาท)') ถ้าไม่พอที่จะเขียนเฉพาะทุกขั้นที่สองหรือที่ห้า ชื่อจุดหลบจุดสีเทา ถ้าต้องย้ายไกลจากจุดมีเส้นนำ และวางชื่อในลำดับที่ไม่มีชื่อทับจุด
+- `85366e0` `04c170f`: `query_metric` รับ `last { count, unit }` ระบบเลือกช่วงเอง (จบที่ช่วงล่าสุดที่ครบ ยอดคงเหลือและจำนวนพนักงานจบที่ช่วงที่ยังไม่จบเพราะการ์ดเก็บไว้) prompt บรรทัดช่วงเวลาและขั้นตรวจยอดค้างชำระ 6 เดือนชี้ไปที่ `last` แทนสูตรวันที่ ทำให้ recordings ที่มีคำอธิบาย tool เก่าเป็น stale
+- `cab08ca`: ผลของขายออกแยกรายที่ถามเทียบขายเข้ามี `parity` (คำตัดสินของการ์ด % ของแต่ละราย และรายที่การ์ดทำสีแดง) คำอธิบาย tool บอกให้ตอบจาก `parity` ไม่ใช่ส่วนต่างเป็นลิตร
+
+ข้อสังเกตที่ไม่เปิดเป็นข้อใหม่:
+- ข้อ 3 คำตอบยก ชลบุรี เป็นตัวอย่าง "ไปทิศทางเดียวกัน" ซึ่งไม่มีชื่อบนกราฟ (ตัวเลขจริง 115.3 / 6.3 ล้านบาท) และสรุปว่าสงขลากับสุราษฎร์ธานีหนี้ค้างสูงผิดสัดส่วน ซึ่งตรงกับจุดที่การ์ดตั้งชื่อ (73.7 / 7.0 และ 54.9 / 5.6 ล้านบาท)
+- ข้อ 1 คำตอบไม่มีตัวเลขเลย บอกเพียงว่า "ฟื้นตัวตั้งแต่สัปดาห์ที่ 45" ซึ่งตรงกับข้อมูล (สัปดาห์ 44 → 45: 5.6 → 6.6 ล้านลิตร)
+- ข้อ 11 การบรรลุเป้า (`target_attainment`) เป็นสัดส่วนของเป้าตามเวลา 69.3% ตรงกับ -30.7% ของขายเข้าเทียบเป้าตามเวลา
+- ข้อ 2 ถามซ้ำ ปุ่มหลักเป็น "ปักเป็นการ์ดบน Dashboard" และคำตอบชวนปัก ไม่ได้ส่งต่อใคร (รอบ 11 ปุ่มหลักเป็นส่งต่อ)
+
+### AI-333. 'เอเย่นต์อีสานไหนขายออกต่ำกว่าขายเข้ามาก': the reply names the 5 agents under the parity cut while the card ranks sell-out litres
+
+- **สถานะ:** แก้แล้ว `13b74c9` · ผลของขายออกพก `parityBase` (ขายเข้าของช่วงเดียวกัน) ผลที่ไม่มีอะไรให้จับคู่จึงวาดการ์ด parity เอง ถามซ้ำแล้วการ์ดและคำตอบบอก 5 เอเย่นต์ชุดเดียวกัน
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** With `parity` on the sell-out result (`cab08ca`), the model called only `query_metric` `sell_out_volume` by agent (plus `list_metrics` and `get_alerts`) and no sell-in. The reply named วารินพาณิชย์ 94.8%, นางรองค้าส่ง 95.0%, ขอนแก่นมหาชัย 95.1%, โคราชสหภัณฑ์ 95.2% and ปากช่องเบเวอเรจ 95.2%, the card's own reading. The card had no second result to pair with, so it drew a sell-out leaderboard ('ขอนแก่นมหาชัยมากสุด ตามด้วยโคราชสหภัณฑ์') that shows none of it.
+- **ที่ควรเป็น:** The card the reply describes is the one on screen: the parity strip with the same five agents.
+- **หลักฐาน:**
+	- run 07dc9831-d055-4bcf-b101-366a7e89f5b0; audit.json turn 07dc9831 (list_metrics, get_alerts, query_metric sell_out_volume agent)
+	- /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat12-q2.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat12-q2-b.png (first ask); /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat12-q2r.png (re-ask, run ca64780d)
+- **สาเหตุ:** verified (b): the parity reading went to the model only; `presentCard` pairs only results the turn passes as `others`, so a lone sell-out result drew as a plain breakdown.
+
+### AI-334. 'ยอดขาย ต.ค. กับ พ.ย. ทำได้ตามเป้าไหม': each month's target line is cut ('1,490.1 · เป้า 1,716.6 ล…') and the verdict runs the month into the word before it
+
+- **สถานะ:** แก้แล้ว `7bc28b8` · บรรทัดรายละเอียดของแถวขึ้นสองบรรทัดแทนการตัด ชื่อเดือนแบบย่อหลัง "หนักสุด" มีช่องว่าง ('หนักสุด ต.ค. 69') · ยังเหลือ: คำตัดสิน "ทุกเดือนต่ำกว่าเป้าตามเวลา" ใช้กับ ต.ค. ที่ปิดแล้วด้วย
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** query_metric `{"metric":"net_sales_value","dims":["month"],"range":{"from":"2026-10-01","to":"2026-11-30"},"compare":"target"}`, 2 rows. Card: 'ทุกเดือนต่ำกว่าเป้าตามเวลา หนักสุดต.ค. 69', rows ต.ค. 69 86.8% and พ.ย. 69 96.8%, details cut before the unit. Reply: ต.ค. −13.2%, พ.ย. −3.2% against the paced target, matching call-tool (delta_pct −13.2, −3.2).
+- **ที่ควรเป็น:** The detail line keeps its unit; the month reads apart from the verdict's words.
+- **หลักฐาน:**
+	- run 468e5d04-be51-4b27-89d0-979003f88ca6; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat12-q4.png
+- **สาเหตุ:** verified (d): components/cards/charts/strip.tsx drew an exception row's detail with `truncate`; lib/i18n/th.ts `underTarget.all` joined `หนักสุด${worst}` with no space.
+
+### AI-335. 'จำนวนพนักงานรายเดือนปีนี้เปลี่ยนไปยังไง': the card leads with October against September (+0.2%, 'ทรงตัว') and drops November, while the reply says headcount rose every month
+
+- **สถานะ:** แก้แล้ว `3b46fda` · จำนวนพนักงานอ่านเป็นระดับแบบเดียวกับยอดคงเหลือ (R15): เก็บเดือนที่ยังไม่จบ และนำด้วยการเปลี่ยนตั้งแต่ ม.ค. ('ตั้งแต่ ม.ค. 69 เพิ่มขึ้นจาก 4,438 คน เป็น 4,530 คน') · ยังเหลือ: แกน y เริ่มที่ 0 เส้นจึงดูแบน
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** query_metric `headcount` dims `["month"]` `period ytd` `compare prev_period`, 11 rows 4,438 → 4,530 คน. The card dropped the running November and led with R9 'ต.ค. 69 ทรงตัวจาก ก.ย. 69 4,521 คน +0.2%'. The reply ('ปรับเพิ่มขึ้นต่อเนื่องทุกเดือน') is right and answers the question; the card does not.
+- **หลักฐาน:**
+	- run 44fca32a-2db2-4415-a22a-862422113de7; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat12-q5.png; call-tool rerun of the same args
+- **สาเหตุ:** verified (b): lib/cards/present.ts `balanceRangeOf` and `partialBucketKey` keyed on `SNAPSHOT_METRICS` (stock, cover, overdue), so headcount, also a level, was read as a flow.
+
+### AI-336. 'สต๊อกพอขายกี่วัน รายสัปดาห์ 3 เดือนที่ผ่านมา': the verdict says cover fell (14.9 → 14.7 วัน) beside a grey −1.5% pill, and the reply calls it steady; the x labels end 45, 48
+
+- **สถานะ:** แก้แล้ว `95df302` `f49141b` · การเปลี่ยนที่อยู่ในช่วงทรงตัวของตัวชี้วัดเขียนว่า 'ตั้งแต่ สัปดาห์ 37 ทรงตัว 14.9 วัน → 14.7 วัน' ป้ายแกน x ทุกเส้นนับถอยจากช่วงล่าสุดทีละขั้นเท่ากัน
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** query_metric `days_of_cover` dims `["week"]` `last {12, week}` (สัปดาห์ 37–48 including the running week, as a balance keeps it). Card verdict 'ตั้งแต่ สัปดาห์ 37 ลดลงจาก 14.9 วัน เหลือ 14.7 วัน', pill −1.5% neutral grey. Reply: 'เฉลี่ยอยู่ที่ 14.7 วัน … ค่อนข้างทรงตัว', matching the headline average. The x labels read 37, 39, 41, 43, 45, 48 (and 36 … 44, 47 on the overlay of Q1).
+- **หลักฐาน:**
+	- run 19ce2c75-c320-4661-a473-9ac3a013fa78; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat12-q6.png; gallery after: /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r12/r15-after.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r12/overlay-after.png
+- **สาเหตุ:** verified (d): `rangeLead` chose 'ลดลง/เพิ่มขึ้น' from the sign alone while the pill used the flat band; components/ui/charts.tsx `lineAxisLabels` thinned from the first bucket and appended the last one.
+
+### AI-337. 'ยอดขายเดือนนี้แยกภาคกับแบรนด์': a grid of each cell against target reads 'ภาคอีสานลดลงแรงกว่าภาคอื่น 11.4–12.7%' under the caption 'ตัวเลขคือการเปลี่ยนแปลง'
+
+- **สถานะ:** แก้บางส่วน `cfc5e0a` · ส่วนการ์ด: เทียบเป้าแล้วคำตัดสินเป็น 'ภาคอีสานต่ำกว่าเป้า 11.4–12.7% มากกว่าภาคอื่น' และคำอธิบายเหนือ grid บอกว่าเป็นส่วนที่ต่ำหรือสูงกว่าเป้า · ยังเหลือ (a): คำถามไม่ได้ถามเป้า โมเดลส่ง `compare target` การ์ดจึงไม่มียอดขายของช่องใดเลย
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** query_metric `net_sales_value` dims `["region","brand"]` `compare target` this_month, 48 rows. ภาคอีสาน ลีโอ −12.7% and สิงห์ −11.4% (call-tool: 171.9 and 115.9 ล้านบาท) coloured red. The reply ('ลีโอและสิงห์ในภาคอีสานทำยอดเทียบเป้าได้ช้ากว่าภูมิภาคอื่น') reads it as target, the card's verdict as a fall.
+- **หลักฐาน:**
+	- run 2530c81a-2664-4286-ad63-a1b758b1a739; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat12-q7.png
+- **สาเหตุ:** verified (b): lib/cards/present.ts `gridVerdict` used `TH.read.fell/rose` for every comparison and components/cards/charts/heatmap.tsx wrote `changeUnit` for every delta scale. guess (a): the tool description and prompt do not say to leave `compare` none for a plain split.
+
+### AI-338. 'ยอดขายรายสัปดาห์แยกแบรนด์ 2 เดือนล่าสุด': two finished months (1 ก.ย. – 31 ต.ค.), the 60-row cap splits a week so its first bar holds only the small brands, and the reply names week 44, which is not drawn
+
+- **สถานะ:** แก้บางส่วน `04c170f` `8f6a6ef` `238bcd7` · '2 เดือนล่าสุด' รายสัปดาห์เริ่มที่สัปดาห์เต็มแรกในช่วงและจบที่สัปดาห์ล่าสุดที่ครบ (28 ก.ย. – 22 พ.ย.) เมื่อเกิน 60 แถว engine ตัดเฉพาะทั้งสัปดาห์ และ summary กับท้ายการ์ดบอกว่าแสดงช่วงไหน · ยังเหลือ: 8 สัปดาห์ × 8 แบรนด์ เกิน 60 แถว การ์ดจึงยังไม่ครบ 2 เดือน และ hero ยังนับทั้งช่วง
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** query_metric `{"metric":"net_sales_value","dims":["week","brand"],"grain":"week","last":{"count":2,"unit":"month"}}` resolved to 1 ก.ย. – 31 ต.ค., 60 rows of about 72. Stacked bars for สัปดาห์ 37–43: สัปดาห์ 37 has only the 'อื่น ๆ' segment. Hero '3,028.3 ล้านบาท' counts the whole range. The reply says the main brands 'เริ่มทยอยฟื้นตัวขึ้นในสัปดาห์ที่ 44', a week neither the rows nor the card hold.
+- **หลักฐาน:**
+	- run f85e6b37-2d94-4587-a49e-87db874cd145; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat12-q8.png; call-tool rerun before and after `8f6a6ef` (after: สัปดาห์ 41–47, 56 rows, all 8 brands each)
+- **สาเหตุ:** verified (a): `recentWindow` (`85366e0`) counted months as whole finished months whatever the grain. verified (b): lib/semantic/engine.ts `sortRows` kept the latest 60 rows of a series, cutting through a bucket. verified (c): the rows ended at สัปดาห์ 43; nothing in the result names สัปดาห์ 44.
+
+### AI-339. 'ยอดขายรายวันแยกแบรนด์ 30 วันล่าสุด': 30 days × 8 brands come back as the latest 7 days, while the footer, the hero and the reply speak for all 30
+
+- **สถานะ:** แก้บางส่วน `238bcd7` · summary บอกโมเดลว่า 'แถวแสดงเฉพาะ 7 จาก 30 ช่วงล่าสุด (20 พ.ย. – 26 พ.ย.) เพราะส่งได้ไม่เกิน 60 แถว ยอดรวมนับทั้งช่วง' และรายละเอียดท้ายการ์ดบอก 'กราฟแสดงเฉพาะ 20 พ.ย. – 26 พ.ย.' · ยังเหลือ (a): 30 วันแยกแบรนด์ไม่มีทางพอดี 60 แถว ต้องเลือกระหว่างรวมแบรนด์เล็กเป็น 'อื่น ๆ' ก่อนตัด หรือถามเป็นรายสัปดาห์
+- **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** query_metric `net_sales_value` dims `["date","brand"]` `period last_30_days`, 56 rows (20–26 พ.ย.). Card: stacked bars of 7 days, hero 1,808.3 ล้านบาท (the 30-day total), footer '28 ต.ค. – 26 พ.ย. 2569'. Reply: 'ข้อมูลครอบคลุมครบ 30 วัน'. The area form the question invites never draws.
+- **หลักฐาน:**
+	- run 94545677-d09c-4a68-abaf-06e9ae974a8b; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat12-q9.png; call-tool rerun: 56 rows, summary line above
+- **สาเหตุ:** verified (a)(b): the engine's 60-row cap keeps the latest buckets of a series and said nothing about it; the coverage line ('ครบ 30 วัน') is what the reply repeated (c).
+
+### AI-340. 'แต่ละภาคทำได้กี่ % ของเป้า รายเดือนปีนี้': the grid's verdict 'กรุงเทพฯ และปริมณฑลสูงสุดทั้งช่วง' marks no weak cell, January is cut by the row cap and November is left off while the reply talks about November
+
+- **สถานะ:** เปิด · ท้ายการ์ด (ในรายละเอียด) บอกแล้วว่ากราฟแสดง ก.พ. 69 – ต.ค. 69 (`238bcd7`)
+- **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** list_metrics, then query_metric `target_attainment` dims `["month","region"]` `period ytd`, 60 rows (6 × 10 months, ก.พ.–พ.ย.). The heatmap shows ก.พ.–ต.ค. without colour; ภาคอีสาน ต.ค. 89.7% and พ.ย. 92.0% (call-tool) are the lowest cells. The reply says every region peaked in ก.ค. (true: 106.1–108.9%), that กรุงเทพฯ and ภาคกลาง are back above target in พ.ย. (100.6%, 100.2%, true but not on the card) and that ภาคอีสาน trails.
+- **ที่ควรเป็น:** The verdict names the cells under the 100% line that stand apart (ภาคอีสาน ต.ค. and พ.ย.), the running month stays on a series read against target (as R12 keeps it), and the year starts in January.
+- **หลักฐาน:**
+	- run f0b5a54b-d003-49f5-b40f-c4626256225a; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat12-q10.png
+- **สาเหตุ:** guess (d): `gridVerdict` with a time dimension falls to `largestGroupVerdict`; `target_attainment` is a rate with `compare none`, so the running bucket is dropped as for a flow. verified (a): 6 regions × 11 months = 66 rows over the cap.
