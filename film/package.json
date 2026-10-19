@@ -8,7 +8,8 @@
     "render": "bun run render.ts",
     "shots": "bun run shots.ts",
     "check-audio": "bun run check-audio.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "continuity": "bun run continuity.ts"
   },
   "dependencies": {
     "gsap": "3.13.0",

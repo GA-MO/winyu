@@ -236,7 +236,7 @@
   }
 
   /** Renders the voices that start in [from, from + WINDOW), with their tails, through the whole mix. The mix is linear, so the windows sum to the full score. */
-  function renderWindow(score, plan, from, seconds) {
+  function renderWindow(score, plan, from, seconds, stem) {
     const ctx = new OfflineAudioContext({ numberOfChannels: 2, length: Math.ceil(seconds * RATE), sampleRate: RATE });
     const master = ctx.createGain();
     const hp1 = ctx.createBiquadFilter(), hp2 = ctx.createBiquadFilter(), shelf = ctx.createBiquadFilter(), lp = ctx.createBiquadFilter();
@@ -290,11 +290,11 @@
         play({ ...v, out: buses[name] }, { ...place, t, step: s % 16, chord, beat: g.beat, seed: s });
       }
     }
-    score.cues.forEach((cue, i) => SFX[cue.sfx].play(v, { ...cue, step: cue.step ?? 0, seed: i, beat: g.beat, phase: g.phase }));
+    if (stem !== "music") score.cues.forEach((cue, i) => SFX[cue.sfx].play(v, { ...cue, step: cue.step ?? 0, seed: i, beat: g.beat, phase: g.phase }));
     return ctx.startRendering();
   }
 
-  async function renderPass(score, length) {
+  async function renderPass(score, length, stem) {
     checkScore(score, length);
     const span = PRE + length + TAIL;
     const g = grid(score, length);
@@ -307,7 +307,7 @@
       room: impulse(BOUNCE.room.seconds, BOUNCE.room.damp, 3),
     };
     const froms = Array.from({ length: Math.ceil(span / WINDOW) }, (_, i) => i * WINDOW);
-    const parts = await Promise.all(froms.map((from) => renderWindow(score, plan, from, Math.min(WINDOW + VOICE_TAIL, span - from))));
+    const parts = await Promise.all(froms.map((from) => renderWindow(score, plan, from, Math.min(WINDOW + VOICE_TAIL, span - from), stem)));
     const n = Math.ceil(span * RATE);
     return [0, 1].map((c) => {
       const out = new Float32Array(n);
@@ -414,6 +414,27 @@
     const buffer = new AudioBuffer({ length: chs[0].length, numberOfChannels: 2, sampleRate: RATE });
     chs.forEach((d, c) => buffer.copyToChannel(d, c));
     return buffer;
+  }
+
+  /** The music alone, folded into the loop but not compressed or normalized: the score's layers under its ducking, without the SFX. */
+  async function musicStem(score, length) {
+    return fold(await renderPass(score, length, "music"), length);
+  }
+
+  /** Film times where one render window hands over to the next, wrapped into the loop. */
+  const windowStarts = (length) => Array.from({ length: Math.ceil((PRE + length + TAIL) / WINDOW) - 1 }, (_, i) => wrap((i + 1) * WINDOW - PRE, length));
+
+  /** Momentary loudness per BS.1770 (400 ms K-weighted blocks) every `hop` seconds, treating the buffer as a loop; block i starts at i·hop. */
+  function momentary(chs, hop = 0.05) {
+    const n = chs[0].length, block = Math.round(0.4 * RATE), step = Math.round(hop * RATE);
+    const prefix = chs.map((d) => {
+      const k = biquadPeriodic(biquadPeriodic(d, K_SHELF), K_HIGH), sum = new Float64Array(2 * n + 1);
+      for (let i = 0; i < 2 * n; i++) sum[i + 1] = sum[i] + k[i % n] * k[i % n];
+      return sum;
+    });
+    const out = new Float32Array(Math.floor(n / step));
+    for (let i = 0; i < out.length; i++) out[i] = -0.691 + 10 * Math.log10(prefix.reduce((p, sum) => p + (sum[i * step + block] - sum[i * step]) / block, 0) + 1e-12);
+    return out;
   }
 
   /** Each section in time order with the moment its layers start playing: its first beat, or `at` itself when a bar line already passed it. */
@@ -684,5 +705,5 @@
     };
   }
 
-  window.Sound = { renderScore, sections, steps, lufs, speaker };
+  window.Sound = { renderScore, musicStem, windowStarts, grid, sections, steps, lufs, momentary, speaker };
 })();
