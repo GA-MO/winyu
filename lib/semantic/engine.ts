@@ -7,6 +7,7 @@ import { MIN_CELL_SIZE, SUPPRESSED_FIELDS, SUPPRESSED_VALUE, cellScopeOf, isSmal
 import { namesOf, resolveFilters, type Dictionary } from "@/lib/semantic/dictionary";
 import { DATA_AS_OF, DAY_COUNT, ISO_OF_DAY, MONTH_COUNT, MONTH_FIRST_DAY, MONTH_OF_DAY, daysInMonthIndex, formatThaiDate, toDayIndex } from "@/lib/data/dates";
 import { TH } from "@/lib/i18n/th";
+import { periodLabelTh } from "@/lib/i18n/format";
 import { coverageOfQuery } from "@/lib/semantic/periods";
 
 const DEFAULT_LIMIT = 60;
@@ -614,7 +615,7 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     underLine: masked ? null : underLineOf(def, query.dims, all, suppressed),
   };
   const coverage = masked ? null : (provenance.coverage?.label ?? null);
-  const summary = [summarize(def, query, headline, masked, aggregated.length === 0), coverage].filter((part): part is string => part !== null).join(" · ");
+  const summary = [summarize(def, query, headline, masked, aggregated.length === 0), coverage, seriesCutLine(dims, aggregated, capped, limit)].filter((part): part is string => part !== null).join(" · ");
   return {
     ok: true,
     rows,
@@ -623,6 +624,16 @@ export function finishMetric(plan: MetricPlan, current: FactResult, comparison: 
     provenance,
     query: resolved,
   };
+}
+
+/** What a series split by a group says when the cap kept only its latest buckets, so the reply never claims the whole range was drawn; null when every bucket came back. */
+function seriesCutLine(dims: Dim[], all: Aggregated[], kept: Aggregated[], cap: number): string | null {
+  const timeDim = firstTimeDim(dims);
+  if (!timeDim || dims.length < 2) return null;
+  const bucketsOf = (rows: Aggregated[]) => [...new Set(rows.map((row) => String(row.dims[timeDim])))].sort();
+  const [every, shown] = [bucketsOf(all), bucketsOf(kept)];
+  if (shown.length === every.length || shown.length === 0) return null;
+  return TH.period.seriesCut(shown.length, every.length, periodLabelTh(shown[0]), periodLabelTh(shown[shown.length - 1]), cap);
 }
 
 /** The row limit an answer honours: none for a breakdown by one of the few parts that make up the company (six regions, the channels, the business units), since a missing part reads as a part that is fine; any other list keeps the limit asked. */

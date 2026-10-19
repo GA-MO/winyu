@@ -1359,6 +1359,15 @@ function drawnSpanNote(query: MetricQuery, rows: MetricRow[], dropped: boolean):
   return TH.dash.drawnSpan(periodLabelTh(first), periodLabelTh(last));
 }
 
+/** A series split by a group that the row cap cut to its latest buckets says what the chart draws, since its hero still counts the whole range (round 12: 30 days by brand drew 20–26 พ.ย.). */
+function cutSeriesNote(query: MetricQuery, rows: MetricRow[]): string | null {
+  const dim = timeDimOf(query);
+  if (!dim || groupDimsOf(query).length === 0 || rows.length === 0) return null;
+  const keys = rows.map((row) => String(row[dim])).sort();
+  if (keys[0] === bucketKeyOf(query, query.range.from)) return null;
+  return TH.dash.chartSpan(periodLabelTh(keys[0]), periodLabelTh(keys[keys.length - 1]));
+}
+
 /** Two series overlaid draw without their running week or month the way one trend does (a series against target keeps it, AI-304), and without a short first bucket; each is said once in the footer with the buckets drawn, and the hero and tiles count those same buckets, so no number on the card covers weeks the chart leaves out (AI-331). */
 function drawnPairing(pairing: Pairing): { pairing: Pairing; notes: (string | null)[] } {
   if (pairing.view !== "overlay") return { pairing, notes: [] };
@@ -1833,7 +1842,7 @@ export function presentCard(input: PresentInput): CardParts {
   if (view === "month_end" && result.headline.projection) return monthEndCard(input, result, result.headline.projection);
   const trimmed = drawnBuckets(query, view, visibleRows, result.provenance.asOf);
   const shape: Shape = { ...whole, rows: sorted(query, trimmed.rows, sortBy) };
-  const footer = footerOf(query, result, [trimmed.note, hiddenGroupsNote(shape, view), hiddenLineOf(query, hidden), paceNoteOf(query, result.provenance.asOf), projectionNote(result)], everyBrandOf(query));
+  const footer = footerOf(query, result, [trimmed.note, cutSeriesNote(query, trimmed.rows), hiddenGroupsNote(shape, view), hiddenLineOf(query, hidden), paceNoteOf(query, result.provenance.asOf), projectionNote(result)], everyBrandOf(query));
   const base = { title, ...actions, footer, denied: null };
   const quiet = masked || hidden > 0;
   const barsDrawn = view === "bar" && fit.look === "breakdown" && shape.rows.length > 0 && (shape.rows.length >= RANK_MIN_ROWS || fit.bars === "level");

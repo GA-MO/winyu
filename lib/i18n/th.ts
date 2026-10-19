@@ -662,6 +662,7 @@ export const TH = {
     steady: "ปกติดี",
   },
   period: {
+    seriesCut: (kept: number, total: number, first: string, last: string, cap: number) => `แถวแสดงเฉพาะ ${kept} จาก ${total} ช่วงล่าสุด (${first} – ${last}) เพราะส่งได้ไม่เกิน ${cap} แถว ยอดรวมนับทั้งช่วง`,
     name: {
       this_week: "สัปดาห์นี้",
       last_week: "สัปดาห์ที่แล้ว",
@@ -759,6 +760,7 @@ export const TH = {
     partialFirstWeek: (days: number) => `สัปดาห์แรกไม่ครบ (${days} วัน) ไม่ได้แสดง`,
     partialFirstMonth: (days: number) => `เดือนแรกไม่ครบ (${days} วัน) ไม่ได้แสดง`,
     drawnSpan: (first: string, last: string) => `กราฟและตัวเลขนับ ${first} – ${last}`,
+    chartSpan: (first: string, last: string) => `กราฟแสดงเฉพาะ ${first} – ${last} ตัวเลขด้านบนนับทั้งช่วง`,
     partialSeries: (label: string, days: number) => `${label} มีข้อมูล ${days} วัน`,
     versusBucket: (bucket: string) => `เทียบ ${bucket}`,
     others: "อื่น ๆ",

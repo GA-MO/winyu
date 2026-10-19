@@ -340,3 +340,17 @@ test("a series split by brand over the row cap keeps its latest weeks whole: no 
   expect(result.rows.length).toBeLessThanOrEqual(60);
   expect(new Set(brandsByWeek.values()).size).toBe(1);
 });
+
+test("30 days by brand over the row cap says in the summary and on the card which days it draws, while the total counts the whole range (round 12)", async () => {
+  const user = findUser("u_thana");
+  if (!user) throw new Error("no u_thana");
+  const tool = winyuTools().query_metric;
+  const turn = { turnId: null, threadId: null, question: "ยอดขายรายวันแยกแบรนด์ 30 วันล่าสุด", queries: [] };
+  const query = { metric: "net_sales_value", dims: ["date", "brand"], filters: {}, grain: "day", compare: "none", limit: null, period: "last_30_days" };
+  const result = (await runWithAccess(accessFor(user), () => runWithTurn(turn, () => tool.execute(tool.inputSchema().parse(query))))) as Extract<MetricResult, { ok: true }>;
+  const days = [...new Set(result.rows.map((row) => String(row.date)))].length;
+  expect(days).toBeLessThan(30);
+  expect(result.summary).toContain(`แถวแสดงเฉพาะ ${days} จาก 30 ช่วงล่าสุด`);
+  const card = presentCard({ title: "t", query: result.query, result });
+  expect(JSON.stringify(card.footer)).toContain("กราฟแสดงเฉพาะ");
+});
