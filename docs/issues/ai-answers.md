@@ -4299,8 +4299,8 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | "เอเย่นต์ลีโออีสาน เทียบทั้งเป้าและเดือนก่อน ใครแย่สุด" | แถบเทียบเป้า 5 เอเย่นต์, % เทียบช่วงก่อนหน้าใต้ทุกแถว (R3 + R10 `baselines`) | เหมาะ (ชื่อช่วงเทียบยังเป็นแบบ AI-317) |
 
 ข้อสังเกตที่ไม่เปิดเป็นข้อใหม่:
-- funnel และ overlay ใช้ป้าย hero "อัตราส่วน" เฉย ๆ (`TH.dash` `ratio`, lib/i18n/th.ts:901) คำตัดสินด้านบนบอกความหมายอยู่แล้ว แต่ป้ายนี้ไม่บอกว่าเป็นอัตราส่วนของอะไรกับอะไร
-- footer ของ funnel ระบุแค่ "MES" ทั้งที่การ์ดอ่านจาก MES และ SAP SD
+- funnel และ overlay ใช้ป้าย hero "อัตราส่วน" เฉย ๆ (`TH.dash` `ratio`, lib/i18n/th.ts:901) คำตัดสินด้านบนบอกความหมายอยู่แล้ว แต่ป้ายนี้ไม่บอกว่าเป็นอัตราส่วนของอะไรกับอะไร · แก้แล้ว `bd11cb6` ข้างตัวเลขบอกว่าเป็นอัตราส่วนของอะไร ('93.7% ขายออก ÷ การผลิต', ไทล์ overlay 'ขายออก ÷ ขายเข้า') ป้ายยังเป็น 'อัตราส่วน' สั้น ๆ ที่ไทล์บนมือถือใส่ได้ การ์ด landing-visit จึงมี 46 คำ เกินเพดาน 45 ไปหนึ่งคำ รับไว้ใน evals/known-failures.json
+- footer ของ funnel ระบุแค่ "MES" ทั้งที่การ์ดอ่านจาก MES และ SAP SD · แก้แล้ว `30feaee` footer ของการ์ดคู่ระบุทุกระบบที่อ่าน ('MES, SAP SD') และขึ้นรับรองเมื่อทุกแหล่งรับรอง
 - คำตอบของ funnel บอกว่า "เติบโตขึ้นทุกด้านเมื่อเทียบกับช่วงก่อนหน้า" ข้อมูลยืนยันว่าจริง (+8.9%, +25.8%, +14.6% เทียบ 1–26 ต.ค.) แต่ตัวเลขเหล่านี้ไม่มีทั้งบนการ์ดและในคำตอบ
 - การ์ด twin บอก "+0.8 จุด" ใต้ทุกแถวของอัตรากำไรขั้นต้น แต่ footer ไม่บอกว่าเทียบกับช่วงไหน
 - การ์ด baselines และคำตอบเรียกช่วงเทียบว่า "ช่วงก่อนหน้า" และ "เดือนก่อน" ทั้งที่เป็น 1–26 ต.ค. เป็นอาการเดียวกับ AI-317 ซึ่งยังเปิดอยู่ ทั้งสอง call ใช้ `limit 5, sort delta_asc` แยกกัน รอบนี้บังเอิญได้ 5 เอเย่นต์ชุดเดียวกัน ถ้าได้คนละชุด แถวที่ไม่ตรงกันจะไม่มีค่าที่สอง (คาดเดา ยังไม่ได้เห็นจริง)
@@ -4309,7 +4309,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-330. Scatter of sales against overdue by province draws both axes to twice the largest value, so the 24 points crowd the lower-left quarter and Bangkok, which the reply names, has no label
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้แล้ว `ba1e7e3` · แกนจบที่ค่ากลม ๆ ถัดจากข้อมูล (0–250 ล้านบาท, 0–12 ล้านบาท) จุดกระจายทั่วกราฟ และจุดที่มากสุดของแต่ละแกน (กรุงเทพมหานคร) มีชื่อคู่กับจุดที่หลุดแนวโน้ม ชื่อหลบจุดอื่นก่อนถ้ามีที่ว่าง
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
 - **อาการ:** query_metric `{"metric":"net_sales_value","dims":["province"],"compare":"none","period":"this_month"}` and the same for `ar_overdue` paired as scatter. The data's maxima are 205.0 ล้านบาท (x) and 10.2 ล้านบาท (y, both กรุงเทพมหานคร), but the axes run to 400.0 and 20.0 ล้านบาท. The points fill about a quarter of the plot. The labels near the cluster overlap neighbouring dots, so it is unclear which dot is นครศรีธรรมราช. The three named points are off-trend provinces (สุราษฎร์ธานี, สงขลา, นครศรีธรรมราช). The reply builds its story on กรุงเทพมหานคร and ชลบุรี "สัดส่วนสูงทั้งสองด้าน", and neither is labelled. The verdict "มูลค่าขายเข้ามาก ยอดค้างชำระเกินกำหนดมักมากตาม" and the reply agree.
 - **ที่ควรเป็น:** The axes end at the next round value above the data (250 and 12 ล้านบาท), so the points spread over the plot. The extreme point the reply relies on (the largest province) is labelled with the off-trend ones.
@@ -4321,7 +4321,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-331. 'ขายเข้ากับขายออกรายสัปดาห์ 12 สัปดาห์ล่าสุด': the chart shows 11 weeks (W37–W47) while the tiles add 13 partial weeks (74.0 / 72.7 ล้านลิตร), and the x-axis labels at both ends run into each other
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้บางส่วน `cf3048e` `bd7273e` · ส่วนการ์ด: hero และไทล์นับเฉพาะสัปดาห์ที่กราฟวาด และท้ายการ์ดบอกช่วงที่วาด ('กราฟและตัวเลขนับ สัปดาห์ 37 – สัปดาห์ 47') ทุกครั้งที่มีสัปดาห์ถูกตัด รวมถึงกรณีที่ `limit` ตัดสัปดาห์แรกไป ป้ายแกน x ที่จะชนกันถูกตัดออก (ปลายทั้งสองข้างยังอยู่) ที่ยังเหลือฝั่ง prompt: คำถาม '12 สัปดาห์ล่าสุด' ยังถามช่วง 13 สัปดาห์แล้วใช้ `limit` ตัด (a)
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The model asked `{"metric":"net_sales_volume","dims":["week"],"range":{"from":"2026-09-01","to":"2026-11-26"},"grain":"week","limit":12}` and the same for `sell_out_volume`. That range holds 13 weeks: W36 starts mid-week and W48 runs to 26 พ.ย. `limit: 12` drops W36 from the rows. The overlay then drops the running W48, which leaves 11 weeks on the chart. The tiles and the 97.7% ratio read the headline of the whole range (74,021,277 ลิตร = all 13 weeks, W36 and W48 included). No footer note says that a week was left out, because `withoutLeadingPartial` looks for W36 and the rows no longer hold it. Labels 'สัปดาห์ 37สัปดาห์ 38' and 'สัปดาห์ 46สัปดาห์ 47' overlap at 1100px. The reply says "12 สัปดาห์ล่าสุด" and names week 48.
 - **ที่ควรเป็น:** The query for "12 สัปดาห์ล่าสุด" covers the last 12 full weeks (W36 is outside the range). The tiles add exactly the buckets the chart draws, or say what span they cover. A dropped bucket is named in the footer. The end labels of the x-axis do not overlap.
@@ -4333,7 +4333,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-332. 'เอเย่นต์อีสานไหนขายออกต่ำกว่าขายเข้ามาก': the card marks วารินพาณิชย์ and นางรองค้าส่ง as the 2 short by more than 5%, and the reply names ขอนแก่นมหาชัย and โคราชสหภัณฑ์ and says none is abnormal
 
-- **สถานะ:** เปิด (ใหม่)
+- **สถานะ:** แก้บางส่วน `cc15050` `91a4204` · ส่วนการ์ด: แถบไม่เกิน 8 แถวบอกค่าทุกแถว และแถวที่อยู่ติดกันห่างกันไม่เกิน 0.5 จุดและไม่เกิน 1 จุดจากเส้น 5% ถูกนับเป็นกลุ่มเดียวกับแถวที่เกิน 5% คำตัดสินจึงเป็น '5 จาก 8 เอเย่นต์ … ต่ำกว่าปริมาณขายเข้าราว 5% ขึ้นไป' เท่ากับแถบสีแดง ที่ยังเหลือฝั่ง prompt: คำตอบนับต่างเป็นลิตรและสรุปว่าไม่มีรายผิดปกติ ขัดกับคำตัดสินของการ์ด (c)
 - **ระดับ:** กลาง · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO)
 - **อาการ:** query_metric `net_sales_volume` and `sell_out_volume` by agent, `filters {"region":["northeast"]}`, this_month, paired as a parity gap. Verdict '2 จาก 8 เอเย่นต์ ปริมาณขายออกต่ำกว่าปริมาณขายเข้าเกิน 5%', with วารินพาณิชย์ 94.8% and นางรองค้าส่ง 95.0% thick and red. ขอนแก่นมหาชัย, โคราชสหภัณฑ์ and ปากช่องเบเวอเรจ sit at about 95.2–95.3% as unvalued grey bars of almost the same length. Five agents sit within 0.5 points of each other, and the 5% cut turns two of them red. The reply ranks by litres ('ขอนแก่นมหาชัย ต่างกัน 51,984 ลิตร', 'โคราชสหภัณฑ์ 48,019 ลิตร'), names neither red agent, and ends 'ไม่พบรายที่ขายออกต่ำกว่าขายเข้าผิดปกติอย่างมีนัยสำคัญ', which contradicts the card's headline. A second card (open alerts for the region) follows. The reply uses it to say อีสานรุ่งโรจน์ and อุบลศรีสุข sell out far more than they buy.
 - **ที่ควรเป็น:** The reply and the card name the same agents on the same base (share or litres). A cut that splits a tight cluster either values every row in the cluster or says that the five are about 95%.
