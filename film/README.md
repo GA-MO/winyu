@@ -5,7 +5,7 @@ Two looping films tell the Winyu story in the same nine headlines, from "หล�
 | File | Style | Length |
 |---|---|---|
 | `isometric.html` | A miniature isometric city, with screens shown flat over it when they must be read | 73.6 s |
-| `hybrid.html` | ผสม: the city carries the big picture, and the camera pushes into a real Winyu screen lying in the city when there is something to read, then pulls back out | 76.0 s |
+| `hybrid.html` | ผสม: the city carries the big picture, and the camera pushes into a real Winyu screen lying in the city when there is something to read, then pulls back out | 78.2 s |
 
 ## View
 
@@ -67,9 +67,10 @@ window.film = { length, render(t), ready, audio(), score };
 `hybrid.html` keeps three real screens: the Winyu web app window, the sales rep's phone, and a three-window view of the CEO, the sales rep and IT. Each `VISITS` entry lays one of them on a plinth in the city for a while, with one or more `moves`, each a push and a pull time span. Every push and pull lasts two beats and starts on a beat, so its whoosh lands on the grid.
 
 - A screen lying in the city is the same DOM element as the flat screen, under `rotateX(54.7356deg) rotateZ(45deg)`, which is exactly the city's isometric projection, scaled so the element spans its width in world units. It shows its live content in miniature.
-- During a push, the screen's scale grows in log space from its size in the city to `ZOOM` (2.75; the phone 2.0), centred on the screen's content, and the two angles unroll to zero. The city's camera follows the screen only up to 1.8x, then it blurs and fades, so it never blows up into giant blocks. A pull runs the same path backwards into the next scene's camera.
+- During a push, the screen's scale grows in log space from its size in the city to `ZOOM` (2.75), centred on the screen's content, and the two angles unroll to zero. The phone lands whole, at 1.34, with the same margin above and below it. The city's camera follows the screen only up to 1.8x, then it blurs and fades, so it never blows up into giant blocks. A pull runs the same path backwards into the next scene's camera.
 - A visit with `town` keeps the city in frame: the phone beat pins the city low on the left so the sales rep and the HR building stay beside the phone.
-- Inside the window, the content changes by layer (`L1` to `L7`): the old layer fades out in 0.22 s before the new one fades in, so two layouts never overlap, and each layer's content starts as its push lands.
+- Inside the window, the content changes by layer (`L1` to `L8`). A swap scrolls the chat: the old exchange leaves upward under a soft edge below the headline while the new one comes up from below, a full layer apart, so two layouts never overlap and the screen is never empty. Each layer's content starts arriving during its push, so a push never lands on an empty screen.
+- The connect beat ends on its payoff: the register connects, the ask box takes a question only the new system can answer, and the answer card names the register as its source.
 
 ## Sound
 

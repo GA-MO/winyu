@@ -126,6 +126,7 @@ svg.i{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .step.done{color:var(--s-green);border-color:#bfe9d3;background:var(--s-greenbg)}
 .step.done b{background:#10b981;color:#fff}
 .layer{position:absolute;inset:0;opacity:0;visibility:hidden}
+.feed{position:absolute;inset:0;-webkit-mask-image:linear-gradient(to bottom,transparent 200px,#000 226px);mask-image:linear-gradient(to bottom,transparent 200px,#000 226px)}
 .sc-bubble{position:absolute;padding:10px 26px;border-radius:26px 26px 8px 26px;background:#4f46e5;color:#fff;white-space:nowrap;transform-origin:100% 100%}
 .sc-card{position:absolute;background:#fff;border:1.5px solid var(--s-line);border-radius:28px;box-shadow:0 26px 60px -30px rgba(49,46,129,.28)}
 .sc-pill{display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 14px;border-radius:20px;white-space:nowrap;font-weight:600}
@@ -215,14 +216,16 @@ svg.i{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .app .track{height:6px;border-radius:3px;background:#eef0f5;overflow:hidden;margin-top:6px}
 .app .fill{height:6px;border-radius:3px;background:#6366f1}
 .app svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app .unitg{display:block;width:12px;height:16px;border-radius:4px;flex:none}
 .app .ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
 .app .lpill{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;border:1px solid #e6e8f0;background:#fff;font-size:12px;font-weight:500;color:#64748b;white-space:nowrap;box-shadow:0 1px 2px rgba(15,23,42,.05)}
 .app .lpill svg.i{width:14px;height:14px}
 .app .lpill.mem{color:#0f172a;border-color:transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#4f46e5,#7c3aed 60%,#fb7185) border-box}
 .app .lpill.mem svg.i{color:#7c3aed}
-.app .tip{position:absolute;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:10px;background:#1e1b4b;color:#fff;font-size:12px;font-weight:500;white-space:nowrap;transform-origin:50% 100%}
-.app .tip:after{content:'';position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:#1e1b4b}
-.app .tip svg.i{width:13px;height:13px;color:#c4b5fd}
+.app .why{position:absolute;left:0;top:0;display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px 0 5px;border-radius:999px;background:#f5f3ff;border:1px solid #ddd6fe;color:#6d28d9;font-size:14px;font-weight:600;white-space:nowrap;transform-origin:50% 100%;box-shadow:0 8px 20px -12px rgba(109,40,217,.45)}
+.app .why:after{content:'';position:absolute;left:50%;bottom:-6px;margin-left:-6px;width:10px;height:10px;background:#f5f3ff;border-right:1px solid #ddd6fe;border-bottom:1px solid #ddd6fe;transform:rotate(45deg)}
+.app .why .mk{width:24px;height:24px;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#fb7185);display:flex;align-items:center;justify-content:center;flex:none}
+.app .why .mk svg{width:13px;height:13px}
 .app .composer{position:absolute;display:flex;align-items:flex-end;gap:8px;border-radius:28px;border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#7c3aed,#4f46e5 50%,#22d3ee) border-box;padding:14px 14px 14px 18px;box-shadow:0 10px 30px -18px rgba(30,27,75,.3)}
 .app .composer .field{flex:1;min-height:56px;font-size:16px;line-height:26px;white-space:nowrap;overflow:hidden}
 .app .composer .send{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;background:#e7e9f0;color:#94a3b8}
@@ -330,21 +333,21 @@ const T = {
   dyn: 31.85,
   fwd: 36.65, fwdClick: 37.55, pop: 37.7, sendClick: 38.45, sent: 38.6, pull3: 39.25,
   envFly: [40.45, 1.0], bell: 41.5, mini: 41.95, fwdOut: 43.25,
-  leaveIn: 43.65, phone: [43.95, 54.75], push4: 44.65, leaveQ: [45.95, 0.55], bal: 46.85, scroll: 49.35,
+  leaveIn: 43.65, phone: [43.95, 54.75], push4: 44.65, leaveQ: [45.95, 0.55], bal: 46.85,
   leave: [49.45, 0.85], conf: 50.65, press: 51.65, done: 51.95, pull4: 52.85, approved: 54.15, leaveOut: 54.65,
   permIn: 55.05, split: [55.65, 63.65], push5: 56.55, flip: 59.35, lock: 59.6, pull5: 62.15, permOut: 63.35,
-  connIn: 63.7, plug: [64.75, 0.45], win3: [64.45, 71.6], push6: 65.4, connClick: 66.85, connected: 67.55, assets: 67.95,
-  pull6: 70.1, logo: 71.5, endOut: 74.55, hlRein: 74.95,
+  connIn: 63.7, plug: [64.75, 0.45], win3: [64.45, 73.85], push6: 65.4, connClick: 66.85, connected: 67.55,
+  connAsk: [68.15, 0.8], connSend: 69.1, connAnswer: 69.3, pull6: 72.35, logo: 73.75, endOut: 76.8, hlRein: 76.95,
 };
 const MOVES = ['push1', 'pull1', 'push2', 'pull2', 'push3', 'pull3', 'push4', 'pull4', 'push5', 'pull5', 'push6', 'pull6'];
 const MOVE_BEATS = 2;
-const LENGTH = Math.round(75.95 * 30) / 30;
+const LENGTH = Math.round(78.2 * 30) / 30;
 const GRID = Sound.grid({ tempo: { on: T.memc } }, LENGTH);
 for (const key of MOVES) { const at = GRID.snap(T[key]); T[key] = [at, at + MOVE_BEATS * GRID.beat]; }
 T.logo = GRID.snap(T.logo, 0.25);
 T.card1 = T.push1[1] - 0.45;
-T.pills = T.push2[1] - 0.15;
-T.panes = T.push3[1] - 0.35;
+T.pills = T.push2[1] - 0.45;
+T.panes = T.push3[1] - 0.7;
 T.ask3 = T.panes;
 T.nums = T.push5[1] - 0.35;
 T.chips = [T.dyn - 0.05, T.dyn + 0.2, T.dyn + 0.45];
@@ -375,13 +378,16 @@ const Q = graphemes('ภาคไหนยอดลดมากที่สุ�
 const LEAVE_Q = graphemes('เหลือวันลากี่วัน');
 const LEAVE = graphemes(`ขอลาพักร้อน ${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}`);
 const ANNUAL = FACTS.leaveBalance[0];
-const PHONE_SCROLL = 232;
 const TEAM_SHOWN = 3;
 const CREDIT = FACTS.drops[0].hypothesis.match(/น่าจะติดปัญหา\S+/)[0];
 const CHIPS = [{ label: `แนวโน้ม${FACTS.spotlight}`, reason: `เพราะคุณสนใจ${FACTS.spotlight}` }, ...FACTS.chips];
 const SHARE_COLORS = ['#4f46e5', '#a78bfa', '#10b981', '#f59e0b'];
 const SEVERITY_P1 = 'ต้องรีบดู';
+const QUIET_CHIP = 0.45;
 const COMPOSER_PLACEHOLDER = 'ถาม Winyu เรื่องยอดขาย สต๊อก แคมเปญ หรือการเงิน…';
+const CONN_Q = graphemes(`อุปกรณ์ของทีม${FACTS.spotlight}`);
+const REGISTER = 'ทะเบียนทรัพย์สิน';
+const UNIT_COLORS = ['#4f46e5', '#a78bfa'];
 const WALL_LINES = [100, 96, 99, 92, 97, 94, 100, 95, 98, 72];
 const DENIED = 'นอกขอบเขตข้อมูล';
 const short = role => role.split(' ')[0];
@@ -560,6 +566,7 @@ const ICON = {
   laptop: '<svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg>',
   phone: '<svg class="i" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
   people: '<svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M16 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"/></svg>',
+  mark: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>',
   bot: '<svg class="i" viewBox="0 0 24 24" style="width:20px;height:20px"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 14h.01M15 14h.01"/></svg>',
 };
 const ASSET_ICON = { 'โน้ตบุ๊ก': ICON.laptop, 'โทรศัพท์': ICON.phone };
@@ -588,6 +595,7 @@ function buildWindow() {
     <div class="side">${logoBox(32, 24).replace('class="logo"', 'class="logo" style="position:absolute;left:16px;top:14px"')}<div class="sact" id="sact"></div>
       ${[ICON.menu, ICON.chat, ICON.grid, ICON.inbox, ICON.fwd, ICON.search, ICON.hist].map((ic, i) => `<div class="sbtn" style="top:${66 + i * 44}px">${ic}</div>`).join('')}</div>
     <div class="chat">
+      <div class="feed">
       <div class="layer" id="L1">
         <div class="card" style="left:328px;top:250px;width:560px;padding:18px 20px">
           <div class="row" id="w1a" style="gap:8px"><span class="ic" style="width:28px;height:28px;background:#fef3c7;color:#d97706">${ICON.sun}</span><span class="tag" style="background:#ffe4e6;color:#e11d48">${SEVERITY_P1}</span></div>
@@ -596,7 +604,7 @@ function buildWindow() {
         </div>
       </div>
       <div class="layer" id="L2">
-        <div class="tip" id="qtip">${ICON.spark}${CHIPS[0].reason}</div>
+        <div class="why" id="qtip"><span class="mk">${ICON.mark}</span>${CHIPS[0].reason}</div>
         <div class="ab row" id="qrow" style="left:294px;top:306px;width:628px;gap:8px;justify-content:center">${CHIPS.map(pill).join('')}</div>
         <div class="composer" id="qbox2" style="left:294px;top:352px;width:628px"><div class="field"><span id="qtyped"></span><span id="qcaret" style="display:inline-block;width:2px;height:20px;margin-left:1px;vertical-align:-4px;background:#4f46e5;border-radius:1px"></span><span id="qph" class="muted">${COMPOSER_PLACEHOLDER}</span></div><div class="send" id="qsend">${ICON.up}</div></div>
       </div>
@@ -641,14 +649,23 @@ function buildWindow() {
         </div>
       </div>
       <div class="layer" id="L7">
-        <div class="card row" id="cRow" style="left:328px;top:250px;width:560px;height:68px;padding:0 16px;gap:12px"><span class="ic" style="width:36px;height:36px;background:var(--grad);color:#fff">${ICON.laptop}</span><span class="title">ทะเบียนทรัพย์สิน</span><span class="tag" style="background:#eef2ff;color:#3730a3">MCP</span><span style="flex:1"></span>
+        <div class="card row" id="cRow" style="left:328px;top:250px;width:560px;height:68px;padding:0 16px;gap:12px"><span class="ic" style="width:36px;height:36px;background:var(--grad);color:#fff">${ICON.laptop}</span><span class="title">${REGISTER}</span><span class="tag" style="background:#eef2ff;color:#3730a3">MCP</span><span style="flex:1"></span>
           <span style="position:relative;width:132px;height:36px">
             <span class="btn ab" id="cBtn" style="right:0;top:0;background:#0f172a;color:#fff">${ICON.plug}เชื่อม</span>
             <span class="btn ab" id="cIng" style="right:0;top:0;background:#fef3c7;color:#b45309;opacity:0"><svg class="i" id="cSpin" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>กำลังเชื่อม…</span>
             <span class="btn ab" id="cOk" style="right:0;top:0;background:#e7f8ef;color:#047857;opacity:0"><i style="width:7px;height:7px;border-radius:50%;background:#10b981"></i>เชื่อมแล้ว</span>
           </span>
         </div>
-        <div class="ab row" id="w6a" style="left:328px;top:334px;width:560px;gap:12px;align-items:stretch">${FACTS.assets.map((a, i) => `<div class="card" id="w6t${i}" style="position:relative;flex:1;padding:14px 16px"><div class="row tiny muted" style="gap:6px">${(ASSET_ICON[a.label] ?? ICON.laptop)}${a.label}</div><div style="margin-top:4px"><span class="hero">${a.count}</span><span class="unit" style="margin-left:6px">เครื่อง</span></div></div>`).join('')}</div>
+        <div class="composer" id="cbox" style="left:328px;top:346px;width:560px"><div class="field"><span id="ctyped"></span><span id="ccaret" style="display:inline-block;width:2px;height:20px;margin-left:1px;vertical-align:-4px;background:#4f46e5;border-radius:1px"></span><span id="cph" class="muted">${COMPOSER_PLACEHOLDER}</span></div><div class="send" id="csend">${ICON.up}</div></div>
+      </div>
+      <div class="layer" id="L8">
+        <div class="ask" id="w8q" style="right:328px;top:228px">${CONN_Q.join('')}</div>
+        <div class="card" id="w8card" style="left:328px;top:274px;width:560px;padding:16px 20px 12px">
+          <div class="eyebrow">ทีม${FACTS.spotlight}</div>
+          ${FACTS.assets.map((a, i) => `<div class="row" style="gap:12px;height:48px;${i ? 'border-top:1px solid #eef0f5' : 'margin-top:6px'}"><span class="ic" style="background:#eef2ff;color:#4f46e5">${ASSET_ICON[a.label] ?? ICON.laptop}</span><span class="title" style="width:76px;white-space:nowrap">${a.label}</span><span class="row" style="flex:1;gap:5px">${Array.from({ length: a.count }, (_, j) => `<i class="unitg" id="u${i}_${j}" style="background:${UNIT_COLORS[i % UNIT_COLORS.length]}"></i>`).join('')}</span><span class="row" id="w8n${i}" style="gap:6px"><span class="num" style="font-size:20px;line-height:26px;font-weight:600;letter-spacing:-.01em">${a.count}</span><span class="unit">เครื่อง</span></span></div>`).join('')}
+          <div class="row" id="w8src" style="gap:6px;margin-top:6px;padding-top:10px;border-top:1px solid #eef0f5"><span class="ic" style="width:20px;height:20px;border-radius:6px;background:var(--grad);color:#fff">${ICON.laptop.replace('class="i"', 'class="i" style="width:12px;height:12px"')}</span><span class="cap" style="color:#334155;font-weight:600">${REGISTER}</span>${ICON.okc.replace('width:20px;height:20px', 'width:15px;height:15px')}</div>
+        </div>
+      </div>
       </div>
       <div class="cursor" id="wcur">${CURSOR}</div>
       <div class="ripple" id="wrip"></div>
@@ -660,18 +677,16 @@ function buildPhone() {
   $('phone').innerHTML = `<div id="pscr">
     <div class="island"></div>
     <div class="ab" style="left:20px;top:58px">${logoBox(32, 24)}</div>
-    <div class="ab" style="left:0;right:0;top:330px;height:226px;overflow:hidden">
-      <div class="ab" id="pscroll" style="left:0;right:0;top:0;height:480px">
-        <div class="ask" id="pq0" style="right:16px;top:8px"></div>
-        <div class="card" id="pbal" style="left:16px;top:52px;width:320px;padding:14px 16px"><div class="cap">${ANNUAL.label}</div><div style="margin-top:4px"><span class="hero">${ANNUAL.left}</span><span class="unit">/${ANNUAL.entitled} วัน</span></div><div class="track"><div class="fill" id="pbf" style="width:${(ANNUAL.left / ANNUAL.entitled * 100).toFixed(1)}%"></div></div></div>
-        <div class="ask" id="pq1" style="right:16px;top:240px;white-space:normal;width:236px"></div>
-        <div class="card" id="plv" style="left:16px;top:314px;width:320px;padding:14px 16px">
-          <div class="cap">ยื่นใบลา</div>
-          <div class="title" style="margin-top:2px;white-space:nowrap">${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}</div>
-          <div style="position:relative;margin-top:10px;height:36px">
-            <div class="btn ab" id="plvOk" style="left:0;top:0;width:100%;background:#0f172a;color:#fff">ยื่นใบลา</div>
-            <div class="btn ab" id="plvDone" style="left:0;top:0;width:100%;background:#e7f8ef;color:#047857;opacity:0">${ICON.ok}ส่ง HR แล้ว</div>
-          </div>
+    <div class="ab" style="left:16px;right:16px;top:108px;display:flex;flex-direction:column;gap:16px">
+      <div class="ask" id="pq0" style="position:relative;align-self:flex-end">${LEAVE_Q.join('')}</div>
+      <div class="card" id="pbal" style="position:relative;padding:14px 16px"><div class="cap">${ANNUAL.label}</div><div style="margin-top:4px"><span class="hero">${ANNUAL.left}</span><span class="unit">/${ANNUAL.entitled} วัน</span></div><div class="track"><div class="fill" id="pbf" style="width:${(ANNUAL.left / ANNUAL.entitled * 100).toFixed(1)}%"></div></div></div>
+      <div class="ask" id="pq1" style="position:relative;align-self:flex-end;margin-top:16px">${LEAVE.join('')}</div>
+      <div class="card" id="plv" style="position:relative;padding:14px 16px">
+        <div class="cap">ยื่นใบลา</div>
+        <div class="title" style="margin-top:2px;white-space:nowrap">${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}</div>
+        <div style="position:relative;margin-top:10px;height:36px">
+          <div class="btn ab" id="plvOk" style="left:0;top:0;width:100%;background:#0f172a;color:#fff">ยื่นใบลา</div>
+          <div class="btn ab" id="plvDone" style="left:0;top:0;width:100%;background:#e7f8ef;color:#047857;opacity:0">${ICON.ok}ส่ง HR แล้ว</div>
         </div>
       </div>
     </div>
@@ -701,10 +716,10 @@ $('memtext').textContent = `จำไว้แล้ว · สนใจ${FACTS.s
 $('mini').innerHTML = `<span class="t40 muted">คาดปิดเดือน</span><span class="t76 num" style="color:var(--coral-ink)">${FACTS.close.projected}</span>`;
 
 /** Every screen is drawn at the app's own type scale and pushed in by the same factor, with its focal content centred on FOCUS. */
-const ZOOM = 2.75, PHONE_ZOOM = 2.0, FOCUS = { x: 960, y: 650 }, PHONE_X = 1240;
+const ZOOM = 2.75, PHONE_ZOOM = 1.34, FOCUS = { x: 960, y: 650 }, PHONE_X = 1330;
 const DEV = {
   win: { el: $('win'), lw: 1280, lh: 800, ww: 2.7, flat: [FOCUS.x - (672 - 640) * ZOOM, FOCUS.y, ZOOM] },
-  phone: { el: $('phone'), lw: 376, lh: 736, ww: 0.62, flat: [PHONE_X, FOCUS.y - (483 - 368) * PHONE_ZOOM, PHONE_ZOOM] },
+  phone: { el: $('phone'), lw: 376, lh: 736, ww: 0.62, flat: [PHONE_X, 540, PHONE_ZOOM] },
   split: { el: $('split'), lw: 1280, lh: 800, ww: 3.2, flat: [FOCUS.x - (672 - 640) * ZOOM, FOCUS.y, ZOOM] },
 };
 for (const d of [DEV.win, DEV.split]) { d.el.style.width = d.lw + 'px'; d.el.style.height = d.lh + 'px'; }
@@ -750,6 +765,7 @@ const V = {
   morning: look(1.6, -4.6, 1010, 600, 1.0),
   memory: look(1.2, 3.0, 980, 770, 1.0),
   forward: look(2.8, 1.6, 1000, 660, 0.98),
+  crane: look(4.6, 5.4, 960, 600, 0.62),
   leave: look(9.4, 9.6, 960, 540, 1.0),
   perm: look(2.0, 2.0, 960, 610, 0.98),
   conn: look(2.4, 2.0, 980, 640, 1.0),
@@ -757,14 +773,14 @@ const V = {
 };
 const CAM_KEYS = [
   [T.sun - 0.3, 1.2, V.morning], [T.pull1[1] + 0.05, 1.0, V.memory], [T.pull3[0] - 0.6, 0.5, V.forward],
-  [T.fwdOut - 0.1, 1.0, V.leave], [T.leaveOut - 0.1, 1.0, V.perm], [T.permOut - 0.1, 1.0, V.conn],
-  [T.pull6[0] - 0.6, 0.5, V.wide], [T.endOut, 1.2, V.open],
+  [T.fwdOut - 0.2, 0.9, V.crane, EIO3], [T.fwdOut + 0.3, 1.05, V.leave, EIO3], [T.leaveOut - 0.1, 1.0, V.perm], [T.permOut - 0.1, 1.0, V.conn],
+  [T.pull6[0] - 0.6, 0.5, V.wide], [T.logo + 0.8, 1.2, V.open],
 ];
 function townCam(t) {
   let cur = V.open;
-  for (const [at, dur, view] of CAM_KEYS) {
+  for (const [at, dur, view, ease = EXIO] of CAM_KEYS) {
     if (t <= at) break;
-    const q = EXIO(clamp((t - at) / dur));
+    const q = ease(clamp((t - at) / dur));
     cur = { cx: lerp(cur.cx, view.cx, q), cy: lerp(cur.cy, view.cy, q), z: lerp(cur.z, view.z, q) };
   }
   return cur;
@@ -795,16 +811,19 @@ function hubTileCenter() {
   const bob = 0.06 * Math.sin(2 * Math.PI * RT * Math.round(LENGTH / 4.2) / LENGTH);
   return P(0, 0, 2.05 + bob);
 }
+const HUB_EDGE = [120, 300];
 function drawHub(acc, t) {
   const pulse = PULSES.reduce((a, pt) => a + bump(t, pt, 0.55) * 0.7, 0);
   const [gx, gy] = P(0, 0, 0); const s = S();
-  acc.under.push(`<ellipse cx="${f1(gx)}" cy="${f1(gy)}" rx="${f1(s * (4.2 + pulse * 0.6))}" ry="${f1(s * (2.4 + pulse * 0.35))}" fill="url(#gGlow)"/>`);
-  acc.items.push({ d: -0.6, s: shadow(0, 0, 2.8, 2.8, 1) + boxC(0, 0, 0, 2.8, 2.8, 0.24, M.stone, 1) });
-  acc.items.push({ d: -0.5, s: boxC(0, 0, 0.24, 1.6, 1.6, 0.6, M.hub, 1) + isoEllipse(0, 0, 0.84, 0.42, '#fff', 'opacity=".55"') });
+  const o = clamp((gy - HUB_EDGE[0]) / HUB_EDGE[1]);
+  if (o <= 0.002) return;
+  acc.under.push(`<ellipse cx="${f1(gx)}" cy="${f1(gy)}" rx="${f1(s * (4.2 + pulse * 0.6))}" ry="${f1(s * (2.4 + pulse * 0.35))}" fill="url(#gGlow)" opacity="${o.toFixed(3)}"/>`);
+  acc.items.push({ d: -0.6, s: `<g opacity="${o.toFixed(3)}">${shadow(0, 0, 2.8, 2.8, 1) + boxC(0, 0, 0, 2.8, 2.8, 0.24, M.stone, 1)}</g>` });
+  acc.items.push({ d: -0.5, s: `<g opacity="${o.toFixed(3)}">${boxC(0, 0, 0.24, 1.6, 1.6, 0.6, M.hub, 1) + isoEllipse(0, 0, 0.84, 0.42, '#fff', 'opacity=".55"')}</g>` });
   const [tx, ty] = hubTileCenter();
   const size = 92 * cam.z * (1 + pulse * 0.1);
   const [ex, ey] = P(0, 0, 0.84);
-  acc.items.push({ d: 0.2, s: `<ellipse cx="${f1(ex)}" cy="${f1(ey)}" rx="${f1(size * 0.42)}" ry="${f1(size * 0.2)}" fill="rgba(79,70,229,.18)"/>` + logoTile(tx, ty, size, 1) });
+  acc.items.push({ d: 0.2, s: `<ellipse cx="${f1(ex)}" cy="${f1(ey)}" rx="${f1(size * 0.42)}" ry="${f1(size * 0.2)}" fill="rgba(79,70,229,${(0.18 * o).toFixed(3)})"/>` + logoTile(tx, ty, size, o) });
   for (const pt of PULSES) {
     const p = clamp((t - pt) / 0.9);
     if (p > 0 && p < 1) acc.under.push(isoEllipse(0, 0, 0.02, 1.2 + p * 2.6, 'none', `stroke="#8b5cf6" stroke-width="3" opacity="${(0.5 * (1 - p)).toFixed(3)}"`));
@@ -1036,14 +1055,14 @@ function measure() {
   pop.style.left = f1(fx - $('fwdBtn').offsetWidth / 2) + 'px';
   pop.style.top = f1($('w6card').offsetTop + 74) + 'px';
   const [sx, sy] = centerIn($('popSend'), chat), [cx, cy] = centerIn($('cBtn'), chat);
-  const [px, py] = centerIn($('qp0'), chat), [sx2, sy2] = centerIn($('qsend'), chat);
+  const [px, py] = centerIn($('qp0'), chat), pr = px + $('qp0').offsetWidth / 2, [sx2, sy2] = centerIn($('qsend'), chat);
   CUR_KEYS = {
-    pill: [[T.memPill + 0.2, px + 260, py + 120], [T.tap, px + 10, py + 4], [T.tap + 0.25, px + 30, py + 30], [T.askSend - 0.05, sx2, sy2], [T.askSend + 0.4, sx2 + 30, sy2 + 40]],
+    pill: [[T.memPill + 0.2, pr + 200, py + 130], [T.tap, pr - 26, py + 6], [T.tap + 0.25, pr, py + 44], [T.askSend - 0.05, sx2, sy2], [T.askSend + 0.4, sx2 + 30, sy2 + 40]],
     fwd: [[T.fwd + 0.2, fx + 120, fy + 70], [T.fwdClick, fx, fy + 4], [T.fwdClick + 0.5, fx + 30, fy - 20], [T.sendClick, sx, sy + 4], [T.sendClick + 0.6, sx + 50, sy + 60]],
     conn: [[T.push6[1], cx + 60, cy + 110], [T.connClick, cx, cy + 4], [T.connClick + 0.8, cx + 40, cy + 70]],
   };
   const scr = $('pscr'), send = centerIn($('pcaret').parentElement.querySelector('.psend'), scr), ok = centerIn($('plvOk'), scr);
-  PHONE_TAPS = [[T.leaveQ[0] + T.leaveQ[1] + 0.05, ...send], [T.leave[0] + T.leave[1] + 0.05, ...send], [T.press, ok[0], ok[1] - PHONE_SCROLL]];
+  PHONE_TAPS = [[T.leaveQ[0] + T.leaveQ[1] + 0.05, ...send], [T.leave[0] + T.leave[1] + 0.05, ...send], [T.press, ok[0], ok[1]]];
 }
 function cursorAt(keys, t) {
   if (t <= keys[0][0]) return [keys[0][1], keys[0][2]];
@@ -1065,34 +1084,42 @@ function trendSvg(prog) {
   for (let i = 0; i <= n && i <= prog + 1e-6; i++) { const [x, y] = pt(i); s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${i === 0 || i === n ? 4.5 : 2.5}" fill="#fff" stroke="${i === n ? '#e11d48' : '#6366f1'}" stroke-width="2"/>`; }
   return { svg: s, a: pt(0), b: pt(n) };
 }
-const LAYERS = [['L1', T.pull1[1] + 0.5], ['L2', T.card2], ['L3', T.wall], ['L4', T.dyn], ['L5', T.fwd], ['L6', T.pull3[1] + 0.5], ['L7', Infinity]];
+const LAYERS = [['L1', T.pull1[1] + 0.5], ['L2', T.card2], ['L3', T.wall], ['L4', T.dyn], ['L5', T.fwd], ['L6', T.pull3[1] + 0.5], ['L7', T.connAnswer], ['L8', Infinity]];
 const layerOf = (t) => LAYERS.find(([, until]) => t < until)[0];
-const SWAPS = [T.card2, T.wall, T.dyn, T.fwd];
-const LAYER_SWAP = 0.22;
+const SWAPS = [T.card2, T.wall, T.dyn, T.fwd, T.connAnswer];
+const LAYER_SWAP = 0.3, LAYER_SCROLL = 300;
+/** A swap scrolls the chat: the old exchange leaves upward under the headline's soft edge as the new one comes up from below, a full layer apart, so the two never overlap and the screen is never empty. */
 function screenWin(t) {
   const near = SWAPS.find(s => Math.abs(t - s) < LAYER_SWAP);
   const cur = layerOf(t);
   LAYERS.forEach(([id]) => {
-    let o = id === cur ? 1 : 0;
+    const el = $(id);
+    let o = id === cur ? 1 : 0, y = 0;
     if (near !== undefined) {
-      const q = clamp((t - near + LAYER_SWAP) / (2 * LAYER_SWAP));
-      if (id === layerOf(near - 0.01)) o = EI3(clamp(1 - 2 * q));
-      if (id === layerOf(near + 0.01)) o = EO3(clamp(2 * q - 1));
+      const q = EIO3(clamp((t - near + LAYER_SWAP) / (2 * LAYER_SWAP)));
+      o = 0;
+      if (id === layerOf(near - 0.01)) { o = 1; y = -LAYER_SCROLL * q; }
+      if (id === layerOf(near + 0.01)) { o = 1; y = LAYER_SCROLL * (1 - q); }
     }
-    fade($(id), o);
+    fade(el, o);
+    el.style.transform = y ? `translateY(${f1(y)}px)` : '';
   });
   $('sact').style.top = (cur === 'L7' ? 148 : 104) + 'px';
 
   [['w1a', 0], ...FACTS.drops.map((_, i) => ['w1r' + i, 0.3 + i * 0.2]), ['w1c', 0.9]].forEach(([id, d]) => rise($(id), k(t, T.card1 + d, 0.45, EOX)));
 
   rise($('qbox2'), k(t, T.pills - 0.2, 0.45, EOX), 16);
-  CHIPS.forEach((_, i) => rise($('qp' + i), k(t, T.pills + i * 0.15, 0.45, EOX), 12));
   const lit = k(t, T.memPill, 0.5, EIO3), tap = bump(t, T.tap, 0.25);
+  CHIPS.forEach((_, i) => {
+    const pin = k(t, T.pills + i * 0.15, 0.45, EOX);
+    rise($('qp' + i), pin, 12);
+    if (i) $('qp' + i).style.opacity = (pin * lerp(1, QUIET_CHIP, lit)).toFixed(3);
+  });
   const mem = $('qp0');
   const [mx, my] = centerIn(mem, $('L2'));
-  const tip = $('qtip'), to = k(t, T.memPill + 0.1, 0.35, EBK) * (1 - k(t, T.tap + 0.2, 0.2, LIN));
+  const tip = $('qtip'), to = k(t, T.memPill, 0.4, EBK);
   tip.style.opacity = clamp(to).toFixed(3);
-  tip.style.transform = `translate(${f1(mx - tip.offsetWidth / 2)}px,${f1(my - 16 - 10 - tip.offsetHeight + (1 - clamp(to)) * 6)}px) scale(${lerp(0.9, 1, clamp(to)).toFixed(3)})`;
+  tip.style.transform = `translate(${f1(mx - tip.offsetWidth / 2)}px,${f1(my - mem.offsetHeight / 2 - 12 - tip.offsetHeight + (1 - clamp(to)) * 8)}px) scale(${lerp(0.85, 1, clamp(to)).toFixed(3)})`;
   const fill = graphemes(CHIPS[0].label), nf = Math.round(k(t, T.tap + 0.1, 0.3, LIN) * fill.length), sentQ = t >= T.askSend;
   const qv = sentQ ? '' : fill.slice(0, nf).join('');
   const qt = $('qtyped'); if (qt._h !== qv) { qt.textContent = qv; qt._h = qv; }
@@ -1142,8 +1169,28 @@ function screenWin(t) {
   $('cOk').style.opacity = clamp(ok).toFixed(3);
   $('cOk').style.transform = `scale(${lerp(0.8, 1, clamp(ok)).toFixed(3)})`;
   $('cRow').style.boxShadow = `0 0 0 ${f1(4 * k(t, T.connected, 0.4))}px rgba(16,185,129,.35),0 26px 60px -30px rgba(49,46,129,.28)`;
-  rise($('w6a'), k(t, T.assets, 0.45, EOX));
-  FACTS.assets.forEach((_, i) => rise($('w6t' + i), k(t, T.assets + 0.2 + i * 0.15, 0.45, EOX)));
+  rise($('cbox'), k(t, T.connected + 0.25, 0.45, EOX), 16);
+  const cq = typedCount(t, T.connAsk, CONN_Q), cSent = t >= T.connSend;
+  const cv = cSent ? '' : CONN_Q.slice(0, cq).join('');
+  const ct = $('ctyped'); if (ct._h !== cv) { ct.textContent = cv; ct._h = cv; }
+  $('cph').style.display = cv || (t > T.connAsk[0] && !cSent) ? 'none' : 'inline';
+  $('ccaret').style.opacity = (cv || Math.floor(RT * 2.4) % 2 === 0) ? '1' : '0';
+  $('csend').style.background = cv ? '#0f172a' : '#e7e9f0';
+  $('csend').style.color = cv ? '#fff' : '#94a3b8';
+  $('csend').style.transform = `scale(${(1 - bump(t, T.connSend - 0.05, 0.25) * 0.1).toFixed(3)})`;
+  rise($('w8q'), k(t, T.connAnswer - 0.1, 0.35, EBK), 10);
+  rise($('w8card'), k(t, T.connAnswer - 0.2, 0.45, EOX), 24);
+  FACTS.assets.forEach((a, i) => {
+    for (let j = 0; j < a.count; j++) {
+      const g = k(t, T.connAnswer + 0.35 + i * 0.2 + j * 0.035, 0.25, EBK);
+      const u = $(`u${i}_${j}`);
+      u.style.opacity = clamp(g).toFixed(3);
+      u.style.transform = `scaleY(${lerp(0.3, 1, clamp(g)).toFixed(3)})`;
+    }
+    $('w8n' + i).style.opacity = k(t, T.connAnswer + 0.45 + i * 0.2 + a.count * 0.035, 0.3).toFixed(3);
+  });
+  const src = k(t, T.connAnswer + 1.1, 0.45, EOX);
+  rise($('w8src'), src, 8);
 
   const pillCur = t > T.memPill && t < T.card2 + 0.2;
   const fwdCur = t > T.fwd && t < T.pull3[0];
@@ -1167,13 +1214,11 @@ function screenPhone(t) {
   const pt = $('ptyped'); if (pt._h !== typing) { pt.textContent = typing; pt._h = typing; }
   $('pcaret').style.opacity = (typing || Math.floor(RT * 2.4) % 2 === 0) ? '1' : '0';
   const q0 = $('pq0'), q1 = $('pq1');
-  if (q0._h === undefined) { q0.textContent = LEAVE_Q.join(''); q1.textContent = LEAVE.join(''); q0._h = 1; }
   const b0 = k(t, T.leaveQ[0] + T.leaveQ[1] + 0.15, 0.35, EBK), b1 = k(t, T.leave[0] + T.leave[1] + 0.15, 0.35, EBK);
   q0.style.opacity = clamp(b0).toFixed(3); q0.style.transform = `scale(${lerp(0.7, 1, clamp(b0)).toFixed(3)})`;
   q1.style.opacity = clamp(b1).toFixed(3); q1.style.transform = `scale(${lerp(0.7, 1, clamp(b1)).toFixed(3)})`;
   rise($('pbal'), k(t, T.bal, 0.45, EOX), 24);
   $('pbf').style.width = (ANNUAL.left / ANNUAL.entitled * 100 * k(t, T.bal + 0.2, 0.6, EOX)).toFixed(1) + '%';
-  $('pscroll').style.transform = `translateY(${f1(-k(t, T.scroll, 0.5, EIO3) * PHONE_SCROLL)}px)`;
   rise($('plv'), k(t, T.conf, 0.5, EOX), 30);
   const okP = bump(t, T.press, 0.3);
   $('plvOk').style.transform = `scale(${(1 - okP * 0.08).toFixed(3)})`;
@@ -1209,13 +1254,18 @@ function screenSplit(t) {
   sc.style.transform = `translate(${f1(cx)}px,${f1(cy)}px) scale(${(1 - bump(t, T.flip - 0.1, 0.25) * 0.12).toFixed(3)})`;
 }
 
+/** The end logo flies home into the hub tile, the same tile and size the loop opens on, so the loop dissolves on one shape. */
+const END_HOME_SCALE = 92 / 168;
 function endCard(t) {
   const end = $('end');
-  const o = k(t, T.logo, 0.6, EOX) * (1 - k(t, T.endOut, 0.4, EI3));
+  const o = k(t, T.logo, 0.6, EOX) * (1 - k(t, T.endOut + 0.6, 0.1, LIN));
   setUI(end, o, 0, 0, 1);
-  const lg = k(t, T.logo, 0.8, EBK), wm = k(t, T.logo + 0.3, 0.7, EOX), tg = k(t, T.logo + 0.6, 0.7, EOX);
-  $('end-logo').style.transform = `scale(${lerp(0.6, 1, lg).toFixed(3)})`;
-  $('end-logo').style.opacity = clamp(lg).toFixed(3);
+  const words = 1 - k(t, T.endOut - 0.4, 0.35, EI3);
+  const lg = k(t, T.logo, 0.8, EBK), wm = k(t, T.logo + 0.3, 0.7, EOX) * words, tg = k(t, T.logo + 0.6, 0.7, EOX) * words;
+  const home = k(t, T.endOut - 0.35, 0.75, EIO3);
+  const [lx, ly] = centerIn($('end-logo'), end), [hx, hy] = hubTileCenter();
+  $('end-logo').style.transform = `translate(${f1((hx - lx) * home)}px,${f1((hy - ly) * home)}px) scale(${(lerp(0.6, 1, lg) * lerp(1, END_HOME_SCALE, home)).toFixed(4)})`;
+  $('end-logo').style.opacity = (clamp(lg) * (1 - k(t, T.endOut + 0.3, 0.3, LIN))).toFixed(3);
   rise($('end-wm'), wm, 24);
   rise($('end-tag'), tg, 24);
 }
@@ -1269,7 +1319,7 @@ function render(t) {
   endCard(t);
   headlines(t);
   acc.items.sort((a, b) => a.d - b.d);
-  const wo = (1 - solved.inside) * clamp((1 - k(t, T.logo - 0.3, 0.6, EIO3)) + k(t, T.endOut, 0.9, EIO3));
+  const wo = (1 - solved.inside) * clamp((1 - k(t, T.logo - 0.3, 0.6, EIO3)) + k(t, T.endOut - 0.25, 0.8, EIO3));
   floorEl.innerHTML = drawFloor();
   floorEl.setAttribute('opacity', clamp(wo).toFixed(3));
   wg.innerHTML = acc.under.join('') + acc.items.map(i => i.s).join('');
@@ -1334,6 +1384,9 @@ const SOUND = {
     { at: T.plug[0] + T.plug[1], sfx: 'plug' },
     { at: T.connClick, sfx: 'click' },
     { at: T.connected, sfx: 'toggle' },
+    ...typed(T.connAsk, CONN_Q),
+    { at: T.connSend, sfx: 'send' },
+    { at: T.connAnswer + 0.35, sfx: 'pop', step: 3 },
     { at: T.logo, sfx: 'sting' },
     ...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({ at, sfx: 'hit', step: id === 'hlB' ? 1 : 0 })),
   ],
