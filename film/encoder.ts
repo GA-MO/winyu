@@ -6,6 +6,7 @@ const BITRATE = 12_000_000;
 const AUDIO_BITRATE = 192_000;
 const KEYFRAME_EVERY_S = 2;
 const BASE64_SLICE = 0x8000;
+const LOOP_PAD_SAMPLES = 2048;
 
 type Session = { output: Output<never, BufferTarget>; source: VideoSampleSource; audioSamples: number; buffer: ArrayBuffer | null };
 
@@ -24,6 +25,19 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+/** The loop with its own end before it and its own start after it, so the AAC frames at both edges encode continuous sound instead of a cut to silence. */
+function loopPadded(audio: AudioBuffer): AudioBuffer {
+  const n = audio.length, pad = Math.min(LOOP_PAD_SAMPLES, n);
+  const padded = new AudioBuffer({ length: n + 2 * pad, numberOfChannels: audio.numberOfChannels, sampleRate: audio.sampleRate });
+  for (let c = 0; c < audio.numberOfChannels; c += 1) {
+    const loop = audio.getChannelData(c), out = padded.getChannelData(c);
+    out.set(loop.subarray(n - pad), 0);
+    out.set(loop, pad);
+    out.set(loop.subarray(0, pad), pad + n);
+  }
+  return padded;
+}
+
 /** Opens an in-memory H.264 MP4 at the booth frame rate, with the film's score as an AAC track when it has one. */
 export async function startEncoder(audio: AudioBuffer | null): Promise<void> {
   const { AudioBufferSource, BufferTarget, Mp4OutputFormat, Output, VideoSampleSource } = await import("mediabunny");
@@ -34,7 +48,7 @@ export async function startEncoder(audio: AudioBuffer | null): Promise<void> {
   if (sound) output.addAudioTrack(sound);
   await output.start();
   if (sound && audio) {
-    await sound.add(audio);
+    await sound.add(loopPadded(audio));
     sound.close();
   }
   session = { output: output as Output<never, BufferTarget>, source, audioSamples: audio?.length ?? 0, buffer: null };
@@ -56,7 +70,7 @@ export async function finishEncoder(): Promise<number> {
   if (!session) throw new Error("Encoder not started");
   await session.output.finalize();
   const mp4 = session.output.target.buffer;
-  session.buffer = mp4 && session.audioSamples ? trimAacPriming(mp4, session.audioSamples) : mp4;
+  session.buffer = mp4 && session.audioSamples ? trimAacPriming(mp4, session.audioSamples, Math.min(LOOP_PAD_SAMPLES, session.audioSamples)) : mp4;
   return session.buffer?.byteLength ?? 0;
 }
 

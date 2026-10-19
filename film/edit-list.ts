@@ -31,8 +31,8 @@ function chunkOffsetTables(view: DataView, box: Box): Box[] {
   return children(view, box.start + 8, box.start + box.size).flatMap((b) => chunkOffsetTables(view, b));
 }
 
-/** Adds an edit list to the audio track that skips the AAC encoder priming, so sound stays on its frames and the loop has no gap. */
-export function trimAacPriming(mp4: ArrayBuffer, samples: number): ArrayBuffer {
+/** Adds an edit list to the audio track that skips the AAC encoder priming and `lead` samples, then plays `samples`, so sound stays on its frames and the loop has no gap. */
+export function trimAacPriming(mp4: ArrayBuffer, samples: number, lead: number): ArrayBuffer {
   const source = new DataView(mp4);
   const top = children(source, 0, mp4.byteLength);
   const moov = top.find((b) => b.type === "moov");
@@ -66,7 +66,7 @@ export function trimAacPriming(mp4: ArrayBuffer, samples: number): ArrayBuffer {
   view.setUint32(insertAt + 16, 0);
   view.setUint32(insertAt + 20, 1);
   view.setUint32(insertAt + 24, segment);
-  view.setInt32(insertAt + 28, AAC_PRIMING_SAMPLES);
+  view.setInt32(insertAt + 28, AAC_PRIMING_SAMPLES + lead);
   view.setUint32(insertAt + 32, 0x00010000);
 
   view.setUint32(moov.start, moov.size + EDTS_SIZE);

@@ -22,9 +22,10 @@ window.__probe = async (onsets) => {
   const rate = audio.sampleRate;
   const bytes = await (await fetch("/film.mp4")).arrayBuffer();
   const decoded = await new OfflineAudioContext(2, 1, rate).decodeAudioData(bytes);
-  const n = decoded.length;
+  const n = report.video ? Math.min(decoded.length, Math.round(report.video.duration * rate)) : decoded.length;
   const chs = [0, 1].map((c) => decoded.getChannelData(Math.min(c, decoded.numberOfChannels - 1)));
-  report.decodedSeconds = n / rate;
+  report.decodedSeconds = decoded.length / rate;
+  report.loopSeconds = n / rate;
   const mono = new Float32Array(n);
   for (let i = 0; i < n; i++) mono[i] = (chs[0][i] + chs[1][i]) / 2;
   const db = (v) => 20 * Math.log10(v);
