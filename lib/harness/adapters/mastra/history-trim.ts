@@ -46,8 +46,7 @@ function rowCountOf(value: JsonRecord): number | null {
   return Array.isArray(list) ? list.length : null;
 }
 
-/** What a follow-up needs from an old result: whether it worked, how many rows, its summary line and the query that made it; the rows stay in memory and on the cards. */
-function stubOf(value: JsonRecord): JsonRecord {
+function followUpStubOf(value: JsonRecord): JsonRecord {
   const kept: JsonRecord = {};
   for (const key of KEPT_FIELDS) {
     const field = value[key];
@@ -60,7 +59,7 @@ function stubOf(value: JsonRecord): JsonRecord {
 function trimmedOutput(output: ToolResultOutput): ToolResultOutput {
   if (output.type !== "json" || !isRecord(output.value)) return output;
   if (JSON.stringify(output.value).length <= KEEP_WHOLE_CHARS) return output;
-  return { type: "json", value: stubOf(output.value) };
+  return { type: "json", value: followUpStubOf(output.value) };
 }
 
 function withoutReasoningDetails(options: ProviderOptions | undefined): ProviderOptions | undefined {
@@ -74,8 +73,7 @@ function withoutThoughts(part: AssistantPart): AssistantPart {
   return part.providerOptions ? { ...part, providerOptions: withoutReasoningDetails(part.providerOptions) } : part;
 }
 
-/** An earlier turn's message as it is worth sending: results stubbed, and the model's reasoning and thought signatures gone, since the model reads only the current turn's (measured: signatures are billed, about 15 characters per token). */
-function lightened(message: PromptMessage): PromptMessage {
+function earlierTurnLightened(message: PromptMessage): PromptMessage {
   if (message.role === "tool") return { ...message, content: message.content.map((part) => (part.type === "tool-result" ? { ...part, output: trimmedOutput(part.output) } : part)) };
   if (message.role !== "assistant") return message;
   const content = message.content.filter((part) => part.type !== "reasoning").map(withoutThoughts);
@@ -132,7 +130,7 @@ export function trimmedHistory(prompt: ModelPrompt): ModelPrompt {
   const newestQuestion = prompt.findLastIndex((message) => message.role === "user");
   if (newestQuestion <= 0) return prompt;
   const firstTurn = prompt.findIndex((message) => message.role !== "system");
-  const history = underCeiling(prompt.slice(firstTurn, newestQuestion).map(lightened).filter(hasContent));
+  const history = underCeiling(prompt.slice(firstTurn, newestQuestion).map(earlierTurnLightened).filter(hasContent));
   return [...prompt.slice(0, firstTurn), ...history, ...prompt.slice(newestQuestion)];
 }
 
