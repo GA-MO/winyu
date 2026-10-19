@@ -715,6 +715,10 @@ describe("headcount over the year reads as a level, like a balance (round 12)", 
     expect(card.hero).toMatchObject({ label: "พ.ย. 69", value: "4,530 คน", detail: "เทียบ ม.ค. 69", trend: "up" });
     expect(card.verdict).toBe("ตั้งแต่ ม.ค. 69 เพิ่มขึ้นจาก 4,438 คน เป็น 4,530 คน");
   });
+
+  test("the line's axis is fitted to the level, so a rise of 92 people is visible (AI-335)", () => {
+    expect(card.body).toMatchObject({ kind: "line", axis: "fitted" });
+  });
 });
 
 test("a level that barely moved over the range says it held, as its grey pill does, never that it fell (round 12 cover over 12 weeks)", () => {

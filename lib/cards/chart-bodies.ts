@@ -490,6 +490,7 @@ export function overlaidLines(first: Source, others: Source[]): CardBody {
     labels: buckets.map(periodLabelTh),
     series: [first, ...others].slice(0, MAX_SERIES).map(seriesOf),
     format: indexed ? "number" : metricFormat(first.query.metric),
+    axis: "zero",
   };
 }
 

@@ -69,6 +69,24 @@ function niceTicks(max: number, count = 4): number[] {
   return ticks;
 }
 
+/** Ticks over the data's own span for a level read from where it sits, never below zero when the data is not. */
+export function fittedTicks(min: number, max: number, count = 4): number[] {
+  if (!(max > min)) return niceTicks(max);
+  const rough = (max - min) / count;
+  const pow = 10 ** Math.floor(Math.log10(rough));
+  const unit = [1, 2, 5, 10].map((m) => m * pow).find((u) => u >= rough) ?? pow * 10;
+  const start = Math.max(min >= 0 ? 0 : -Infinity, Math.floor(min / unit) * unit);
+  const ticks: number[] = [];
+  for (let v = start; v <= max + unit * 0.001; v += unit) ticks.push(Math.round(v * 1e6) / 1e6);
+  if ((ticks[ticks.length - 1] ?? start) < max) ticks.push((ticks[ticks.length - 1] ?? start) + unit);
+  return ticks;
+}
+
+function seriesMin(series: ChartSeries[]): number {
+  const values = series.flatMap((s) => s.values.filter((value): value is number => typeof value === "number" && !Number.isNaN(value)));
+  return values.length === 0 ? 0 : Math.min(...values);
+}
+
 type DrawnPoint = { index: number; x: number; y: number; value: number };
 
 function definedPoint(value: number | null | undefined, index: number, px: number, y: (value: number) => number): DrawnPoint | null {
@@ -416,6 +434,7 @@ type LineChartProps = {
   showDots?: boolean | null;
   format?: ChartFormat | null;
   height?: "sm" | "md" | "lg" | null;
+  fitted?: boolean | null;
 };
 
 export function LineChart({ props }: { props: LineChartProps }) {
@@ -427,11 +446,11 @@ export function LineChart({ props }: { props: LineChartProps }) {
   const n = labels.length;
   const height = CHART_HEIGHT[props.height ?? "md"];
   const plotH = height - 24;
-  const ticks = niceTicks(seriesMax(series, false));
+  const ticks = props.fitted ? fittedTicks(seriesMin(series), seriesMax(series, false)) : niceTicks(seriesMax(series, false));
   const AXIS_W = axisWidthFor(ticks.map((t) => compactTick(formatter, format, t)));
   const top = ticks[ticks.length - 1] ?? 0;
   const x = scale(0, Math.max(1, n - 1), AXIS_W + 4, width - 8);
-  const y = scale(0, top, plotH, 6);
+  const y = scale(ticks[0] ?? 0, top, plotH, 6);
   const shown = lineAxisLabels(labels, x, 56, width - AXIS_W);
   const dots = (props.showDots ?? false) || n <= 14;
   const fmt = (v: number) => formatChartValue(formatter, format, v);

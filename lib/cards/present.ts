@@ -49,6 +49,8 @@ export type CardView = WidgetKind | "auto" | "scatter" | "funnel";
 export type CardHero = { label: string; value: string; unit: string | null; delta: string | null; trend: Direction; tone: Tone; detail: string | null };
 export type RankRow = { label: string; value: string; share: number | null; delta: string | null; trend: Direction; tone: Tone; note: string | null };
 export type CardColumn = { key: string; label: string; align: "start" | "end" | null; tone: "default" | "muted" | "delta" | null };
+/** Where a line's value axis starts: zero for a flow, fitted to the data for a level (headcount, a balance), whose change is the story and would flatten against zero (AI-335). */
+export type LineAxis = "zero" | "fitted";
 export type ChartSeries = { name: string; values: (number | null)[]; style: "solid" | "dashed" | null };
 export type SignalItem = {
   id: string;
@@ -81,7 +83,7 @@ export type CardBody =
   | { kind: "strip"; strip: Strip }
   | { kind: "exceptions"; strip: Strip; fold: Fold | null }
   | { kind: "locked"; rows: RankRow[]; locked: LockedRow[]; askHref: string | null }
-  | { kind: "line"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
+  | { kind: "line"; labels: string[]; series: ChartSeries[]; format: MetricFormat; axis: LineAxis }
   | { kind: "stacked"; shape: "bar" | "area"; labels: string[]; series: ChartSeries[]; format: MetricFormat }
   | { kind: "share"; slices: ShareSlice[]; centerValue: string; centerLabel: string }
   | { kind: "heatmap"; rowLabels: string[]; columnLabels: string[]; cells: (HeatCell | null)[][]; scale: ColorScale; unit: string; caption: string }
@@ -1004,22 +1006,27 @@ function compareSeries(query: MetricQuery, rows: MetricRow[]): ChartSeries | nul
   return { name: TH.dash.compare[query.compare], values, style: "dashed" };
 }
 
+function lineAxisOf(query: MetricQuery): LineAxis {
+  return LEVEL_METRICS.has(query.metric) ? "fitted" : "zero";
+}
+
 function lineBody(shape: Shape, extras: CardExtras): CardBody {
   const { query, rows } = shape;
+  const axis = lineAxisOf(query);
+  const format = metricFormat(query.metric);
   if (groupDimsOf(query).length > 0) {
     const grouped = seriesByGroup(query, rows, false);
-    return { kind: "line", labels: grouped.labels, series: grouped.series, format: metricFormat(query.metric) };
+    return { kind: "line", labels: grouped.labels, series: grouped.series, format, axis };
   }
   const points = chartPoints(query, rows);
   const labels = points.map((point) => point.label);
   const actual: ChartSeries = { name: metricLabel(query.metric), values: points.map((point) => point.value), style: null };
-  const format = metricFormat(query.metric);
   const overlay = overlaySeries(query, labels, extras);
-  if (overlay) return { kind: "line", labels, series: [actual, overlay], format };
+  if (overlay) return { kind: "line", labels, series: [actual, overlay], format, axis };
   const previous = compareSeries(query, rows);
-  if (previous) return { kind: "line", labels, series: [actual, previous], format };
+  if (previous) return { kind: "line", labels, series: [actual, previous], format, axis };
   const forecast = extras.forecast;
-  if (!forecast || forecast.points.length === 0) return { kind: "line", labels, series: [actual], format };
+  if (!forecast || forecast.points.length === 0) return { kind: "line", labels, series: [actual], format, axis };
   const futureLabels = forecast.points.map((point) => periodLabelTh(weekKeyOfIso(point.date)));
   const gap = labels.slice(0, -1).map(() => null);
   return {
@@ -1030,6 +1037,7 @@ function lineBody(shape: Shape, extras: CardExtras): CardBody {
       { name: TH.dash.forecast, values: [...gap, ...forecast.points.map((point) => point.value)], style: "dashed" },
     ],
     format,
+    axis,
   };
 }
 

@@ -21,7 +21,7 @@ export function CardBodyView({ body }: { body: CardBody }) {
   if (body.kind === "line") {
     return (
       <LineChart
-        props={{ title: null, labels: body.labels, series: body.series, area: body.series.length === 1, showDots: false, format: body.format, height: "md" }}
+        props={{ title: null, labels: body.labels, series: body.series, area: body.series.length === 1 && body.axis === "zero", showDots: false, format: body.format, height: "md", fitted: body.axis === "fitted" }}
       />
     );
   }

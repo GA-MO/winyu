@@ -331,3 +331,20 @@ test("a line chart's x labels keep one even step counted back from the latest bu
   expect(new Set(kept.slice(1).map((index, at) => index - kept[at])).size).toBe(1);
   expect(kept.length).toBeGreaterThanOrEqual(4);
 });
+
+describe("a level's line starts its axis near its own values (AI-335)", () => {
+  const values = [4438, 4447, 4455, 4465, 4473, 4482, 4492, 4502, 4511, 4521, 4530];
+  const labels = values.map((_, index) => `m${index + 1}`);
+  const ticksOf = (html: string) => [...html.matchAll(/text-anchor="end" dominant-baseline="middle"[^>]*>([^<]+)</g)].map((match) => match[1]);
+
+  test("headcount from 4,438 to 4,530 draws ticks between 4,400 and 4,550, not from 0", () => {
+    const ticks = ticksOf(render({ kind: "line", labels, series: [{ name: "จำนวนพนักงาน", values, style: null }], format: "number", axis: "fitted" }));
+    expect(ticks[0]).not.toBe("0");
+    expect(ticks.length).toBeGreaterThan(2);
+  });
+
+  test("a flow keeps its axis from 0", () => {
+    const ticks = ticksOf(render({ kind: "line", labels, series: [{ name: "ยอดขาย", values, style: null }], format: "number", axis: "zero" }));
+    expect(ticks[0]).toBe("0");
+  });
+});
