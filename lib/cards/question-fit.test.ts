@@ -735,3 +735,25 @@ test("a region × brand grid against target says which cells sit under target, n
   expect(card.verdict).toBe("ภาคอีสานต่ำกว่าเป้า 11.4–12.7% มากกว่าภาคอื่น");
   expect(card.body.caption).toBe("ตัวเลขคือส่วนที่ต่ำหรือสูงกว่าเป้า · หน่วย: %");
 });
+
+const TWO_MONTHS_QUERY: MetricQuery = { metric: "net_sales_value", dims: ["month"], filters: {}, range: { from: "2026-10-01", to: "2026-11-30" }, grain: "month", compare: "target", limit: null };
+const twoMonths = (october: number, november: number): MetricRow[] => [
+  { month: "2026-10", value: 1490050282, compare_value: 1716576153, delta_pct: october },
+  { month: "2026-11", value: 1549380543, compare_value: 1600280786, delta_pct: november },
+];
+
+describe("a closed month is read on its whole target and the running month on its target to date (AI-334)", () => {
+  const cardOf = (rows: MetricRow[]) => presentCard({ title: "t", query: TWO_MONTHS_QUERY, result: resultOf(TWO_MONTHS_QUERY, rows, { value: "3,039.4 ล้านบาท", deltaPercent: -8.6, compareLabel: "เทียบเป้าตามเวลา" }) });
+
+  test("both under: the verdict names the running month as the one against target to date", () => {
+    const card = cardOf(twoMonths(-13.2, -3.2));
+    expect(card.verdict).toBe("ทุกเดือนต่ำกว่าเป้า (พ.ย. 69 เทียบเป้าตามเวลา) หนักสุด ต.ค. 69");
+    const subs = stripOf(card.body).rows.map((row) => row.sub);
+    expect(subs[0]).toContain("· เป้า ");
+    expect(subs[1]).toContain("· เป้าตามเวลา ");
+  });
+
+  test("only the closed month under: its whole target, no pace", () => {
+    expect(cardOf(twoMonths(-13.2, 3.2)).verdict).toBe("ต.ค. 69 เดือนเดียวยังไม่ถึงเป้า");
+  });
+});

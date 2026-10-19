@@ -82,7 +82,7 @@ export function percentIn(text: string): number | null {
 }
 
 /** What a breakdown's target figures are a share of: the target to date in a month still running ("ตามเวลา"), and, when the result carries them, the whole month's share done, what is left to it and how much of the month has passed (0 to 1), which put every row on the whole month's base (AI-141). */
-export type TargetBase = { paced: boolean; month: { attainment: string; left: string | null; elapsed: number } | null };
+export type TargetBase = { paced: boolean; month: { attainment: string; left: string | null; elapsed: number } | null; running: string | null };
 
 function scaled(value: number | null, scale: number): number | null {
   return value === null ? null : value * scale;
@@ -188,9 +188,18 @@ function aboveLineReading(input: BreakdownInput, line: LevelLine): Breakdown {
 }
 
 /** What a period was against its target in the metric's own unit ("1.8 ล้านลิตร · เป้า 1.8 ล้านลิตร"), so a month asked about shows its figure and its target, not only the share. */
-function targetSubOf(query: MetricQuery, row: MetricRow): string | null {
+function targetSubOf(query: MetricQuery, row: MetricRow, running: boolean): string | null {
   const target = numericOf(row, "compare_value");
-  return target === null ? null : TH.read.againstTarget(...unitOnce(valueTextOf(query, row), formatMetricValue(query.metric, target)));
+  if (target === null) return null;
+  return (running ? TH.read.againstPacedTarget : TH.read.againstTarget)(...unitOnce(valueTextOf(query, row), formatMetricValue(query.metric, target)));
+}
+
+/** What the periods under target fell short of: a closed month its whole target, the month still running its target to date, and both named when the verdict covers both (AI-334). */
+function periodGoalOf(query: MetricQuery, under: readonly MetricRow[], isRunning: (row: MetricRow) => boolean): string {
+  const runningRows = under.filter(isRunning);
+  if (runningRows.length === 0) return TH.read.goal;
+  if (runningRows.length === under.length) return TH.read.pacedGoal;
+  return TH.read.goalWithPaced(labelOf(query, runningRows[0]));
 }
 
 /** R3 and R6: groups read against the deciding line, the furthest under first; periods (a short series against target) stay in time order, each with its value and target. */
@@ -209,13 +218,15 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const under = scored.filter((entry) => entry.measure !== null && entry.measure < at).sort((left, right) => (left.measure ?? 0) - (right.measure ?? 0));
   const answer = line.line.kind === "cover" && under.length === 0 && !input.threshold ? scored[0] : null;
   const peak = Math.max(at, ...scored.map((entry) => entry.measure ?? 0));
+  const timeDim = timeDimOf(query);
+  const isRunningRow = (row: MetricRow) => timeDim !== null && input.target.running !== null && String(row[timeDim]) === input.target.running;
   const textOf = (entry: { row: MetricRow; measure: number | null }) => (overTarget ? (entry.measure === null ? "—" : percentText(entry.measure)) : valueTextOf(query, entry.row));
   const rows: ReadRow[] = scored.map((entry) => {
     const isUnder = entry.measure !== null && entry.measure < at;
     const emphasised = isUnder || entry === answer;
     return {
       label: labelOf(query, entry.row),
-      sub: overTime && overTarget ? targetSubOf(query, entry.row) : null,
+      sub: overTime && overTarget ? targetSubOf(query, entry.row, isRunningRow(entry.row)) : null,
       second: null,
       measure: entry.measure,
       fill: entry.measure === null ? 0 : Math.min(1, Math.max(0, entry.measure / (ofTarget ? PERCENT : peak))),
@@ -264,7 +275,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
       of,
       worst: under[0] ? labelOf(query, under[0].row) : null,
       overallUnder: overallUnder && !overTime,
-      goal: input.target.paced ? TH.read.pacedGoal : TH.read.goal,
+      goal: overTime && ofTarget ? periodGoalOf(query, under.map((entry) => entry.row), isRunningRow) : input.target.paced ? TH.read.pacedGoal : TH.read.goal,
       sums: input.additive,
       weakest: answer ? { label: labelOf(query, answer.row), text: textOf(answer) } : null,
       slice: input.capped && !result.headline.underLine ? TH.read.shown(rows.length, input.unit) : someOf(input),
@@ -541,7 +552,7 @@ function askedSubOf(input: BreakdownInput, row: MetricRow): string | null {
   const { query, result } = input;
   const scale = monthScaleOf(input);
   if (scale !== null) return monthTargetSubOf(query, row, scale);
-  if (query.compare === "target") return targetSubOf(query, row);
+  if (query.compare === "target") return targetSubOf(query, row, false);
   const change = changeTextOf(query.metric, row);
   return change ? [change, result.headline.compareLabel].filter(Boolean).join(" ") : null;
 }

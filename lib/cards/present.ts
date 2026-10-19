@@ -218,6 +218,15 @@ function partialBucketKey(query: MetricQuery, asOf: string): string | null {
   return null;
 }
 
+/** The bucket of a series against target that is still running: its target is the target to date, while every closed bucket is read on its whole target. */
+function runningBucketKey(query: MetricQuery, asOf: string): string | null {
+  if (!timeDimOf(query)) return null;
+  const lastDay = targetThrough(query, asOf);
+  if (query.grain === "month") return monthKeyOfIso(lastDay);
+  if (query.grain === "week") return weekKeyOfIso(lastDay);
+  return null;
+}
+
 const TIME_BODIES: ReadonlySet<CardView> = new Set(["line", "stacked", "area", "heatmap"]);
 
 /** A trend whose last bucket is the running week or month drops that bucket and says so, instead of falling off a cliff. */
@@ -957,7 +966,8 @@ function baseTotalOf(facts: Facts): string | null {
 function targetBaseOf(facts: Facts): TargetBase {
   const projection = facts.result.headline.projection;
   const asOf = facts.result.provenance.asOf;
-  return { paced: isPacedTarget(facts.query, asOf), month: projection ? { attainment: projection.attainmentToDate, left: projection.shortBy, elapsed: monthElapsedOf(facts.query, asOf) } : null };
+  const paced = isPacedTarget(facts.query, asOf);
+  return { paced, month: projection ? { attainment: projection.attainmentToDate, left: projection.shortBy, elapsed: monthElapsedOf(facts.query, asOf) } : null, running: paced ? runningBucketKey(facts.query, asOf) : null };
 }
 
 /** Rows a shared card still shows beside the ones it locks, ranked by value with a bar sized against the largest. */
