@@ -960,9 +960,9 @@ describe("a change ranking's verdict", () => {
 });
 
 describe("two series overlaid", () => {
-  const overlayOf = (from: string) => {
+  const overlayOf = (from: string, limit: number | null = null) => {
     const range = { from, to: DATA_AS_OF };
-    const sellIn: MetricQuery = { metric: "net_sales_volume", dims: ["week"], filters: {}, range, grain: "week", compare: "none", limit: null };
+    const sellIn: MetricQuery = { metric: "net_sales_volume", dims: ["week"], filters: {}, range, grain: "week", compare: "none", limit };
     const sellOut: MetricQuery = { ...sellIn, metric: "sell_out_volume" };
     const first = { query: sellIn, result: runMetric(sellIn, CEO) };
     const second = { query: sellOut, result: runMetric(sellOut, CEO) };
@@ -990,5 +990,14 @@ describe("two series overlaid", () => {
     expect(body.labels).toHaveLength(rows - 2);
     body.series.forEach((series) => expect(series.style).not.toBe("dashed"));
     expect(JSON.stringify(card.footer)).toContain(TH.dash.partialFirstWeek(4));
+  });
+
+  test("count in the hero and tiles only the weeks the chart draws, and name those weeks in the footer when limit cut the first week off the range (AI-331)", () => {
+    const { card } = overlayOf("2026-09-01", 12);
+    const body = expectKind(card.body, "line");
+    const totalOf = (index: number) => body.series[index].values.reduce<number>((sum, value) => sum + (value ?? 0), 0);
+    expect(card.tiles.map((tile) => tile.value)).toEqual([formatMetricValue("net_sales_volume", totalOf(0)), formatMetricValue("sell_out_volume", totalOf(1))]);
+    expect(card.hero?.value).toBe(`${((totalOf(1) / totalOf(0)) * 100).toFixed(1)}%`);
+    expect(card.footer?.details).toContain(TH.dash.drawnSpan(body.labels[0], body.labels[body.labels.length - 1]));
   });
 });

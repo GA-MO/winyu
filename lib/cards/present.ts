@@ -1289,7 +1289,7 @@ function ratioOf(base: Source, other: Source): { hero: CardHero; verdict: string
 }
 
 function totalTile(source: Source): Tile {
-  return tileOf(shortMetricLabel(source), source.result.headline.value, null);
+  return tileOf(shortMetricLabel(source), formatMetricValue(source.query.metric, rowTotalOf(source)), null);
 }
 
 function correlationVerdict(scatter: Extract<CardBody, { kind: "scatter" }>): string {
@@ -1327,7 +1327,23 @@ function withoutLeadingPartial(query: MetricQuery, rows: MetricRow[]): { rows: M
   return { rows: kept, note: query.grain === "month" ? TH.dash.partialFirstMonth(days) : TH.dash.partialFirstWeek(days) };
 }
 
-/** Two series overlaid draw without their running week or month the way one trend does (a series against target keeps it, AI-304), and without a short first bucket; each is said once in the footer, and the hero and tiles still read the whole span, like one trend's hero. */
+function bucketKeyOf(query: MetricQuery, day: string): string | null {
+  if (query.grain === "month") return monthKeyOfIso(day);
+  if (query.grain === "week") return weekKeyOfIso(day);
+  return query.grain === "day" ? day : null;
+}
+
+/** The buckets an overlay draws, said in the footer whenever they are not every bucket of the range asked (a running or short bucket dropped, or `limit` cut the first ones), since the hero and tiles count only those buckets (AI-331). */
+function drawnSpanNote(query: MetricQuery, rows: MetricRow[], dropped: boolean): string | null {
+  const dim = timeDimOf(query);
+  if (!dim || rows.length === 0) return null;
+  const keys = rows.map((row) => String(row[dim])).sort();
+  const [first, last] = [keys[0], keys[keys.length - 1]];
+  if (!dropped && first === bucketKeyOf(query, query.range.from)) return null;
+  return TH.dash.drawnSpan(periodLabelTh(first), periodLabelTh(last));
+}
+
+/** Two series overlaid draw without their running week or month the way one trend does (a series against target keeps it, AI-304), and without a short first bucket; each is said once in the footer with the buckets drawn, and the hero and tiles count those same buckets, so no number on the card covers weeks the chart leaves out (AI-331). */
 function drawnPairing(pairing: Pairing): { pairing: Pairing; notes: (string | null)[] } {
   if (pairing.view !== "overlay") return { pairing, notes: [] };
   const drawn = pairing.sources.map((source) => {
@@ -1337,7 +1353,10 @@ function drawnPairing(pairing: Pairing): { pairing: Pairing; notes: (string | nu
   });
   const sources = drawn.map(({ source, rows }) => ({ ...source, result: { ...source.result, rows } }));
   const noteAt = (index: number) => drawn.find(({ notes }) => notes[index] !== null)?.notes[index] ?? null;
-  return { pairing: { ...pairing, sources }, notes: [noteAt(0), noteAt(1)] };
+  const [leading, running] = [noteAt(0), noteAt(1)];
+  const [first] = drawn;
+  const span = drawnSpanNote(first.source.query, first.rows, leading !== null || running !== null);
+  return { pairing: { ...pairing, sources }, notes: [leading, running, span] };
 }
 
 function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
@@ -1345,7 +1364,7 @@ function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
   const indexed = pairing.view === "overlay" && isIndexedOverlay(first, others);
   const drawn = drawnPairing(pairing);
   const body = pairedBody(drawn.pairing);
-  const lead = pairedLead(pairing, body, indexed);
+  const lead = pairedLead(drawn.pairing, body, indexed);
   return {
     title: pairedTitleOf(pairing),
     style: lead.tiles.length > 0 ? "scorecard" : "chart",

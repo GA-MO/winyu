@@ -758,6 +758,7 @@ export const TH = {
     partialMonth: "เดือนปัจจุบันยังไม่ครบ",
     partialFirstWeek: (days: number) => `สัปดาห์แรกไม่ครบ (${days} วัน) ไม่ได้แสดง`,
     partialFirstMonth: (days: number) => `เดือนแรกไม่ครบ (${days} วัน) ไม่ได้แสดง`,
+    drawnSpan: (first: string, last: string) => `กราฟและตัวเลขนับ ${first} – ${last}`,
     partialSeries: (label: string, days: number) => `${label} มีข้อมูล ${days} วัน`,
     versusBucket: (bucket: string) => `เทียบ ${bucket}`,
     others: "อื่น ๆ",
