@@ -333,7 +333,7 @@ const T = {
   dyn: 31.85,
   fwd: 36.65, fwdClick: 37.55, pop: 37.7, sendClick: 38.45, sent: 38.6, pull3: 39.25,
   envFly: [40.45, 1.0], bell: 41.5, mini: 41.95, fwdOut: 43.25,
-  leaveIn: 43.65, phone: [43.95, 54.75], push4: 44.65, leaveQ: [45.95, 0.55], bal: 46.85,
+  leaveIn: 43.65, phone: [43.95, 54.75], push4: 44.65, leaveQ: [45.15, 0.55], bal: 46.85,
   leave: [49.45, 0.85], conf: 50.65, press: 51.65, done: 51.95, pull4: 52.85, approved: 54.15, leaveOut: 54.65,
   permIn: 55.05, split: [55.65, 63.65], push5: 56.55, flip: 59.35, lock: 59.6, pull5: 62.15, permOut: 63.35,
   connIn: 63.7, plug: [64.75, 0.45], win3: [64.45, 73.85], push6: 65.4, connClick: 66.85, connected: 67.55,
@@ -674,13 +674,15 @@ function buildWindow() {
     </div>`;
 }
 
+const PHONE_BEZEL = 12, PHONE_COMPOSER_TOP = 626, PHONE_COMPOSER_H = 44, PHONE_CHAT_FLOOR = PHONE_COMPOSER_TOP - 16, PHONE_SCROLL = 0.5, PHONE_THINK = 0.3;
 function buildPhone() {
   $('phone').classList.add('app');
   $('phone').innerHTML = `<div id="pscr">
     <div class="island"></div>
     <div class="ab" style="left:20px;top:58px">${logoBox(32, 24)}</div>
-    <div class="ab" style="left:16px;right:16px;top:108px;display:flex;flex-direction:column;gap:16px">
+    <div class="ab" style="left:0;right:0;top:0;height:${PHONE_COMPOSER_TOP}px;overflow:hidden"><div class="ab" id="pcol" style="left:16px;right:16px;top:0;display:flex;flex-direction:column;gap:16px">
       <div class="ask" id="pq0" style="position:relative;align-self:flex-end">${LEAVE_Q.join('')}</div>
+      <div class="ab row" id="pdots" style="left:0;top:0;gap:6px;height:36px;padding:0 16px;border-radius:18px 18px 18px 6px;background:#f1f2f7;opacity:0">${'<i style="width:8px;height:8px;border-radius:50%;background:#94a3b8"></i>'.repeat(3)}</div>
       <div class="card" id="pbal" style="position:relative;padding:14px 16px"><div class="cap">${ANNUAL.label}</div><div style="margin-top:4px"><span class="hero">${ANNUAL.left}</span><span class="unit">/${ANNUAL.entitled} วัน</span></div><div class="track"><div class="fill" id="pbf" style="width:${(ANNUAL.left / ANNUAL.entitled * 100).toFixed(1)}%"></div></div></div>
       <div class="ask" id="pq1" style="position:relative;align-self:flex-end;margin-top:16px">${LEAVE.join('')}</div>
       <div class="card" id="plv" style="position:relative;padding:14px 16px">
@@ -691,8 +693,8 @@ function buildPhone() {
           <div class="btn ab" id="plvDone" style="left:0;top:0;width:100%;background:#e7f8ef;color:#047857;opacity:0">${ICON.ok}ส่ง HR แล้ว</div>
         </div>
       </div>
-    </div>
-    <div class="ab row body" style="left:16px;right:16px;top:568px;height:44px;border-radius:22px;padding:0 48px 0 16px;border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#7c3aed,#4f46e5 50%,#22d3ee) border-box;white-space:nowrap"><span id="ptyped"></span><span id="pcaret" style="display:inline-block;width:2px;height:18px;margin-left:2px;background:#4f46e5;border-radius:1px"></span><div class="psend" style="right:5px;bottom:5px;width:32px;height:32px">${ICON.up}</div></div>
+    </div></div>
+    <div class="ab row body" style="left:16px;right:16px;top:${PHONE_COMPOSER_TOP}px;height:${PHONE_COMPOSER_H}px;border-radius:22px;padding:0 48px 0 16px;border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#7c3aed,#4f46e5 50%,#22d3ee) border-box;white-space:nowrap"><span id="ptyped"></span><span id="pcaret" style="display:inline-block;width:2px;height:18px;margin-left:2px;background:#4f46e5;border-radius:1px"></span><div class="psend" style="right:5px;bottom:5px;width:32px;height:32px">${ICON.up}</div></div>
     <div class="home-ind"></div>
     <div class="touch" id="ptouch" style="width:30px;height:30px;margin:-15px 0 0 -15px"></div>
   </div>`;
@@ -718,10 +720,10 @@ $('memtext').textContent = `จำไว้แล้ว · สนใจ${FACTS.s
 $('mini').innerHTML = `<span class="t40 muted">คาดปิดเดือน</span><span class="t76 num" style="color:var(--coral-ink)">${FACTS.close.projected}</span>`;
 
 /** Every screen is drawn at the app's own type scale and pushed in by the same factor, with its focal content centred on FOCUS. */
-const ZOOM = 2.75, PHONE_ZOOM = 1.34, FOCUS = { x: 960, y: 650 }, PHONE_X = 1330;
+const ZOOM = 2.75, FOCUS = { x: 960, y: 650 }, PHONE_X = 1110, PHONE_COMPOSER_AT = 760;
 const DEV = {
   win: { el: $('win'), lw: 1280, lh: 800, ww: 2.7, flat: [FOCUS.x - (672 - 640) * ZOOM, FOCUS.y, ZOOM] },
-  phone: { el: $('phone'), lw: 376, lh: 736, ww: 0.62, flat: [PHONE_X, 540, PHONE_ZOOM] },
+  phone: { el: $('phone'), lw: 376, lh: 736, ww: 0.62, flat: [PHONE_X, PHONE_COMPOSER_AT - (PHONE_BEZEL + PHONE_COMPOSER_TOP + PHONE_COMPOSER_H - 736 / 2) * ZOOM, ZOOM] },
   split: { el: $('split'), lw: 1280, lh: 800, ww: 3.2, flat: [FOCUS.x - (672 - 640) * ZOOM, FOCUS.y, ZOOM] },
 };
 for (const d of [DEV.win, DEV.split]) { d.el.style.width = d.lw + 'px'; d.el.style.height = d.lh + 'px'; }
@@ -729,7 +731,7 @@ const PLINTH = 0.06;
 const VISITS = [
   { dev: DEV.win, at: [3.7, -3.1], show: T.win1, moves: [[T.push1, T.pull1]] },
   { dev: DEV.win, at: [1.6, 4.4], show: T.win2, moves: [[T.push2, T.pull2], [T.push3, T.pull3]] },
-  { dev: DEV.phone, at: [11.6, 7.5], show: T.phone, moves: [[T.push4, T.pull4]], town: { pin: [1240, 820] } },
+  { dev: DEV.phone, at: [11.6, 7.5], show: T.phone, moves: [[T.push4, T.pull4]], town: { pin: [860, 900] } },
   { dev: DEV.split, at: [2.2, 3.8], show: T.split, moves: [[T.push5, T.pull5]] },
   { dev: DEV.win, at: [3.4, 3.0], show: T.win3, moves: [[T.push6, T.pull6]] },
 ];
@@ -787,7 +789,7 @@ function townCam(t) {
   }
   return cur;
 }
-const ZOOM_CAP = 1.8, TOWN_ZOOM_CAP = 1.6;
+const ZOOM_CAP = 1.8, TOWN_ZOOM_CAP = 1.3;
 /** How far the town zooms while a screen grows by `ratio`: with the screen at first, then easing to `cap`, so the town never blows up into giant blocks. */
 const townZoom = (ratio, cap) => 1 + (cap - 1) * Math.tanh((ratio - 1) / (cap - 1));
 function solve(t) {
@@ -833,7 +835,7 @@ function drawHub(acc, t) {
 }
 function drawPlinths(acc, t, solved) {
   for (const v of VISITS) {
-    const o = showOf(v, t);
+    const o = showOf(v, t) * (v.town ? 1 - visitU(v, t) : 1);
     if (o <= 0.01) continue;
     const d = v.dev, w = d.ww + 0.3, dd = depthOf(d) + 0.3;
     acc.items.push({ d: v.at[0] + v.at[1] - dd, s: shadow(v.at[0], v.at[1], w, dd, o) + boxC(v.at[0], v.at[1], 0, w, dd, PLINTH, M.stone, o) });
@@ -1049,7 +1051,7 @@ function townConnect(acc, t) {
 }
 
 const centerIn = (el, root) => { let x = el.offsetWidth / 2, y = el.offsetHeight / 2; for (let e = el; e && e !== root; e = e.offsetParent) { x += e.offsetLeft; y += e.offsetTop; } return [x, y]; };
-let CUR_KEYS = null, PHONE_TAPS = null;
+let CUR_KEYS = null, PHONE_TAPS = null, PHONE_STOPS = null;
 function measure() {
   const chat = $('L2').parentElement;
   const [fx, fy] = centerIn($('fwdBtn'), chat);
@@ -1064,7 +1066,10 @@ function measure() {
     conn: [[T.push6[1], cx + 60, cy + 110], [T.connClick, cx, cy + 4], [T.connClick + 0.8, cx + 40, cy + 70]],
   };
   const scr = $('pscr'), send = centerIn($('pcaret').parentElement.querySelector('.psend'), scr), ok = centerIn($('plvOk'), scr);
-  PHONE_TAPS = [[T.leaveQ[0] + T.leaveQ[1] + 0.05, ...send], [T.leave[0] + T.leave[1] + 0.05, ...send], [T.press, ok[0], ok[1]]];
+  const bottomOf = (id) => $(id).offsetTop + $(id).offsetHeight;
+  $('pdots').style.top = $('pbal').offsetTop + 'px';
+  PHONE_STOPS = [[T.leaveQ[0] + T.leaveQ[1] + 0.15, 'pq0'], [T.leaveQ[0] + T.leaveQ[1] + 0.15 + PHONE_THINK, 'pdots'], [T.bal, 'pbal'], [T.leave[0] + T.leave[1] + 0.15, 'pq1'], [T.conf, 'plv']].map(([at, id]) => [at, PHONE_CHAT_FLOOR - bottomOf(id)]);
+  PHONE_TAPS = [[T.leaveQ[0] + T.leaveQ[1] + 0.05, ...send], [T.leave[0] + T.leave[1] + 0.05, ...send], [T.press, ok[0], ok[1] + PHONE_STOPS.at(-1)[1]]];
 }
 function cursorAt(keys, t) {
   if (t <= keys[0][0]) return [keys[0][1], keys[0][2]];
@@ -1209,7 +1214,9 @@ function screenWin(t) {
   rip.style.transform = `translate(${f1(cx)}px,${f1(cy)}px) scale(${(0.4 + rp * 0.9).toFixed(3)})`;
 }
 
+const phoneScroll = (t) => PHONE_STOPS.reduce((y, [at, to]) => lerp(y, to, k(t, at - 0.05, PHONE_SCROLL, EIO3)), PHONE_CHAT_FLOOR);
 function screenPhone(t) {
+  $('pcol').style.transform = `translateY(${f1(phoneScroll(t))}px)`;
   const n0 = typedCount(t, T.leaveQ, LEAVE_Q), n1 = typedCount(t, T.leave, LEAVE);
   const sent0 = t >= T.leaveQ[0] + T.leaveQ[1] + 0.15, sent1 = t >= T.leave[0] + T.leave[1] + 0.15;
   const typing = !sent0 ? LEAVE_Q.slice(0, n0).join('') : sent0 && !sent1 ? LEAVE.slice(0, n1).join('') : '';
@@ -1219,13 +1226,16 @@ function screenPhone(t) {
   const b0 = k(t, T.leaveQ[0] + T.leaveQ[1] + 0.15, 0.35, EBK), b1 = k(t, T.leave[0] + T.leave[1] + 0.15, 0.35, EBK);
   q0.style.opacity = clamp(b0).toFixed(3); q0.style.transform = `scale(${lerp(0.7, 1, clamp(b0)).toFixed(3)})`;
   q1.style.opacity = clamp(b1).toFixed(3); q1.style.transform = `scale(${lerp(0.7, 1, clamp(b1)).toFixed(3)})`;
+  const think = k(t, T.leaveQ[0] + T.leaveQ[1] + 0.15 + PHONE_THINK, 0.3, EOX) * (1 - k(t, T.bal - 0.1, 0.2, LIN));
+  rise($('pdots'), think, 12);
+  [...$('pdots').children].forEach((d, i) => { d.style.transform = `translateY(${f1(-4 * Math.max(0, Math.sin((t * 2.2 - i * 0.18) * 2 * Math.PI)))}px)`; });
   rise($('pbal'), k(t, T.bal, 0.45, EOX), 24);
   $('pbf').style.width = (ANNUAL.left / ANNUAL.entitled * 100 * k(t, T.bal + 0.2, 0.6, EOX)).toFixed(1) + '%';
   rise($('plv'), k(t, T.conf, 0.5, EOX), 30);
   const okP = bump(t, T.press, 0.3);
   $('plvOk').style.transform = `scale(${(1 - okP * 0.08).toFixed(3)})`;
   const dn = k(t, T.done, 0.4, EBK);
-  $('plvOk').style.opacity = (1 - clamp(dn * 2)).toFixed(3);
+  $('plvOk').style.opacity = (1 - k(t, T.done, 0.35, EIO3)).toFixed(3);
   $('plvDone').style.opacity = clamp(dn).toFixed(3);
   $('plvDone').style.transform = `scale(${lerp(0.85, 1, clamp(dn)).toFixed(3)})`;
   const tap = PHONE_TAPS.find(([a]) => t > a - 0.25 && t < a + 0.35);
