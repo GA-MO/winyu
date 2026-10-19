@@ -283,6 +283,10 @@ describe("query_metric tells the model what each metric accepts", () => {
     expect(targets?.sort()).toEqual([...TARGET_METRICS].sort());
     expect(targets).not.toContain("gross_margin");
   });
+
+  test("a plain split by two dims that asks no target keeps compare none, so a grid shows amounts (AI-337)", () => {
+    expect(description).toMatch(/split by two dims that names no target or comparison \("ยอดขายเดือนนี้แยกภาคกับแบรนด์"\) keeps compare none/);
+  });
 });
 
 describe("a sell-out breakdown asked against sell-in (AI-332)", () => {
