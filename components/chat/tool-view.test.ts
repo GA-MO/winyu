@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ToolStep } from "./timeline";
-import { cardPlanOf, drawsNoCard } from "./tool-view";
+import { cardPlanOf, drawsNoCard, recallSourcesOf } from "./tool-view";
 
 const CARD_TOOLS: ReadonlySet<string> = new Set(["query_metric", "find_people", "get_person", "resolve_owner", "describe_entity", "list_metrics"]);
 const KRIT_ROW = { id: "u_krit", name: "คุณกฤต จันทร์เสน", title: "พนักงานขาย ขอนแก่น" };
@@ -76,6 +76,31 @@ describe("memory recalls", () => {
     const conversation = { threadId: "t_ar", title: "หนี้ค้างชำระภาคใต้", at: "2026-10-19T09:00:00.000Z", question: "หนี้ค้างชำระภาคใต้ตอนนี้เป็นยังไง", reply: "สูงขึ้น", queries: [], score: 0.86 };
     expect(drawsNoCard({ ...RECALL, conversations: [conversation] })).toBe(false);
     expect(drawsNoCard(RECALL)).toBe(true);
+  });
+});
+
+describe("the conversation an answer came from", () => {
+  const ATTRITION = { metric: "attrition_rate", dims: ["department"] };
+  const TURNOVER = { threadId: "t_turnover", title: "พนักงานลาออกแผนกไหนเยอะสุด", at: "2026-10-20T03:00:00.000Z", question: "พนักงานลาออกแผนกไหนเยอะสุด", reply: "ฝ่ายการตลาด", queries: [ATTRITION], score: 0.83 };
+  const SALES = { threadId: "t_sales", title: "ยอดขายเดือนนี้แยกภาค", at: "2026-10-19T03:00:00.000Z", question: "ยอดขายเดือนนี้แยกภาค", reply: "กรุงเทพฯ สูงสุด", queries: [{ metric: "net_sales_value", dims: ["region"] }], score: 0.85 };
+  const ANSWER = { ok: true, rows: [{ department: "การตลาด", value: 1 }], summary: "s", headline: {}, provenance: {}, query: ATTRITION };
+  const recall = (conversations: unknown[]) => returned("r1", "recall_memory", { query: "แผนก" }, { ok: true, summary: "จำได้", data: [], conversations });
+
+  function sourcesOf(steps: ToolStep[]) {
+    return recallSourcesOf(steps, cardPlanOf(steps, new Set(), new Set([...CARD_TOOLS, "recall_memory"])));
+  }
+
+  test("an answer card that hides the memory card names the conversation whose query it asked again, not the closer one it did not use (AI-344)", () => {
+    expect(sourcesOf([recall([SALES, TURNOVER]), returned("q1", "query_metric", ATTRITION, ANSWER)])).toEqual([{ threadId: "t_turnover", title: TURNOVER.title, at: TURNOVER.at }]);
+  });
+
+  test("with no query in common it names the closest conversation", () => {
+    expect(sourcesOf([recall([SALES, TURNOVER]), returned("q1", "query_metric", { metric: "headcount" }, { ...ANSWER, query: { metric: "headcount" } })]).map((source) => source.threadId)).toEqual(["t_sales"]);
+  });
+
+  test("names nothing when the memory card itself is drawn or the recall found no conversation", () => {
+    expect(sourcesOf([recall([TURNOVER])])).toEqual([]);
+    expect(sourcesOf([recall([]), returned("q1", "query_metric", ATTRITION, ANSWER)])).toEqual([]);
   });
 });
 

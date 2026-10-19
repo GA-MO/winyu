@@ -1513,6 +1513,7 @@ export const TH = {
     nothingKnown: "ยังไม่มี",
     maskedNumber: "[ตัวเลข]",
     conversationsHeading: "บทสนทนาที่เคยคุย",
+    recalledFrom: "จากบทสนทนา",
     recalledSummary: (facts: number, conversations: number) => [facts > 0 ? `จำได้ ${facts} เรื่องที่เกี่ยวข้อง` : "", conversations > 0 ? `เคยคุยเรื่องใกล้เคียง ${conversations} บทสนทนา` : ""].filter(Boolean).join(" · "),
     pastConversations: "บทสนทนาเหล่านี้คือสิ่งที่พูดกันครั้งนั้น ไม่ใช่สถานะตอนนี้: งาน สถานะ หรือตัวเลขปัจจุบันต้องอ่านจาก tool อีกครั้ง",
     truncated: "…",

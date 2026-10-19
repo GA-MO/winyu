@@ -1,6 +1,7 @@
 "use client";
 
-import { Component, type ReactNode } from "react";
+import { Component, Fragment, type ReactNode } from "react";
+import Link from "next/link";
 import { AlertCircle, CircleSlash, MousePointerClick, RotateCcw, ShieldCheck } from "lucide-react";
 import { renderApproval } from "@/components/cards/approval-card";
 import { SendingProvider } from "@/components/cards/card-actions";
@@ -9,12 +10,13 @@ import { describeToolCall } from "@/lib/cards/describe-call";
 import { TOOL_CARDS, type ToolCard } from "@/components/cards/registry";
 import { maskPersonalData } from "@/lib/harness/guard";
 import { sharedComposedCard, sharedToolCard, type ExchangeRead, type ScreenCards, type ShareTarget } from "@/lib/share/card";
+import { formatDateTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { ActionTrail } from "./action-trail";
 import { ComposedCardView } from "./composed-card";
 import { Markdown } from "./markdown";
 import type { Exchange, Question, ReplyStep, ToolStep } from "./timeline";
-import { cardPlanOf, composedCalls, isDeclined, isRefused, pairedResultsOf, toolViewOf, wroteBlock, type CardPlan } from "./tool-view";
+import { cardPlanOf, composedCalls, firstCardOf, isDeclined, isRefused, pairedResultsOf, recallSourcesOf, toolViewOf, wroteBlock, type CardPlan, type RecallSource } from "./tool-view";
 import { withRequestedCourses } from "./requested-courses";
 import { trailOf } from "./trail";
 import { pressedText } from "./pressed";
@@ -199,6 +201,28 @@ function StepView({ step, toolSteps, live, plan, streaming, sharing, asked }: { 
   );
 }
 
+/** One quiet line under the answer card naming the past conversations it came from, when the memory card that would show them is left out. */
+function RecallSourceLine({ sources }: { sources: readonly RecallSource[] }) {
+  return (
+    <p className="-mt-2 text-xs text-muted-foreground">
+      {TH.memory.recalledFrom}{" "}
+      {sources.map((source, index) => (
+        <Fragment key={source.threadId}>
+          {index > 0 ? ", " : null}
+          <Link href={`/c/${source.threadId}`} className="underline-offset-2 hover:text-foreground hover:underline">
+            «{source.title}»
+          </Link>
+          {` · ${formatDateTh(source.at)}`}
+        </Fragment>
+      ))}
+    </p>
+  );
+}
+
+function stepKey(step: ReplyStep): string {
+  return step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`;
+}
+
 function shows(step: ReplyStep): boolean {
   return step.kind !== "tool" || step.outcome.state !== "failed";
 }
@@ -240,13 +264,18 @@ export function ExchangeView({ exchange, live }: { exchange: Exchange; live: Exc
   const plan = cardPlanOf(toolSteps, composedCalls(exchange.steps, streaming), CARD_TOOLS, wroteBlock(exchange.steps));
   const sharing = sharingOf(exchange, toolSteps, streaming);
   const steps = stepsWithApprovals(exchange, live.asked);
+  const sources = recallSourcesOf(toolSteps, plan);
+  const sourcedCard = sources.length > 0 ? firstCardOf(steps, plan, CARD_TOOLS) : undefined;
   return (
     <article data-exchange={exchange.id} className="flex flex-col gap-4">
       {exchange.question ? <UserBubble question={exchange.question} /> : null}
       <ActionTrail trail={trailOf(steps, streaming, live.toolLabels)} streaming={streaming} durationMs={live.durationMs} slow={streaming && live.slow} />
       <SendingProvider sending={raisesSend(steps, live)}>
         {steps.map((step) => (
-          <StepView key={step.kind === "tool" ? step.toolCallId : `${step.kind}-${step.id}`} step={step} toolSteps={toolSteps} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={askedText(exchange.question)} />
+          <Fragment key={stepKey(step)}>
+            <StepView step={step} toolSteps={toolSteps} live={live} plan={plan} streaming={streaming} sharing={sharing} asked={askedText(exchange.question)} />
+            {step === sourcedCard ? <RecallSourceLine sources={sources} /> : null}
+          </Fragment>
         ))}
       </SendingProvider>
       <Ending exchange={exchange} live={live} />

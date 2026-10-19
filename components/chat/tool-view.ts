@@ -298,6 +298,44 @@ export function pairedResultsOf(plan: CardPlan, steps: readonly ToolStep[], tool
   return steps.flatMap((step) => (partners.includes(step.toolCallId) && step.outcome.state === "returned" ? [step.outcome.result] : []));
 }
 
+/** A past conversation an answer card was drawn from, named under that card when its memory card is left out. */
+export type RecallSource = { threadId: string; title: string; at: string };
+
+type FoundConversation = RecallSource & { metrics: string[] };
+
+function metricsOf(queries: unknown): string[] {
+  if (!Array.isArray(queries)) return [];
+  return queries.flatMap((query: { metric?: unknown } | null) => (typeof query?.metric === "string" ? [query.metric] : []));
+}
+
+function conversationsFound(result: unknown): FoundConversation[] {
+  const found = (result as { conversations?: unknown } | null)?.conversations;
+  if (!Array.isArray(found)) return [];
+  return found.flatMap((conversation: { threadId?: unknown; title?: unknown; at?: unknown; queries?: unknown } | null) => {
+    if (typeof conversation?.threadId !== "string" || typeof conversation.title !== "string" || typeof conversation.at !== "string") return [];
+    return [{ threadId: conversation.threadId, title: conversation.title, at: conversation.at, metrics: metricsOf(conversation.queries) }];
+  });
+}
+
+/** The past conversations behind an answer whose memory card is left out: those whose stored metric the reply asked for again, else the closest one; none when the memory card is drawn or the recall found no conversation. */
+export function recallSourcesOf(steps: readonly ToolStep[], plan: CardPlan): RecallSource[] {
+  const recall = steps.filter((step) => step.name === RECALL_TOOL && answered(step)).at(-1);
+  if (!recall || recall.outcome.state !== "returned" || !plan.hidden.has(recall.toolCallId)) return [];
+  const found = conversationsFound(recall.outcome.result);
+  const asked = new Set(steps.flatMap((step) => (step.name === METRIC_TOOL ? metricsOf([step.args]) : [])));
+  const used = found.filter((conversation) => conversation.metrics.some((metric) => asked.has(metric)));
+  return (used.length > 0 ? used : found.slice(0, 1)).map(({ threadId, title, at }) => ({ threadId, title, at }));
+}
+
+/** The first card a reply draws (a composed card, or a tool card not left out), under which the recall source line goes. */
+export function firstCardOf(steps: readonly ReplyStep[], plan: CardPlan, cardTools: ReadonlySet<string>): ReplyStep | undefined {
+  return steps.find((step) => {
+    if (step.kind === "composed") return true;
+    if (step.kind !== "tool" || !cardTools.has(step.name) || plan.hidden.has(step.toolCallId)) return false;
+    return step.outcome.state === "returned" && !drawsNoCard(step.outcome.result);
+  });
+}
+
 /** One card per question: a composed card holds only read results, so a write's receipt is never left out for it; a people lookup that found the recipient of a later card or email sent in the exchange is left out, a refused or failed call the model corrected later in the exchange (the same tool answered after it) is left out, metric answers of the same dimensions and range that pair draw one card on the first of them (`paired`), and lookups the model made on the way are left out (`plumbingLookups`); `composed` are the calls a composed card already holds, `blockWritten` whether the reply wrote a card block at all (a shared card, drawn as it is, counts as one). */
 export function cardPlanOf(steps: readonly ToolStep[], composed: ReadonlySet<string>, cardTools: ReadonlySet<string>, blockWritten = true): CardPlan {
   const heldInCard = steps.flatMap((step) => (composed.has(step.toolCallId) && cardTools.has(step.name) ? [step.toolCallId] : []));

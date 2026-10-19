@@ -98,3 +98,34 @@ describe("a reply that takes long or fails", () => {
     expect(unanswered).toContain(TH.conversation.retry);
   });
 });
+
+describe("an answer drawn from a past conversation", () => {
+  const ATTRITION = { metric: "attrition_rate", dims: ["department"], grain: "month", range: { from: "2026-11-01", to: "2026-11-26" }, compare: "none", filters: {}, sort: null, limit: null };
+  const TURNOVER = { threadId: "t_turnover", title: "พนักงานลาออกแผนกไหนเยอะสุด", at: "2026-10-20T03:00:00.000Z", question: "พนักงานลาออกแผนกไหนเยอะสุด", reply: "ฝ่ายการตลาด", queries: [ATTRITION], score: 0.83 };
+
+  async function drawn(withAnswer: boolean): Promise<string> {
+    const ceo = findUser("u_thana");
+    if (!ceo) throw new Error("no u_thana");
+    const result = await runWithAccess(liveAccessFor(ceo), () => winyuTools().query_metric.execute(ATTRITION, { toolCallId: "q1" }));
+    const recall = { kind: "tool" as const, toolCallId: "r1", name: "recall_memory", args: { query: "แผนก" }, outcome: { state: "returned" as const, result: { ok: true, summary: "จำได้", data: [], conversations: [TURNOVER] } } };
+    const answer = { kind: "tool" as const, toolCallId: "q1", name: "query_metric", args: ATTRITION, outcome: { state: "returned" as const, result } };
+    return renderToStaticMarkup(
+      <ShareProvider open>
+        <ExchangeView exchange={{ id: "q-recall", question: { kind: "typed", text: "แล้วแผนกนั้นควรทำอะไรต่อ" }, steps: withAnswer ? [recall, answer] : [recall] }} live={live(true)} />
+      </ShareProvider>,
+    );
+  }
+
+  test("names the conversation under the answer card with a link to it when the memory card is left out (AI-344)", async () => {
+    const html = await drawn(true);
+    expect(html).toContain(TH.memory.recalledFrom);
+    expect(html).toContain(`href="/c/${TURNOVER.threadId}"`);
+    expect(html).not.toContain(TH.memory.conversationsHeading);
+  });
+
+  test("draws no source line when the memory card itself shows the conversation", async () => {
+    const html = await drawn(false);
+    expect(html).toContain(TH.memory.conversationsHeading);
+    expect(html).not.toContain(TH.memory.recalledFrom);
+  });
+});
