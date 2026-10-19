@@ -7,6 +7,7 @@
   const TARGET_LUFS = -16;
   const COMPRESSOR_LOOKAHEAD = 0.006;
   const TAU = Math.PI * 2;
+  const TOP = { shelfDb: -6, lowpassHz: 11000, maxHz: 6500 };
 
   const hz = (midi) => 440 * 2 ** ((midi - 69) / 12);
   const dbGain = (db) => 10 ** (db / 20);
@@ -67,7 +68,7 @@
     return buf;
   }
 
-  function voiceKit(ctx, buses, key) {
+  function voiceKit(ctx, buses, key, top) {
     const noise = noiseBuffer(ctx, 4, 7);
     const T = (t) => t + PRE;
 
@@ -94,7 +95,7 @@
     }
 
     function tone({ t, f, from, glide = 0.03, type = "sine", a, h, d, gain = 0.2, out = buses.sfx, pan = 0, send = 0.2, detune = 0 }) {
-      if (f > 6500) return;
+      if (f > top.maxHz) return;
       const at = T(t);
       const o = ctx.createOscillator();
       o.type = type;
@@ -115,8 +116,8 @@
       const bq = ctx.createBiquadFilter();
       bq.type = type;
       bq.Q.value = q;
-      bq.frequency.setValueAtTime(Math.min(f, 6000), at);
-      if (to) bq.frequency.exponentialRampToValueAtTime(Math.min(to, 6000), at + (a ?? 0.005) + h + d);
+      bq.frequency.setValueAtTime(Math.min(f, top.maxHz), at);
+      if (to) bq.frequency.exponentialRampToValueAtTime(Math.min(to, top.maxHz), at + (a ?? 0.005) + h + d);
       const g = chain(out, pan, send);
       const end = envelope(g.gain, at, { a, h, d, peak: gain });
       src.connect(bq).connect(g);
@@ -128,7 +129,7 @@
       partials.forEach(([ratio, level, decay]) => tone({ t, f: f * ratio, a, d: d * decay, gain: gain * level, out, pan, send }));
     }
 
-    return { ctx, buses, key, tone, hiss, struck, hz, T, envelope, chain };
+    return { ctx, buses, key, top, tone, hiss, struck, hz, T, envelope, chain };
   }
 
   function automate(param, fn, length) {
@@ -152,6 +153,17 @@
     };
   }
 
+  /** Which section each bar plays, read one beat after its downbeat, with how many bars of that section came before and remain. */
+  function barSections(sections, g, length) {
+    const sorted = [...sections].sort((p, q) => p.at - q.at);
+    const indexAt = (x) => sorted.reduce((found, s, i) => (s.at <= wrap(x, length) ? i : found), sorted.length - 1);
+    const index = Array.from({ length: g.bars }, (_, bar) => indexAt(g.at(bar * 4 + 1)));
+    const since = [], left = [];
+    index.forEach((s, b) => (since[b] = b && index[b - 1] === s ? since[b - 1] + 1 : 0));
+    for (let b = g.bars - 1; b >= 0; b--) left[b] = b < g.bars - 1 && index[b + 1] === index[b] ? left[b + 1] + 1 : 1;
+    return index.map((s, b) => ({ mix: sorted[s]?.mix, since: since[b], left: left[b] }));
+  }
+
   function duckCurve(cues, sfx, length) {
     const dips = cues.map((c) => ({ at: c.at, depth: sfx[c.sfx]?.duck ?? 0.3 }));
     return (x) => {
@@ -169,8 +181,13 @@
   async function renderPass(score, length) {
     const preset = MUSIC[score.music];
     if (!preset) throw new Error(`Unknown music preset "${score.music}"`);
-    const unknown = score.cues.filter((c) => !SFX[c.sfx]).map((c) => c.sfx);
+    const kit = { ...SFX, ...preset.sfx };
+    const unknown = score.cues.filter((c) => !kit[c.sfx]).map((c) => c.sfx);
     if (unknown.length) throw new Error(`Unknown sfx: ${[...new Set(unknown)].join(", ")}`);
+    const sections = score.sections ?? [];
+    const noMix = sections.filter((s) => !preset.mixes[s.mix]).map((s) => s.mix);
+    if (noMix.length) throw new Error(`Music preset "${score.music}" has no mix ${[...new Set(noMix)].join(", ")}`);
+    const top = { ...TOP, ...preset.top };
 
     const span = PRE + length + TAIL;
     const ctx = new OfflineAudioContext({ numberOfChannels: 2, length: Math.ceil(span * RATE), sampleRate: RATE });
@@ -181,9 +198,9 @@
     hp1.Q.value = hp2.Q.value = 0.6;
     shelf.type = "highshelf";
     shelf.frequency.value = 6000;
-    shelf.gain.value = -6;
+    shelf.gain.value = top.shelfDb;
     lp.type = "lowpass";
-    lp.frequency.value = 11000;
+    lp.frequency.value = top.lowpassHz;
     lp.Q.value = 0.5;
     master.connect(hp1).connect(hp2).connect(shelf).connect(lp).connect(ctx.destination);
 
@@ -198,12 +215,11 @@
     sfx.gain.value = dbGain(preset.sfxDb);
     const duck = ctx.createGain();
     duck.gain.value = 0;
-    automate(duck.gain, duckCurve(score.cues, SFX, length), length);
+    automate(duck.gain, duckCurve(score.cues, kit, length), length);
     music.connect(duck).connect(master);
     sfx.connect(master);
 
     const g = grid(score, length, preset);
-    const sections = score.sections ?? [];
     const layers = {};
     for (const name of Object.keys(preset.layers)) {
       const bus = ctx.createGain();
@@ -214,22 +230,24 @@
       layers[name] = { bus, level };
     }
 
-    const v = voiceKit(ctx, { music, sfx, verb }, preset.key);
+    const v = voiceKit(ctx, { music, sfx, verb }, preset.key, top);
     const sixteenth = g.beat / 4;
     const totalSteps = g.bars * 16;
+    const barSection = barSections(sections, g, length);
     for (let s = 0; s < totalSteps; s++) {
       const t = g.phase + s * sixteenth;
       const bar = Math.floor(s / 16);
-      const chord = preset.chord(bar, g.bars);
+      const place = { bar, bars: g.bars, ...barSection[bar] };
+      const chord = preset.chord(place);
       for (const [name, play] of Object.entries(preset.layers)) {
         const { bus, level } = layers[name];
         if (level(t) <= 0.001 && level(t + g.beat) <= 0.001) continue;
-        play({ ...v, out: bus }, { t, step: s % 16, bar, chord, beat: g.beat, seed: s });
+        play({ ...v, out: bus }, { ...place, t, step: s % 16, chord, beat: g.beat, seed: s });
       }
     }
     score.cues.forEach((cue, i) => {
       if (cue.at < 0 || cue.at >= length) throw new Error(`Cue ${cue.sfx} at ${cue.at} is outside the film`);
-      SFX[cue.sfx].play(v, { ...cue, step: cue.step ?? 0, seed: i, beat: g.beat });
+      kit[cue.sfx].play(v, { ...cue, step: cue.step ?? 0, seed: i, beat: g.beat });
     });
 
     return ctx.startRendering();
@@ -359,7 +377,7 @@
     musicDb: -2,
     sfxDb: 0,
     glue: { threshold: -22, knee: 14, ratio: 2, attack: 0.02, release: 0.35 },
-    chord: (bar, bars) => (bar >= bars - 2 ? SUITE_CHORDS[2 + bar - (bars - 2)] : SUITE_CHORDS[bar % 4]),
+    chord: ({ bar, bars }) => (bar >= bars - 2 ? SUITE_CHORDS[2 + bar - (bars - 2)] : SUITE_CHORDS[bar % 4]),
     mixes: {
       open: { pad: 0.9, piano: 0.7, air: 0.6 },
       flow: { pad: 0.7, piano: 0.85, bass: 0.9, pulse: 0.7, brush: 0.6 },
