@@ -1316,10 +1316,19 @@ function actionsOf(actions: readonly NextAction[]): { primary: NextAction | null
   return { primary, more };
 }
 
+/** Two series overlaid draw without their running week or month the way one trend does (a series against target keeps it, AI-304), and say so once; the hero and tiles still read the whole span, like one trend's hero. */
+function drawnPairing(pairing: Pairing): { pairing: Pairing; note: string | null } {
+  if (pairing.view !== "overlay") return { pairing, note: null };
+  const drawn = pairing.sources.map((source) => ({ source, trimmed: drawnBuckets(source.query, "line", source.result.rows, source.result.provenance.asOf) }));
+  const sources = drawn.map(({ source, trimmed }) => ({ ...source, result: { ...source.result, rows: trimmed.rows } }));
+  return { pairing: { ...pairing, sources }, note: drawn.find(({ trimmed }) => trimmed.note !== null)?.trimmed.note ?? null };
+}
+
 function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
   const [first, ...others] = pairing.sources;
   const indexed = pairing.view === "overlay" && isIndexedOverlay(first, others);
-  const body = pairedBody(pairing);
+  const drawn = drawnPairing(pairing);
+  const body = pairedBody(drawn.pairing);
   const lead = pairedLead(pairing, body, indexed);
   return {
     title: pairedTitleOf(pairing),
@@ -1329,7 +1338,7 @@ function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
     tiles: lead.tiles,
     body,
     ...actionsOf(input.actions ?? NO_ACTIONS),
-    footer: footerOf(first.query, first.result, [indexed ? TH.dash.indexedNote : null]),
+    footer: footerOf(first.query, first.result, [drawn.note, indexed ? TH.dash.indexedNote : null]),
     denied: null,
   };
 }

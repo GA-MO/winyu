@@ -1,9 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import type { Dim, Grain, MetricId, MetricQuery, MetricResult, NextAction } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
-import { DATA_AS_OF, daysBetween, formatThaiDate, monthEnd, monthStart } from "@/lib/data/dates";
+import { addDays, DATA_AS_OF, daysBetween, formatThaiDate, monthEnd, monthStart, weekKeyOfIso } from "@/lib/data/dates";
 import { findUser } from "@/lib/data/entities/users";
 import { runMetric } from "@/lib/data/query";
+import { periodLabelTh } from "@/lib/i18n/format";
 import { TH } from "@/lib/i18n/th";
 import { LOW_COVER_DAYS } from "@/lib/semantic/metrics";
 import { changeToneOf, formatChange, formatMetricValue, metricLabel } from "@/lib/dashboard/metric-display";
@@ -933,3 +934,22 @@ describe("a change ranking's verdict", () => {
     expect([strip.overall, ...strip.rows].filter((row) => row?.exception).map((row) => row?.label)).toEqual(doubled.map((row) => String(row.agent)));
   });
 });
+
+describe("two series overlaid", () => {
+  test("drop the running week like one trend does and say so, so neither line falls off a cliff at its end", () => {
+    const range = { from: addDays(DATA_AS_OF, -83), to: DATA_AS_OF };
+    const sellIn: MetricQuery = { metric: "net_sales_volume", dims: ["week"], filters: {}, range, grain: "week", compare: "none", limit: null };
+    const sellOut: MetricQuery = { ...sellIn, metric: "sell_out_volume" };
+    const first = { query: sellIn, result: runMetric(sellIn, CEO) };
+    const second = { query: sellOut, result: runMetric(sellOut, CEO) };
+    if (!first.result.ok) throw new Error(first.result.error);
+    const running = periodLabelTh(weekKeyOfIso(DATA_AS_OF));
+    const card = presentCard({ title: "t", query: sellIn, result: first.result, others: [second] });
+    const body = expectKind(card.body, "line");
+    expect(body.series.length).toBeGreaterThanOrEqual(2);
+    expect(body.labels).not.toContain(running);
+    expect(body.labels).toHaveLength(first.result.rows.length - 1);
+    expect(JSON.stringify(card.footer)).toContain(TH.dash.partialWeek);
+  });
+});
+
