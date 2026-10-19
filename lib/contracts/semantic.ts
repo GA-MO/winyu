@@ -67,9 +67,13 @@ export const metricQuerySchema = z.object({
   period: z.enum(METRIC_PERIODS).nullable().optional(),
 }) satisfies z.ZodType<MetricQuery>;
 
-/** What `query_metric` takes: a named period or explicit dates; the server resolves the period, so `range` may be left out when `period` is set. */
+/** "The last N days, weeks or months" as the user says it; the server picks the N whole buckets, so the model never counts dates or cuts a longer range with `limit`. */
+export type RecentSpan = { count: number; unit: Grain };
+
+/** What `query_metric` takes: a named period, the last N buckets, or explicit dates; the server resolves the first two, so `range` may be left out when either is set. */
 export const metricQueryInputSchema = metricQuerySchema.extend({
   range: z.object({ from: z.string().regex(ISO_DATE), to: z.string().regex(ISO_DATE) }).nullable().optional(),
   period: z.enum(METRIC_PERIODS).nullable().optional(),
+  last: z.object({ count: z.number().int().min(1).max(MAX_ROWS), unit: grainSchema }).nullable().optional(),
 });
 export type MetricQueryInput = z.infer<typeof metricQueryInputSchema>;

@@ -1,4 +1,5 @@
-import type { Coverage, MetricPeriod, MetricQuery, MetricQueryInput } from "@/lib/contracts";
+import type { Coverage, MetricId, MetricPeriod, MetricQuery, MetricQueryInput, RecentSpan } from "@/lib/contracts";
+import { SNAPSHOT_METRICS } from "@/lib/semantic/metrics";
 import { DATA_AS_OF, DATA_START, addDays, businessToday, daysBetween, formatThaiDate, monthEnd, monthStart } from "@/lib/data/dates";
 import { TH } from "@/lib/i18n/th";
 
@@ -60,11 +61,31 @@ export function coverageOfQuery(query: MetricQuery): Coverage {
   return window && window.from === query.range.from ? coverageOf(window, query.period ?? null) : coverageOf(query.range, null);
 }
 
+function earlier(left: string, right: string): string {
+  return left < right ? left : right;
+}
+
+function lastBucketStart(unit: "week" | "month", asOf: string, keepsRunning: boolean): string {
+  const start = unit === "week" ? mondayOf(asOf) : monthStart(asOf);
+  const end = unit === "week" ? addDays(start, DAYS_PER_WEEK - 1) : monthEnd(asOf);
+  if (keepsRunning || end === asOf) return start;
+  return unit === "week" ? addDays(start, -DAYS_PER_WEEK) : monthStart(asOf, 1);
+}
+
+/** The last `count` days, weeks or months: days end on the last data day; weeks and months are whole ones, ending with the last one the data has finished, or with the running one for a balance (stock, cover, overdue), which a card keeps, so the card draws exactly `count` buckets. */
+export function recentWindow(span: RecentSpan, metric: MetricId, asOf: string = DATA_AS_OF): Range {
+  if (span.unit === "day") return { from: addDays(asOf, 1 - span.count), to: asOf };
+  const start = lastBucketStart(span.unit, asOf, SNAPSHOT_METRICS.has(metric));
+  if (span.unit === "week") return { from: addDays(start, -DAYS_PER_WEEK * (span.count - 1)), to: earlier(addDays(start, DAYS_PER_WEEK - 1), asOf) };
+  return { from: monthStart(start, span.count - 1), to: earlier(monthEnd(start), asOf) };
+}
+
 export type PeriodResolution = { ok: true; query: MetricQuery } | { ok: false; error: string; code: "BAD_QUERY" };
 
-/** Turns what the model asked into dates: a named period becomes its calendar window cut at the last data day; explicit dates pass through. */
+/** Turns what the model asked into dates: a named period becomes its calendar window cut at the last data day, the last N buckets their whole buckets; explicit dates pass through. */
 export function resolveQuery(input: MetricQueryInput): PeriodResolution {
-  const { period, range, ...rest } = input;
+  const { period, range, last, ...rest } = input;
+  if (last && !period) return { ok: true, query: { ...rest, range: recentWindow(last, input.metric), period: null } };
   if (period) {
     const window = periodWindow(period);
     const coverage = coverageOf(window, period);

@@ -350,8 +350,7 @@ describe("lines that invite a question or an action follow what the role can cal
   test("a check over the last months reads the months through this one and says which way they went; one month's balance supports nothing (AI-241)", () => {
     const why = WINYU_RULES.find((line) => line.startsWith("ผู้ใช้ถามว่าทำไม")) ?? "";
     expect(why).toContain("รายเดือน N เดือนล่าสุด");
-    expect(why).toContain("dims `[\"month\"]` และ `range` ตั้งแต่วันที่ 1 ของ N−1 เดือนก่อนเดือนนี้ถึงวันนี้");
-    expect(why).toContain("ไม่ใช่ `period` `last_month` (ได้เดือนเดียว) และ `limit` ไม่ได้ขยายช่วง");
+    expect(why).toContain("dims `[\"month\"]` และ `last` `{ count: N, unit: \"month\" }` ไม่ใช่ `period` `last_month` (ได้เดือนเดียว)");
     expect(why).toContain("บอกว่าเดือนแรกกับเดือนล่าสุดขึ้นหรือลง");
     expect(why).toContain("ยอดเดือนเดียวไม่มีอะไรให้เทียบ ห้ามเรียกว่าสนับสนุนหรือหักล้างสมมติฐาน");
   });
