@@ -3,12 +3,16 @@ import { DurableAgent } from "@mastra/core/agent/durable";
 
 const PERSISTED_STATUSES: ReadonlySet<string> = new Set(["pending", "paused", "suspended", "running"]);
 const SUSPENDING_CHUNKS: ReadonlySet<string> = new Set(["tool-call-approval", "tool-call-suspended"]);
+const TOOL_CALL_CHUNKS: ReadonlySet<string> = new Set(["tool-call-input-streaming-start", "tool-call-delta", "tool-call-input-streaming-end", "tool-call"]);
+const ABANDONING_CHUNKS: ReadonlySet<string> = new Set(["step-start", "error"]);
 
 type StreamArgs = Parameters<DurableAgent["stream"]>;
 
 type StreamResult = Awaited<ReturnType<DurableAgent["stream"]>>;
 
-type Chunk = { type: string };
+type Chunk = { type: string; payload?: unknown };
+
+type ErrorPayload = { error?: unknown };
 
 function endingAtSuspension(source: ReadableStream<Chunk>, suspended: Promise<void>): ReadableStream<Chunk> {
   const ending = new TransformStream<Chunk, Chunk>({
@@ -20,6 +24,52 @@ function endingAtSuspension(source: ReadableStream<Chunk>, suspended: Promise<vo
     },
   });
   return source.pipeThrough(ending, { preventCancel: true });
+}
+
+function textOfError(error: unknown): unknown {
+  if (typeof error !== "object" || error === null || error instanceof Error) return error;
+  const { name, message } = error as { name?: unknown; message?: unknown };
+  if (typeof message !== "string") return error;
+  return typeof name === "string" && name ? `${name}: ${message}` : message;
+}
+
+/** Error chunks with their error as text: a run's error crosses Mastra's workflow as a plain object, which the AG-UI bridge would print as "[object Object]", so the person and the trace could not tell a timeout from any other failure. */
+function withReadableErrors(source: ReadableStream<Chunk>): ReadableStream<Chunk> {
+  return source.pipeThrough(
+    new TransformStream<Chunk, Chunk>({
+      transform(chunk, controller) {
+        if (chunk.type !== "error") return controller.enqueue(chunk);
+        const payload = (chunk.payload ?? {}) as ErrorPayload;
+        controller.enqueue({ ...chunk, payload: { ...payload, error: textOfError(payload.error) } });
+      },
+    }),
+  );
+}
+
+/** Tool calls held until the model step that asked for them is known to stand: a step that times out or fails is retried on the next model, which asks again under new ids, and Mastra never runs the abandoned calls, so the person must not see them start either. A call is let through with the next chunk that is not part of a new attempt (the step's finish, a result, an approval), so nothing that runs is delayed past its own step. */
+function withoutAbandonedCalls(source: ReadableStream<Chunk>): ReadableStream<Chunk> {
+  let held: Chunk[] = [];
+  return source.pipeThrough(
+    new TransformStream<Chunk, Chunk>({
+      transform(chunk, controller) {
+        if (TOOL_CALL_CHUNKS.has(chunk.type)) {
+          held.push(chunk);
+          return;
+        }
+        if (!ABANDONING_CHUNKS.has(chunk.type)) held.forEach((call) => controller.enqueue(call));
+        held = [];
+        controller.enqueue(chunk);
+      },
+      flush(controller) {
+        held.forEach((call) => controller.enqueue(call));
+      },
+    }),
+  );
+}
+
+/** The run's stream as the AG-UI bridge should read it: errors as text, and no tool call of a model step that was abandoned for the fallback. */
+function forBridge(source: ReadableStream<Chunk>): ReadableStream<Chunk> {
+  return withoutAbandonedCalls(withReadableErrors(source));
 }
 
 const recovering = new Set<string>();
@@ -39,13 +89,14 @@ export class ChatDurableAgent extends DurableAgent {
   override async stream(...[messages, options]: StreamArgs) {
     const runId = options?.runId;
     if (runId && recovering.delete(runId)) return this.recoverUntilPaused(runId, options?.abortSignal);
-    return super.stream(messages, { ...options, closeOnSuspend: true });
+    const result = await super.stream(messages, { ...options, closeOnSuspend: true });
+    return { ...result, fullStream: forBridge(result.fullStream) };
   }
 
   private async recoverUntilPaused(runId: string, abortSignal: AbortSignal | undefined): Promise<StreamResult> {
     const paused = Promise.withResolvers<void>();
     const recovered = await this.recover(runId, { abortSignal, onSuspended: () => paused.resolve() });
-    const fullStream = endingAtSuspension(recovered.fullStream, paused.promise);
+    const fullStream = forBridge(endingAtSuspension(recovered.fullStream, paused.promise));
     const { output, threadId, resourceId, cleanup, abort } = recovered;
     return { output, fullStream, runId, threadId, resourceId, cleanup, abort };
   }

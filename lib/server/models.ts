@@ -12,6 +12,8 @@ const FALLBACK_PROVIDER_ORDER: Record<string, string[]> = { "google/gemini-3.8-f
 const BACKGROUND_CALL_MS = 300_000;
 /** A title is a few words; a call still silent after this will not arrive in time to be useful. */
 const TITLE_CALL_MS = 30_000;
+const STALL_FLEX_ENV = "WINYU_DEV_STALL_FLEX";
+const PRODUCTION = "production";
 const REASONING_EFFORTS = ["none", "minimal", "low", "medium", "high", "xhigh"] as const;
 const MODEL_DEFAULT_EFFORT = "default";
 const CHAT_REASONING_EFFORT_ENV = "OPENROUTER_CHAT_REASONING_EFFORT";
@@ -65,9 +67,19 @@ function deadlineMiddleware(ms: number): LanguageModelMiddleware {
   };
 }
 
-function metered(modelId: string, model: Exclude<LanguageModel, string>, deadlineMs: number | null = null, owner?: CallOwner): MeteredModel {
-  const deadline = deadlineMs === null ? [] : [deadlineMiddleware(deadlineMs)];
-  return wrapLanguageModel({ model: model as WrappableModel, middleware: [traceMiddleware(), meterMiddleware(modelId, owner), ...deadline] });
+/** A model that opens its stream and never sends a chunk, without calling the provider: the stall of AI-341 on demand. */
+const STALLED: LanguageModelMiddleware = {
+  specificationVersion: "v3",
+  wrapStream: async () => ({ stream: new ReadableStream() }),
+};
+
+/** Outside production WINYU_DEV_STALL_FLEX=1 makes the chat's first tier stall, so the chat's time budget and fallback can be watched live. */
+function stalledFlex(): LanguageModelMiddleware[] {
+  return process.env[STALL_FLEX_ENV] === "1" && process.env.NODE_ENV !== PRODUCTION ? [STALLED] : [];
+}
+
+function metered(modelId: string, model: Exclude<LanguageModel, string>, inner: LanguageModelMiddleware[] = [], owner?: CallOwner): MeteredModel {
+  return wrapLanguageModel({ model: model as WrappableModel, middleware: [traceMiddleware(), meterMiddleware(modelId, owner), ...inner] });
 }
 
 /** Usage in every reply, and where OpenRouter sends the call (null lets it choose); fallbacks stay allowed. */
@@ -89,10 +101,10 @@ export function agentModel(): AgentModel | null {
   return {
     id,
     name: MODEL_NAMES[id] ?? id,
-    chat: () => metered(id, client(id, chatSettings)),
+    chat: () => metered(id, client(id, chatSettings), stalledFlex()),
     chatFallback: () => metered(id, client(id, fallbackSettings)),
-    model: () => metered(id, client(id, settings), BACKGROUND_CALL_MS),
-    title: (owner) => metered(id, client(id, titleSettings), TITLE_CALL_MS, owner),
+    model: () => metered(id, client(id, settings), [deadlineMiddleware(BACKGROUND_CALL_MS)]),
+    title: (owner) => metered(id, client(id, titleSettings), [deadlineMiddleware(TITLE_CALL_MS)], owner),
   };
 }
 

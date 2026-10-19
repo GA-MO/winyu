@@ -34,6 +34,26 @@ const STORAGE_FILE = "mastra.db";
 const REMEMBERED_MESSAGES = 20;
 const PROMPT_SEPARATOR = "\n\n";
 const NO_MODEL = "OPENROUTER_API_KEY is not set: the chat agent has no model";
+/** No chat step in the traces took more than 12 s to send its first content chunk (reasoning summaries count; about 150 steps, median 3.5 s), so 20 s of silence means the provider is stuck and the fallback should start. */
+const FIRST_CHUNK_MS = 20_000;
+/** The longest chat step measured took 47 s (a long reply); AI-341's step sent reasoning at 5.6 s and then nothing for 235 s, a stall only this budget catches. */
+const STEP_MS = 60_000;
+/** Longer than any run measured (42 s) plus one failed-over step, and about as long as a person waits; Mastra re-arms it for each session, so a run that pauses for an approval or recovers after a restart gets it afresh. */
+const TOTAL_MS = 150_000;
+const BUDGET_ENV = "WINYU_CHAT_BUDGET_MS";
+const PRODUCTION = "production";
+
+/** How long a chat run may take: a step that sends no content within `firstChunkMs`, or runs past `stepMs`, fails over to the next model; a run past `totalMs` fails. */
+export type ChatTimeBudget = { firstChunkMs: number; stepMs: number; totalMs: number };
+
+/** The chat's time budgets; outside production WINYU_CHAT_BUDGET_MS ("first,step,total" in ms) replaces them, so a test or a demo can make a stall time out in seconds. */
+export function chatTimeBudget(): ChatTimeBudget {
+  const override = process.env[BUDGET_ENV]?.trim();
+  if (!override || process.env.NODE_ENV === PRODUCTION) return { firstChunkMs: FIRST_CHUNK_MS, stepMs: STEP_MS, totalMs: TOTAL_MS };
+  const [firstChunkMs, stepMs, totalMs] = override.split(",").map(Number);
+  if (![firstChunkMs, stepMs, totalMs].every((ms) => Number.isFinite(ms) && ms > 0)) throw new Error(`${BUDGET_ENV} must be three positive numbers of ms: first,step,total`);
+  return { firstChunkMs, stepMs, totalMs };
+}
 
 type UserContext = { [USER_ID_KEY]: string };
 
@@ -78,11 +98,17 @@ const toldTheAnswerThenWrapUp: PrepareStep = (step) => {
   return wrapUpAtLimit({ ...step, systemMessages }) ?? (told.length > 0 ? { systemMessages } : undefined);
 };
 
-function chatModel() {
+function configuredModel() {
   const model = agentModel();
   if (!model) throw new Error(NO_MODEL);
-  return model.chat();
+  return model;
 }
+
+/** The chat model first (flex tier), then the same model on the standard tier once; neither is retried on its own, since a timed-out call is not worth repeating on the tier that stalled. */
+const CHAT_MODELS = [
+  { id: "flex", model: () => configuredModel().chat(), maxRetries: 0 },
+  { id: "standard", model: () => configuredModel().chatFallback(), maxRetries: 0 },
+];
 
 function buildMastra(): Mastra {
   const storage = new LibSQLStore({ id: AGENT_ID, url: `file:${path.join(DATA_DIR, STORAGE_FILE)}` });
@@ -90,14 +116,14 @@ function buildMastra(): Mastra {
     id: AGENT_ID,
     name: AGENT_ID,
     instructions: ({ requestContext }) => instructionsFor(accessOf(requestContext)),
-    model: chatModel,
+    model: CHAT_MODELS,
     tools: ({ requestContext }) => {
       const access = accessOf(requestContext);
       return mastraTools(toolsForAccess(access), access);
     },
     memory: new Memory({ options: { lastMessages: REMEMBERED_MESSAGES, semanticRecall: false, generateTitle: false } }),
     outputProcessors: [new ToolResultInjectionGuard(), replyGuard()],
-    defaultOptions: { maxSteps: LIMITS.maxSteps, prepareStep: toldTheAnswerThenWrapUp },
+    defaultOptions: () => ({ maxSteps: LIMITS.maxSteps, prepareStep: toldTheAnswerThenWrapUp, modelSettings: { timeout: chatTimeBudget() } }),
   });
   const durable = new ChatDurableAgent({ agent, shouldPersistSnapshot: persistsSnapshot });
   return new Mastra({ agents: { [AGENT_ID]: durable }, workflows: winyuWorkflows(), scheduler: { enabled: schedulerEnabled() }, storage, observability: winyuObservability(USER_ID_KEY) });

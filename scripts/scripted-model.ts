@@ -8,10 +8,10 @@ type StreamPart = StreamResult["stream"] extends ReadableStream<infer Part> ? Pa
 
 type ScriptedCall = { call: string; args: Record<string, unknown> };
 
-/** One model reply in a script: a call to one tool with its arguments, several calls in one step, the closing words (streamed a character at a time `delayMs` apart when given), or a model that never answers (a process killed mid-call). */
-export type ScriptedStep = ScriptedCall | { calls: ScriptedCall[] } | { text: string; delayMs?: number } | { hang: true };
+/** One model reply in a script: a call to one tool with its arguments, several calls in one step, the closing words (streamed a character at a time `delayMs` apart when given), a model that never answers (a process killed mid-call, a stalled provider), or one that asks for a tool and then goes silent before it finishes the step. */
+export type ScriptedStep = ScriptedCall | { calls: ScriptedCall[] } | { text: string; delayMs?: number } | { hang: true } | { silentAfter: ScriptedCall };
 
-type SpokenStep = Exclude<ScriptedStep, { hang: true }>;
+type SpokenStep = Exclude<ScriptedStep, { hang: true } | { silentAfter: ScriptedCall }>;
 
 const USAGE = { inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 5, text: 5, reasoning: 0 } };
 const FALLBACK_TEXT = "ไม่มีขั้นต่อไปในสคริปต์";
@@ -44,6 +44,10 @@ function partsOf(step: SpokenStep, index: number): StreamPart[] {
   ];
 }
 
+function silentAfter(parts: StreamPart[]): ReadableStream<StreamPart> {
+  return new ReadableStream<StreamPart>({ start: (controller) => parts.forEach((part) => controller.enqueue(part)) });
+}
+
 /** A stand-in for the chat model in tests: each model call, streamed or generated, takes the next step of the current script, so a whole turn runs through the real agent, gateway and harness without a paid call. */
 export class ScriptedModel {
   private steps: ScriptedStep[] = [];
@@ -69,7 +73,7 @@ export class ScriptedModel {
   private generated(): Promise<GenerateResult> {
     this.served += 1;
     const step = this.steps.shift() ?? { text: FALLBACK_TEXT };
-    if ("hang" in step) return new Promise(() => {});
+    if ("hang" in step || "silentAfter" in step) return new Promise(() => {});
     return Promise.resolve(generatedOf(step, this.served));
   }
 
@@ -77,6 +81,7 @@ export class ScriptedModel {
     this.served += 1;
     const step = this.steps.shift() ?? { text: FALLBACK_TEXT };
     if ("hang" in step) return { stream: new ReadableStream<StreamPart>() };
+    if ("silentAfter" in step) return { stream: silentAfter(toolCallsOf([step.silentAfter], this.served).slice(0, -1)) };
     const chunkDelayInMs = "delayMs" in step ? step.delayMs : undefined;
     return { stream: simulateReadableStream({ chunks: partsOf(step, this.served), chunkDelayInMs }) };
   }
