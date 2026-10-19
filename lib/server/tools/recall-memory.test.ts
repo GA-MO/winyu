@@ -74,6 +74,13 @@ describe("recall_memory", () => {
     expect(result.data.every((fact) => fact.status !== "learning")).toBe(true);
   });
 
+  test("tells the model, where it decides to recall, to name the conversation a bare pronoun was taken from or to ask which one, and to call nothing unrelated (AI-346)", () => {
+    expect(recallMemoryTool.description()).toMatch(/once per reply/);
+    expect(recallMemoryTool.description()).toMatch(/say in one short clause which one you took it from \(its title and date\)/);
+    expect(recallMemoryTool.description()).toMatch(/ask which one they mean instead of guessing/);
+    expect(recallMemoryTool.description()).toMatch(/Call only the tools that answer the question/);
+  });
+
   test("a second recall in the same turn answers with everything the turn recalled, so the reply draws one card that loses nothing", async () => {
     plant("สนใจอัตราการลาออกรายฝ่าย", { confidence: 0.75 });
     plant("สนใจค่าล่วงเวลาของฝ่ายผลิต", { confidence: 0.75 });

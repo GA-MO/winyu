@@ -83,7 +83,7 @@ export const recallMemoryTool = defineTool({
   tier: "read",
   roles: "all",
   description:
-    "Search what the assistant remembers about the current user (interests, vocabulary, responsibilities, preferences, how they want answers written; only what is confirmed or heard in more than one conversation) and their past conversations. Call it once per reply, when the user refers to something from an earlier session or asks what you remember. Past conversations are what was said then, not the current state: get current numbers again with the tools.",
+    "Search what the assistant remembers about the current user (interests, vocabulary, responsibilities, preferences, how they want answers written; only what is confirmed or heard in more than one conversation) and their past conversations. Call it once per reply, when the user refers to something from an earlier session or asks what you remember. When they point back with only a word like 'that department': if one past conversation clearly matches, say in one short clause which one you took it from (its title and date) before answering; if none or several match, ask which one they mean instead of guessing. Call only the tools that answer the question. Past conversations are what was said then, not the current state: get current numbers again with the tools.",
   input: recallMemoryInputSchema,
   redact: ["query"],
   modelView: recallForModel,
