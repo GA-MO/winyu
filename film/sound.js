@@ -557,37 +557,6 @@
     o.stop(end);
   }
 
-  function pumpedChord(v, { t, notes, beat, gain, cut, depth, send = 0.25 }) {
-    const at = v.T(t), end = at + 4 * beat;
-    [-1, 1].forEach((side) => {
-      const fl = v.ctx.createBiquadFilter();
-      fl.type = "lowpass";
-      fl.frequency.value = cut;
-      fl.Q.value = 0.8;
-      const oscs = notes.map((m, i) => {
-        const o = v.ctx.createOscillator();
-        o.type = "sawtooth";
-        o.frequency.value = hz(m);
-        o.detune.value = side * (9 + 3 * i);
-        o.connect(fl);
-        o.start(at);
-        o.stop(end + 0.03);
-        return o;
-      });
-      const g = v.chain(v.out, side * 0.55, send, oscs[0]);
-      g.gain.setValueAtTime(0, at);
-      for (let k = 0; k < 4; k++) {
-        const b = at + k * beat;
-        if (k) g.gain.setValueAtTime(gain, b - 0.01);
-        g.gain.linearRampToValueAtTime(gain * (1 - depth), b + 0.012);
-        g.gain.linearRampToValueAtTime(gain, b + beat * 0.55);
-      }
-      g.gain.setValueAtTime(gain, end - 0.01);
-      g.gain.linearRampToValueAtTime(0, end + 0.012);
-      fl.connect(g);
-    });
-  }
-
   /** Each section plays its own progression from its first bar; a build is aligned to its last bar so it always lands on the dominant. */
   const progression = (chords, table) => ({ mix, since, left }) => {
     const names = table[mix] ?? Object.values(table)[0];
@@ -659,138 +628,6 @@
       v.hiss({ t: c.at, f: 2500, type: "lowpass", a: 0.001, d: 0.1, gain: big ? 0.2 : 0.12, send: 0.35, seed: c.seed + 1 });
       v.hiss({ t: c.at, f: 7500, q: 0.6, a: 0.004, d: big ? 0.9 : 0.4, gain: big ? 0.022 : 0.014, pan: 0.1, send: 0.5, seed: c.seed + 2 });
     } },
-  };
-
-  const POP_CHORDS = {
-    A: { root: 45, pad: [57, 61, 64, 69] },
-    E: { root: 52, pad: [56, 59, 64, 68] },
-    Fsm: { root: 42, pad: [57, 61, 66, 69] },
-    D: { root: 50, pad: [57, 62, 66, 69] },
-    Csm: { root: 49, pad: [56, 61, 64, 68] },
-    Bm: { root: 47, pad: [54, 59, 62, 66] },
-    Dmaj7: { root: 50, pad: [54, 57, 61, 62] },
-    Csm7: { root: 49, pad: [56, 59, 61, 64] },
-    Bm7: { root: 47, pad: [54, 57, 59, 62] },
-    Esus: { root: 52, pad: [57, 59, 64, 71] },
-  };
-  const POP_PROG = {
-    intro: ["A", "E", "Fsm", "D"],
-    drive: ["D", "A", "E", "Fsm"],
-    hold: ["A", "D"],
-    full: ["D", "E", "Csm", "Fsm"],
-    break: ["Dmaj7", "Csm7", "Bm7", "Esus"],
-    build: ["Bm", "Csm", "D", "E"],
-    peak: ["D", "E", "Csm", "Fsm"],
-    end: ["D", "E"],
-  };
-  const POP_HOOK = hook([
-    [0, 81, 2], [2, 78, 2], [4, 81, 1], [6, 83, 2], [8, 81, 2], [11, 78, 2], [14, 76, 2],
-    [16, 80, 3], [19, 76, 2], [22, 78, 2], [24, 80, 6],
-    [32, 80, 2], [34, 76, 2], [36, 73, 2], [38, 76, 2], [40, 80, 2], [43, 81, 2], [46, 83, 2],
-    [48, 85, 4], [52, 81, 2], [54, 78, 6],
-  ]);
-  const POP_ARP = [0, 1, 2, 3, 4, 3, 2, 1];
-  const POP_EIGHTHS = new Set(["intro", "break"]);
-  const POP_CUT = { intro: 2000, drive: 3000, hold: 1300, full: 3800, break: 1400, peak: 4200, end: 4200 };
-  const POP_PUMP = { intro: 0.6, drive: 0.7, full: 0.8, build: 0.7, peak: 0.8, end: 0.8 };
-
-  function popLead(v, { t, f, dur, gain = 0.05, pan = 0, send = 0.3 }) {
-    [["sawtooth", -8, -0.2], ["square", 8, 0.2]].forEach(([type, detune, side]) => synth(v, { t, f, type, detune, a: 0.006, h: dur * 0.6, d: 0.2, gain, cut: 6000, cutTo: 2400, cutIn: dur + 0.1, q: 1.2, pan: pan + side, send }));
-  }
-
-  const POP = {
-    bpm: 120,
-    key: { root: 69, scale: [0, 2, 4, 7, 9] },
-    room: { seconds: 1.5, damp: 0.38, wet: 0.45 },
-    top: BRIGHT_TOP,
-    musicDb: -3,
-    sfxDb: 0,
-    glue: { threshold: -18, knee: 10, ratio: 2.5, attack: 0.008, release: 0.18 },
-    chord: progression(POP_CHORDS, POP_PROG),
-    mixes: {
-      intro: { kick: 0.9, hat: 0.7, bass: 0.85, chords: 0.6, arp: 0.75 },
-      drive: { kick: 1, clap: 0.9, hat: 0.9, bass: 0.95, chords: 0.8, arp: 0.8 },
-      hold: { chords: 0.7, arp: 0.4, hat: 0.3 },
-      full: { kick: 1, clap: 1, hat: 1, open: 0.8, bass: 1, chords: 0.85, arp: 0.6, lead: 1 },
-      break: { clap: 0.5, hat: 0.45, bass: 0.6, chords: 0.75, arp: 0.85 },
-      build: { kick: 1, hat: 1, bass: 0.9, chords: 0.8, arp: 0.8, roll: 1 },
-      peak: { kick: 1, clap: 1, hat: 1, open: 0.9, bass: 1, chords: 0.9, arp: 0.6, lead: 1, sparkle: 0.8 },
-      end: { kick: 1, clap: 1, hat: 1, open: 0.9, bass: 1, chords: 0.9, lead: 1, sparkle: 0.8, roll: 0.8 },
-    },
-    layers: {
-      kick(v, n) {
-        if (n.step % 4) return;
-        v.tone({ t: n.t, f: 78, from: 250, glide: 0.05, a: 0.001, h: 0.015, d: 0.2, gain: 0.62, out: v.out, send: 0 });
-        v.tone({ t: n.t, f: 140, from: 200, glide: 0.02, type: "triangle", a: 0.001, d: 0.07, gain: 0.16, out: v.out, send: 0 });
-        v.hiss({ t: n.t, f: 4500, q: 0.7, a: 0.0005, d: 0.007, gain: 0.12, out: v.out, send: 0, seed: n.seed });
-      },
-      clap(v, n) {
-        if (n.step !== 4 && n.step !== 12) return;
-        [0, 0.008, 0.017].forEach((dt, i) => v.hiss({ t: n.t + dt, f: 1350, q: 0.9, a: 0.001, d: i === 2 ? 0.13 : 0.012, gain: 0.2, out: v.out, pan: -0.05, send: 0.3, seed: n.seed + i }));
-        v.hiss({ t: n.t + 0.017, f: 5200, q: 0.8, a: 0.001, d: 0.07, gain: 0.07, out: v.out, pan: 0.05, send: 0.3, seed: n.seed + 5 });
-      },
-      hat(v, n) {
-        const off = n.step % 4 === 2;
-        v.hiss({ t: n.t, f: 9000, q: 0.9, a: 0.0008, d: off ? 0.04 : 0.022, gain: off ? 0.045 : n.step % 2 ? 0.018 : 0.026, out: v.out, pan: off ? 0.28 : -0.18, send: 0.05, seed: n.seed });
-      },
-      open(v, n) {
-        if (n.step % 4 !== 2) return;
-        v.hiss({ t: n.t, f: 8000, q: 0.7, a: 0.002, d: 0.16, gain: 0.032, out: v.out, pan: 0.3, send: 0.12, seed: n.seed + 9 });
-      },
-      bass(v, n) {
-        if (n.step % 4 !== 2) return;
-        const f = hz(n.chord.root + (n.step === 14 ? 12 : 0));
-        synth(v, { t: n.t, f, type: "sawtooth", a: 0.004, h: n.beat * 0.2, d: 0.1, gain: 0.15, cut: 1500, cutTo: 320, cutIn: 0.12, q: 3, send: 0 });
-        synth(v, { t: n.t, f, type: "square", detune: 6, a: 0.004, h: n.beat * 0.2, d: 0.1, gain: 0.05, cut: 700, send: 0 });
-      },
-      chords(v, n) {
-        if (n.step) return;
-        const cut = n.mix === "build" ? 1500 + 3000 * (n.since + 1) / (n.since + n.left) : POP_CUT[n.mix] ?? 3000;
-        pumpedChord(v, { t: n.t, notes: n.chord.pad, beat: n.beat, gain: 0.022, cut, depth: POP_PUMP[n.mix] ?? 0 });
-      },
-      arp(v, n) {
-        if (POP_EIGHTHS.has(n.mix) && n.step % 2) return;
-        const pool = [...n.chord.pad.map((m) => m + 12), n.chord.pad[0] + 24];
-        synth(v, { t: n.t, f: hz(pool[POP_ARP[n.step % 8]]), type: "square", a: 0.002, d: 0.11, gain: 0.03, cut: 5500, cutTo: 900, cutIn: 0.08, q: 2.5, pan: n.step % 2 ? 0.45 : -0.45, send: 0.22 });
-      },
-      lead(v, n) {
-        const note = hookNote(POP_HOOK, n);
-        if (note) popLead(v, { t: n.t, f: hz(note.m), dur: note.len * n.beat / 4 });
-      },
-      sparkle(v, n) {
-        if (n.step % 4) return;
-        v.struck({ t: n.t, f: hz(n.chord.pad[(n.step / 4 + n.since) % 4] + 24), partials: SPARKLE, d: 0.7, gain: 0.03, out: v.out, pan: (n.step / 4) % 2 ? 0.45 : -0.45, send: 0.4 });
-      },
-      roll(v, n) {
-        if (n.step % (n.left === 1 ? 1 : 2)) return;
-        const r = rise(n);
-        v.hiss({ t: n.t, f: 1700, q: 0.9, a: 0.001, d: 0.05, gain: 0.03 + 0.08 * r, out: v.out, send: 0.25, seed: n.seed });
-        v.hiss({ t: n.t, f: 6000 + 3000 * r, q: 0.9, a: 0.001, d: 0.03, gain: 0.02 + 0.03 * r, out: v.out, send: 0.2, seed: n.seed + 3 });
-      },
-    },
-    sfx: {
-      ...BRIGHT,
-      pop: { duck: 0.08, play: (v, c) => {
-        const f = degree(v.key, c.step, 1), pan = ((c.step % 3) - 1) * 0.3;
-        synth(v, { t: c.at, f, type: "square", a: 0.002, d: 0.09, gain: 0.05, cut: 7000, cutTo: 1500, cutIn: 0.07, q: 3, pan, send: 0.25 });
-        v.tone({ t: c.at, f: f * 2, from: f, glide: 0.025, a: 0.001, d: 0.06, gain: 0.04, pan, send: 0.2 });
-        v.hiss({ t: c.at, f: 7500, q: 1, a: 0.0005, d: 0.01, gain: 0.035, send: 0, seed: c.seed });
-      } },
-      memory: { duck: 0.5, play: (v, c) => {
-        const notes = [degree(v.key, 2, 1), degree(v.key, 3, 1), degree(v.key, 0, 2)];
-        notes.forEach((f, i) => {
-          popLead(v, { t: c.at + i * c.beat / 2, f, dur: i === 2 ? c.beat : c.beat / 2, gain: 0.07, pan: (i - 1) * 0.2, send: 0.4 });
-          v.struck({ t: c.at + i * c.beat / 2, f: f * 2, partials: SPARKLE, d: 0.8, gain: 0.03, pan: (1 - i) * 0.3, send: 0.5 });
-        });
-      } },
-      echo: { duck: 0.25, play: (v, c) => {
-        [degree(v.key, 3, 1), degree(v.key, 0, 2)].forEach((f, i) => popLead(v, { t: c.at + i * c.beat / 2, f, dur: c.beat / 2, gain: 0.04, pan: 0.25, send: 0.5 }));
-      } },
-      sting: { duck: 0.4, play: (v, c) => {
-        [0, 1, 2, 3, 4, 5].forEach((s, i) => v.struck({ t: c.at + i * 0.05, f: degree(v.key, s, 1), partials: SPARKLE, d: 1.0, gain: 0.05, pan: (i - 2.5) * 0.15, send: 0.5 }));
-        popLead(v, { t: c.at + c.beat / 2, f: degree(v.key, 0, 2), dur: c.beat, gain: 0.05, send: 0.5 });
-      } },
-    },
   };
 
   const BOUNCE_CHORDS = {
@@ -929,7 +766,7 @@
     },
   };
 
-  const MUSIC = { suite: SUITE, pop: POP, bounce: BOUNCE };
+  const MUSIC = { suite: SUITE, bounce: BOUNCE };
 
   const tempoOf = (score, length) => { const g = grid(score, length, MUSIC[score.music]); return { bpm: g.bpm, bars: g.bars, phase: g.phase }; };
 

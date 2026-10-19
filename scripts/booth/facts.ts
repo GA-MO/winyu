@@ -1,10 +1,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { Alert, MetricQuery } from "@/lib/contracts";
+import type { MetricQuery } from "@/lib/contracts";
 import { accessFor } from "@/lib/access/policies";
 import { findUser } from "@/lib/data/entities/users";
-import { AGENTS } from "@/lib/data/entities/agents";
 import { addDays, businessDay, DATA_AS_OF } from "@/lib/data/dates";
 import { formatDateTh } from "@/lib/i18n/format";
 import { runMetric } from "@/lib/server/metrics";
@@ -14,11 +13,10 @@ import { EMPLOYEES } from "@/lib/data/entities/people";
 import { GENERATOR_LEAVE } from "@/lib/server/ports/generator-leave";
 
 const OUTPUT = path.join(process.cwd(), "film", "facts.json");
-const ALERTS = path.join(process.cwd(), ".data", "alerts.json");
 const MONTH_START = `${DATA_AS_OF.slice(0, 7)}-01`;
 const SPOTLIGHT_REGION = "northeast";
 const SPOTLIGHT_LABEL = "ภาคอีสาน";
-const VIEWERS = { director: "u_prasit", ceo: "u_thana", rep: "u_nok" } as const;
+const VIEWERS = { director: "u_prasit", rep: "u_nok" } as const;
 const LEAVE = { from: businessDay(7), to: businessDay(9), reason: "พาครอบครัวไปเที่ยว" };
 const KIND_LABELS: Record<string, string> = { notebook: "โน้ตบุ๊ก", phone: "โทรศัพท์", tablet: "แท็บเล็ต" };
 
@@ -86,17 +84,6 @@ async function repLeaveBalance() {
   return balances.map((balance) => ({ label: LEAVE_LABELS[balance.kind] ?? balance.kind, left: balance.left, entitled: balance.entitled }));
 }
 
-function spotlightAlerts() {
-  const alerts = JSON.parse(readFileSync(ALERTS, "utf8")) as Alert[];
-  const found = alerts.filter((alert) => alert.severity === "P1" && alert.dims.region === SPOTLIGHT_REGION && alert.dims.agent && alert.direction === "down");
-  if (found.length < 2) throw new Error("Expected two P1 drops in the spotlight region");
-  return found.slice(0, 2).map((alert) => ({
-    agent: AGENTS.find((agent) => agent.id === alert.dims.agent)?.nameTh ?? String(alert.dims.agent),
-    since: formatDateTh(alert.window.from),
-    hypothesis: alert.hypothesis,
-  }));
-}
-
 async function spotlightAssets() {
   const { employees } = await GENERATOR_PORTS.directory.load();
   const held = assetsOf(employees).filter((asset) => asset.region === SPOTLIGHT_REGION && asset.status === "in_use");
@@ -109,9 +96,7 @@ const director = await salesByRegion(VIEWERS.director);
 const facts = {
   spotlight: SPOTLIGHT_LABEL,
   director,
-  ceo: await salesByRegion(VIEWERS.ceo),
   rep: await salesByRegion(VIEWERS.rep),
-  drops: spotlightAlerts(),
   leave: { from: formatDateTh(LEAVE.from), to: formatDateTh(LEAVE.to), reason: LEAVE.reason },
   assets: await spotlightAssets(),
   trend: await spotlightTrend(),
