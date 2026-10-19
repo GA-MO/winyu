@@ -21,6 +21,10 @@ const runs = new AsyncLocalStorage<Run>();
 
 const initiators = new AsyncLocalStorage<Initiator>();
 
+const outsideRun = new AsyncLocalStorage<HarnessEvent[]>();
+
+const NO_RUN = "";
+
 /** A run for one surface; the initiator is always named, so no caller is audited as the person by default. */
 export function newRun(userId: string, threadId: string | null, { initiator, id = randomUUID(), toolBudget = LIMITS.maxToolCalls }: RunOptions): Run {
   return { id, userId, threadId, initiator, startedAt: Date.now(), events: [], toolCalls: 0, toolBudget, steps: 0, corrections: {} };
@@ -50,17 +54,29 @@ export function currentInitiator(): Initiator {
   return currentRun()?.initiator ?? initiatorOutsideRun() ?? "system";
 }
 
+function eventOf(runId: string, source: EventSource, body: HarnessEventBody): HarnessEvent {
+  return { ...body, id: randomUUID(), runId, at: new Date().toISOString(), source } as HarnessEvent;
+}
+
 /** Appends one event to a run's trace and returns it. */
 export function emitTo(run: Run, source: EventSource, body: HarnessEventBody): HarnessEvent {
-  const event = { ...body, id: randomUUID(), runId: run.id, at: new Date().toISOString(), source } as HarnessEvent;
+  const event = eventOf(run.id, source, body);
   run.events.push(event);
   return event;
 }
 
-/** Appends one event to the current run's trace; a no-op outside a run. */
+/** Appends one event to the current run's trace; outside a run it goes to the events being collected (`collectingEvents`), else nowhere. */
 export function emit(source: EventSource, body: HarnessEventBody): void {
   const run = currentRun();
   if (run) emitTo(run, source, body);
+  else outsideRun.getStore()?.push(eventOf(NO_RUN, source, body));
+}
+
+/** Runs work outside any harness run and returns, beside its result, the events it emitted, so a tool call made outside a run (Studio) still shows its gateway decisions. */
+export async function collectingEvents<T>(work: () => Promise<T>): Promise<{ result: T; events: HarnessEvent[] }> {
+  const events: HarnessEvent[] = [];
+  const result = await outsideRun.run(events, work);
+  return { result, events };
 }
 
 /** A finished run as the trace store keeps it: who, which thread, when, and every event in order. */
