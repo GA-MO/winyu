@@ -119,7 +119,7 @@ export function runStartedAt(runId: string, live: LiveRun | null, now: number): 
 /** What the page restored for one thread: the saved transcript, the approvals still open, and the run still replying when the page was opened (null when none). */
 export type RestoredThread = { threadId: string; initialMessages: readonly AgentMessage[]; initialApprovals: readonly PendingApproval[]; liveRun: LiveRun | null };
 
-/** One thread's chat over the CopilotKit runtime: restores the saved transcript and joins a reply still running (a page reloaded mid-reply shows the question, the working state and the reply as it lands), sends questions and pressed buttons, answers approval interrupts (a question sent while one waits declines it, so the card reads not done and the new question runs), says when a reply shows nothing new for a while, asks the last question again after a failed run (the runtime supersedes any run of the thread still going, so two never run at once), and stops a reply. */
+/** One thread's chat over the CopilotKit runtime: restores the saved transcript and joins a reply still running (a page reloaded mid-reply shows the question, the working state and the reply as it lands), sends questions and pressed buttons, answers approval interrupts (a question sent while one waits declines it, so the card reads not done and the new question runs), says when a reply shows nothing new for a while, asks the last question again after a failed run or one a reload finds unanswered (the runtime supersedes any run of the thread still going, so two never run at once), and stops a reply. */
 export function useChatSession({ threadId, initialMessages, initialApprovals, liveRun }: RestoredThread): ChatSession {
   const { copilotkit } = useCopilotKit();
   const { agent, isReady } = useAgent({ agentId: `${CHAT_AGENT_ID}:${threadId}`, runtimeAgentId: CHAT_AGENT_ID, threadId, updates: UPDATES, throttleMs: THROTTLE_MS });
@@ -253,6 +253,8 @@ export function useChatSession({ threadId, initialMessages, initialApprovals, li
     copilotkit.stopAgent({ agent });
   }, [agent, copilotkit, exchanges]);
 
-  const retry = failure?.retryable && !agent.isRunning ? askAgain : null;
+  const last = exchanges.at(-1);
+  const leftUnanswered = !failure && last?.question != null && last.steps.length === 0;
+  const retry = !agent.isRunning && (failure?.retryable || leftUnanswered) ? askAgain : null;
   return { ready: isReady && restored, exchanges, running: agent.isRunning, asked, waiting, decisions, left, error: failure?.text ?? null, slow, retry, stoppedExchangeId, durations, send, runAction, decide, stop };
 }

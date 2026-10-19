@@ -91,4 +91,10 @@ describe("a reply that takes long or fails", () => {
     expect(signedOut).toContain(TH.conversation.signedOut);
     expect(signedOut).not.toContain(TH.conversation.retry);
   });
+
+  test("a question a reload finds without an answer can be asked again in place", () => {
+    const unanswered = drawn(liveOf({ retry: () => {} }));
+    expect(unanswered).toContain(TH.chat.unanswered);
+    expect(unanswered).toContain(TH.conversation.retry);
+  });
 });

@@ -90,16 +90,29 @@ function Note({ text, tone }: { text: string; tone: "muted" | "danger" }) {
   );
 }
 
+function AskAgain({ retry }: { retry: () => void }) {
+  return (
+    <button type="button" onClick={retry} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <RotateCcw className="size-3.5" aria-hidden />
+      {TH.conversation.retry}
+    </button>
+  );
+}
+
+function Unanswered({ retry }: { retry: (() => void) | null }) {
+  return (
+    <div className="flex flex-col items-start gap-2">
+      <Note text={TH.chat.unanswered} tone="muted" />
+      {retry ? <AskAgain retry={retry} /> : null}
+    </div>
+  );
+}
+
 function Failed({ text, retry }: { text: string; retry: (() => void) | null }) {
   return (
     <div className="flex flex-col items-start gap-2">
       <Note text={text} tone="danger" />
-      {retry ? (
-        <button type="button" onClick={retry} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <RotateCcw className="size-3.5" aria-hidden />
-          {TH.conversation.retry}
-        </button>
-      ) : null}
+      {retry ? <AskAgain retry={retry} /> : null}
     </div>
   );
 }
@@ -195,7 +208,7 @@ function Ending({ exchange, live }: { exchange: Exchange; live: ExchangeLive }) 
   if (live.error) return <Failed text={live.error} retry={live.retry} />;
   if (live.stopped) return <Note text={TH.conversation.stopped} tone="muted" />;
   if (live.asked.length > 0 || exchange.steps.some(shows)) return null;
-  return <Note text={TH.chat.unanswered} tone="muted" />;
+  return <Unanswered retry={live.retry} />;
 }
 
 /** The reply steps with each approval the stream never showed as a tool call put back where it was asked, so its decision or receipt reads before the sentence that followed it. */
