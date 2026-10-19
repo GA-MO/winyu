@@ -74,9 +74,10 @@ function LineStrip({ strip }: { strip: Strip }) {
       {overall ? (
         <>
           {overall.measure !== null ? <DecidingLine strip={strip} gridRow="1" /> : null}
-          <span className="truncate text-[12px] leading-snug text-muted-foreground" style={{ gridColumn: overall.measure === null ? "1 / 3" : 1, gridRow: 1 }}>
-            {overall.label}
-          </span>
+          <div className="flex min-w-0 flex-col text-muted-foreground" style={{ gridColumn: overall.measure === null ? "1 / 3" : 1, gridRow: 1 }}>
+            <span title={overall.label} className="line-clamp-2 break-words text-[12px] leading-snug">{nameOf(overall.label)}</span>
+            {placeOf(overall.label) ? <span className="truncate text-[11px] leading-snug">{placeOf(overall.label)}</span> : null}
+          </div>
           {overall.measure !== null ? (
             <div className="relative h-6" style={{ gridColumn: 2, gridRow: 1 }}>
               <Bar strip={strip} value={overall.measure} className={cn("h-3", TONE_BAR[overall.tone])} />
@@ -104,7 +105,7 @@ function LineStrip({ strip }: { strip: Strip }) {
               <span title={detailOf(row)} className={cn("line-clamp-2 break-words text-[13px] leading-snug text-foreground", row.exception ? "font-semibold" : "font-medium")}>{nameOf(row.label)}</span>
               {placeOf(row.label) ? <span className="truncate text-[11px] leading-snug text-muted-foreground">{placeOf(row.label)}</span> : null}
               <RowSecond row={row} />
-              {row.exception && row.sub ? <span className="truncate text-[11px] leading-snug text-muted-foreground tabular-nums">{row.sub}</span> : null}
+              {row.exception && row.sub ? <span className="line-clamp-2 break-words text-[11px] leading-snug text-muted-foreground tabular-nums">{row.sub}</span> : null}
             </div>
             <div className="relative h-4" style={{ gridColumn: 2, gridRow }}>
               {row.measure !== null ? <Bar strip={strip} value={row.measure} className={row.exception ? cn("h-2.5", TONE_BAR[row.tone]) : "h-1 bg-muted-foreground/30"} /> : null}
