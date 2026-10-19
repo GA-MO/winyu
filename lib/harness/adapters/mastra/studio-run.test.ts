@@ -1,5 +1,6 @@
 import { describe, expect, mock, setDefaultTimeout, test } from "bun:test";
 import { wrapLanguageModel } from "ai";
+import type { ModelCall } from "@/lib/server/model-ledger";
 import { meterMiddleware } from "@/lib/server/usage-meter";
 import { ScriptedModel } from "@/scripts/scripted-model";
 
@@ -17,6 +18,8 @@ const { auditLog } = await import("@/lib/server/audit");
 const STUDIO_ORIGIN = "http://localhost:3213";
 const API = "http://studio.test/api";
 const CLIENT_RESOURCE = "winyu";
+const SUBSCRIPTION_WAIT_MS = 5000;
+const LEDGER_POLL_MS = 25;
 const SALES_BY_REGION = { metric: "net_sales_volume", dims: ["region"], filters: {}, range: { from: "2026-09-01", to: "2026-09-30" }, grain: "month", compare: "none", limit: 10 };
 
 type Thread = { id: string; resourceId: string };
@@ -33,6 +36,41 @@ async function threadsListed(resourceId: string, userId?: string): Promise<Threa
   const response = await app.fetch(new Request(`${API}/memory/threads?agentId=winyu&resourceId=${encodeURIComponent(resourceId)}${context}`));
   const body = (await response.json()) as { threads?: Thread[] };
   return body.threads ?? [];
+}
+
+async function postTo(path: string, body: unknown): Promise<Response> {
+  const app = await studioApi(STUDIO_ORIGIN);
+  return app.fetch(new Request(`${API}/agents/winyu/${path}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }));
+}
+
+async function openedAs(userId: string): Promise<void> {
+  const app = await studioApi(STUDIO_ORIGIN);
+  await app.fetch(new Request(`${API}/agents/winyu?requestContext=${encodeURIComponent(JSON.stringify({ userId }))}`));
+}
+
+async function readUntil(stream: ReadableStream<Uint8Array>, expected: string): Promise<string> {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let read = "";
+  const deadline = Date.now() + SUBSCRIPTION_WAIT_MS;
+  while (!read.includes(expected) && Date.now() < deadline) {
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), deadline - Date.now()));
+    const chunk = await Promise.race([reader.read(), timeout]);
+    if (!chunk || chunk.done) break;
+    read += decoder.decode(chunk.value);
+  }
+  await reader.cancel();
+  return read;
+}
+
+async function callsSince(before: ReadonlySet<string>): Promise<ModelCall[]> {
+  const deadline = Date.now() + SUBSCRIPTION_WAIT_MS;
+  while (Date.now() < deadline) {
+    const calls = modelCalls().all().filter((call) => !before.has(call.id));
+    if (calls.length > 0) return calls;
+    await Bun.sleep(LEDGER_POLL_MS);
+  }
+  return [];
 }
 
 async function askedAsThana(): Promise<string> {
@@ -89,5 +127,18 @@ describe("a Studio chat run", () => {
     const response = await ask("", crypto.randomUUID(), "ยอดขาย");
     expect(response.status).toBe(400);
     expect(scripted.calls).toBe(calls);
+  });
+
+  test("a message Studio sends as a signal runs as the persona and streams to the thread Studio subscribed to before it existed", async () => {
+    await openedAs("u_thana");
+    const thread = crypto.randomUUID();
+    const subscription = await postTo("threads/subscribe", { resourceId: CLIENT_RESOURCE, threadId: thread });
+    scripted.script([{ text: "สวัสดีค่ะ" }]);
+    const before = new Set(modelCalls().all().map((call) => call.id));
+    const sent = await postTo("send-message", { resourceId: CLIENT_RESOURCE, threadId: thread, message: "สวัสดี", ifIdle: { streamOptions: { requestContext: { userId: "u_thana" } } } });
+    expect(sent.status).toBe(200);
+    expect(await readUntil(subscription.body ?? new ReadableStream(), "สวัสดีค่ะ")).toContain("สวัสดีค่ะ");
+    expect((await callsSince(before)).map((call) => [call.source, call.userId])).toEqual([["studio", "u_thana"]]);
+    expect((await threadsListed(CLIENT_RESOURCE, "u_thana")).map((listed) => [listed.id, listed.resourceId])).toContainEqual([thread, "studio:u_thana"]);
   });
 });
