@@ -15,33 +15,33 @@ Visitors who watched the booth film for a minute and want to remember it or talk
 
 ## Page
 
-One mobile-first page (375 px design width, works up to desktop). It uses the same look as the films: light ground, Anuphan, brand gradient on one word per section, very little text. Thai copy; technical terms may stay English.
+One mobile-first page (375 px design width, works up to desktop). It uses the same look as the film: light ground, Anuphan, brand gradient on one word per section, very little text. Thai copy; technical terms may stay English.
 
 | # | Section | Content | Visual |
 |---|---|---|---|
 | 0 | Hero | Logo, "Winyu", "ผู้ช่วย AI ของทุกคนในองค์กร", button "ขอเดโม" (jumps to the form) | Loop of the film's opening (systems fold into one question), muted, autoplay, inline |
-| 1 | ทุกระบบ ในคำถามเดียว | One line | Still from beat 1 |
+| 1 | หลายระบบ เหลือคำถามเดียว | One line | Still from beat 1 |
 | 2 | ตรวจให้ ก่อนคุณตื่น | One line | Still of the morning finding card |
 | 3 | บอกครั้งเดียว จำตลอด | One line | Still of the "เพราะคุณสนใจภาคอีสาน" card |
 | 4 | ถามอะไร ได้ภาพที่ใช่ | One line | Short clip of the three answer cards (bars, trend, people) |
-| 5 | ส่งต่อในคลิกเดียว | One line | Still of the forward card and bell |
+| 5 | ส่งต่อ ในคลิกเดียว | One line | Still of the forward card and bell |
 | 6 | แค่พิมพ์บอก | One line | Still of the phone with the leave balance and confirm |
-| 7 | เห็นเท่าที่มีสิทธิ์ | One line | Still of CEO vs sales rep with the hidden number |
-| 8 | เชื่อมระบบใหม่ ใช้ได้ทันที | One line | Still of the console connecting a system |
+| 7 | เห็นเท่าที่สิทธิ์ให้ | One line | Still of the sales director vs the sales rep with the hidden number |
+| 8 | เชื่อมระบบใหม่ ได้ทันที | One line | Still of the console connecting a system |
 | 9 | ขอเดโม | Form (below) | — |
 | 10 | Footer | Company contact, privacy notice link | — |
 
 Each section's line is at most 12 Thai words.
 
-The numbers on screen come from the films, which take them from `film/facts.json`; the page adds no new numbers.
+The numbers on screen come from the film, which takes them from `film/facts.json`; the page adds no new numbers.
 
 ## Assets
 
-- Stills and clips come from the films themselves, not from new mockups.
+- Stills and clips come from the film itself (`film/isometric.html`), not from new mockups.
   - A still is `window.film.render(t)` captured at 2× by headless Chrome.
   - A clip is a short range rendered with `bun run render` in `film/`, cut by a new `--from/--to` option, encoded small for mobile (720p, ~2 Mbit/s, under 3 MB each).
-- Extend `film/shots.ts`, which already takes a film and a list of times and writes PNG stills, to write WebP at 2×, so the page assets regenerate when the films change.
-- Every asset must stay readable at 375 px width. Prefer the films' zoomed moments, where text is largest.
+- Extend `film/shots.ts`, which already takes a film and a list of times and writes PNG stills, to write WebP at 2×, so the page assets regenerate when the film changes.
+- Every asset must stay readable at 375 px width. Prefer the film's zoomed moments, where text is largest.
 
 ## Demo request form
 
@@ -62,7 +62,7 @@ The numbers on screen come from the films, which take them from `film/facts.json
 ## QR
 
 - **Table tent at the booth:** QR plus one line, "สแกนดู Winyu อีกครั้ง · ขอเดโม". Print at least 3 × 3 cm and test from 1 m.
-- **End card of both films:** add the QR for the last 4 s of `film/demo.html` and `film/isometric.html`, then re-render. This reverses the earlier no-QR rule for the video, so it needs the user's confirmation first.
+- **End card of the film:** add the QR for the last 4 s of `film/isometric.html`, then re-render. This reverses the earlier no-QR rule for the video, so it needs the user's confirmation first.
 - The URL carries UTM parameters, so table scans and screen scans can be told apart: `?utm_source=booth&utm_medium=qr&utm_content=table|screen`.
 
 ## Hosting
@@ -95,17 +95,17 @@ Add the button only when those exist.
 
 1. Hosting domain and who deploys it.
 2. Form destination (CRM or sales mailbox) and the privacy notice URL.
-3. Whether the QR also goes on the films' end card.
+3. Whether the QR also goes on the film's end card.
 
 ## Tasks
 
 - [ ] Get answers to the three decisions above
 - [ ] WebP output in `film/shots.ts` and the `--from/--to` option on `film/render.ts`
-- [ ] Generate stills and clips from both films; check every one at 375 px
-- [ ] Build the page (static HTML, same tokens and font as the films)
+- [ ] Generate stills and clips from the film; check every one at 375 px
+- [ ] Build the page (static HTML, same tokens and font as the film)
 - [ ] Form with PDPA consent, honeypot, success and error states; wire to the chosen destination
 - [ ] Deploy to the company domain; QR with UTM; print test from 1 m
-- [ ] If approved, add the QR to both films' end card and re-render the MP4s
+- [ ] If approved, add the QR to the film's end card and re-render the MP4
 - [ ] Walk the page on a real phone (iOS Safari and Android Chrome) before the event
 
 ## Done when
