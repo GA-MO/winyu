@@ -5,6 +5,7 @@
   const CONTROL_RATE = 400;
   const CEILING_DB = -1.5;
   const TARGET_LUFS = -16;
+  const LUFS_TOLERANCE = 0.05;
   const COMPRESSOR_LOOKAHEAD = 0.006;
   const TAU = Math.PI * 2;
   const TOP = { shelfDb: -6, lowpassHz: 11000, maxHz: 6500 };
@@ -81,16 +82,18 @@
       return t + a + h + d + 0.03;
     }
 
-    function chain(out, pan, send) {
+    /** A voice's gain, panner and reverb send; once `source` has ended they leave the graph, so finished voices cost nothing to render. */
+    function chain(out, pan, send, source) {
       const g = ctx.createGain();
       const p = ctx.createStereoPanner();
       p.pan.value = clamp(pan, -1, 1);
       g.connect(p).connect(out);
-      if (send) {
-        const s = ctx.createGain();
+      const s = send ? ctx.createGain() : null;
+      if (s) {
         s.gain.value = send;
         p.connect(s).connect(buses.verb);
       }
+      if (source) source.onended = () => [g, p, s].forEach((node) => node?.disconnect());
       return g;
     }
 
@@ -102,7 +105,7 @@
       o.detune.value = detune;
       o.frequency.setValueAtTime(from ?? f, at);
       if (from) o.frequency.exponentialRampToValueAtTime(f, at + glide);
-      const g = chain(out, pan, send);
+      const g = chain(out, pan, send, o);
       const end = envelope(g.gain, at, { a, h, d, peak: gain });
       o.connect(g);
       o.start(at);
@@ -118,7 +121,7 @@
       bq.Q.value = q;
       bq.frequency.setValueAtTime(Math.min(f, top.maxHz), at);
       if (to) bq.frequency.exponentialRampToValueAtTime(Math.min(to, top.maxHz), at + (a ?? 0.005) + h + d);
-      const g = chain(out, pan, send);
+      const g = chain(out, pan, send, src);
       const end = envelope(g.gain, at, { a, h, d, peak: gain });
       src.connect(bq).connect(g);
       src.start(at, rng(seed + t * 1000)() * 3);
@@ -345,8 +348,8 @@
     const preset = MUSIC[score.music];
     const raw = await renderPass(score, length);
     let chs = await compress(fold(raw, length), preset);
-    for (let pass = 0; pass < 2; pass++) {
-      const gain = dbGain(TARGET_LUFS - lufs(chs));
+    for (let pass = 0, miss = TARGET_LUFS - lufs(chs); pass < 4 && Math.abs(miss) > LUFS_TOLERANCE; pass++, miss = TARGET_LUFS - lufs(chs)) {
+      const gain = dbGain(miss);
       chs = limit(chs.map((d) => d.map((s) => s * gain)), CEILING_DB);
     }
     const buffer = new AudioBuffer({ length: chs[0].length, numberOfChannels: 2, sampleRate: RATE });
