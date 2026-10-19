@@ -4047,14 +4047,14 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 | AI-317 (เดิม AI-223 (unnamed periods); also the window part of the rep's AI-294 card) | กลาง | ยังเสีย | Change cards and replies never name the comparison window: 'งวดก่อน 1,164.9 ล้านบาท' is 1–26 ต.ค., so +33% reads as implausible and one prior value appears as 266.8 and 341.9 in one reply |
 | AI-318 (เดิม AI-299) | กลาง | ยังเสีย | The run sheet does not match the screens: it describes a per-agent regional card (screen shows one agent's brands), quotes an outdated approval line, top-story text and title, and omits the refusal blocks, permission checkbox and bell menu |
 | AI-319 | กลาง | เปิด (ใหม่) · นอกเส้นทางเดโม | 'สต๊อกที่ DC ขอนแก่นพอขายกี่วัน' gets a 26-day average (14.7 วัน, 'พอขายเกิน 10 วัน') that hides the 8.2-day SKU on the rep's landing tile |
-| AI-320 (เดิม AI-294) | ต่ำ | ยังเสีย | A change ranking where no row moved the asked way still leads with the green total (+33.0%) |
+| AI-320 (เดิม AI-294) | ต่ำ | แก้แล้ว `0fcb990` | A change ranking where no row moved the asked way still leads with the green total (+33.0%) |
 | AI-321 (เดิม AI-298 (in-chat part fixed)) | ต่ำ | ยังเสีย | In a new thread the CEO's why-answer offers to send the Isan anomaly to คุณอนุชา, who already holds two matters on it and passed the anomaly on |
 | AI-322 (เดิม AI-297 (bell row part fixed)) | ต่ำ | ยังเสีย | The rep's chat inbox card has no figure and no link although the inbox tool returns both |
 | AI-323 (เดิม AI-223 (forward button named by the wrong split)) | ต่ำ | ยังเสีย | The forward button on the month-close card is named 'ส่งต่อการ์ด มูลค่าขายเข้า · รายเดือน' |
 | AI-324 | ต่ำ | เปิด (ใหม่) | The month_end card leaves off the projected closing amount the question asks for |
 | AI-325 | ต่ำ | เปิด (ใหม่) | A single-anomaly list leads with 'ด่วนทั้งหมด 1 เรื่อง' instead of the −89% |
 | AI-326 | ต่ำ | เปิด (ใหม่) | Thai text breaks inside words on the approval ('พรุ่ง / นี้', 'คุณ / กฤต จันทร์เสน') |
-| AI-327 (เดิม AI-294) | ต่ำ | เปิด (ใหม่) | Rep's 'dropped most' card prints the 4-agent total inside row 1's sub-line, and '48 ล้านบาท' loses its decimal |
+| AI-327 (เดิม AI-294) | ต่ำ | แก้แล้ว `ac9c495`, `f2ac0e4` | Rep's 'dropped most' card prints the 4-agent total inside row 1's sub-line, and '48 ล้านบาท' loses its decimal |
 | AI-328 (เดิม AI-308 (fold part fixed)) | ต่ำ | เปิด (ใหม่) | IT 'would the Khon Kaen rep see the south' hero lists all 7 reps and regions |
 | AI-329 (เดิม AI-307 (rows part fixed)) | ต่ำ | เปิด (ใหม่) | IT spend hero has no week-over-week change |
 
@@ -4175,7 +4175,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-320. A change ranking where no row moved the asked way still leads with the green total (+33.0%)
 
-- **สถานะ:** ยังเสีย · เดิม AI-294
+- **สถานะ:** แก้แล้ว `0fcb990` · การ์ดจัดอันดับตามการเปลี่ยนแปลงนำด้วยแถวแรกเสมอ แม้ไม่มีแถวไหนไปทางที่ถาม (ภาคอีสาน +23.1%) ยอดรวม "ทั้งประเทศ +33.0%" เป็นบรรทัดแยกใต้แถวนั้น · เดิม AI-294
 - **ระดับ:** ต่ำ · **หมวด:** `card-fit` · **บทบาท:** u_thana (CEO) s1t2
 - **อาการ:** Sorted delta_asc, every row grew; hero is 'ทั้งประเทศ +33.0%' with ภาคอีสาน +23.1% below. The verdict does answer. The October card has the same layout.
 - **ที่ควรเป็น:** R4: lead with the first row (ภาคอีสาน +23.1%) under the verdict, total in the note.
@@ -4254,7 +4254,7 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 
 ### AI-327. Rep's 'dropped most' card prints the 4-agent total inside row 1's sub-line, and '48 ล้านบาท' loses its decimal
 
-- **สถานะ:** เปิด (ใหม่) · เดิม AI-294
+- **สถานะ:** แก้แล้ว `ac9c495`, `f2ac0e4` · ยอดรวม 4 เอเย่นต์เป็นบรรทัดของตัวเองใต้แถวแรก ไม่อยู่ในรายละเอียดของแถว และตัวเลขหลักล้านมีทศนิยมหนึ่งตำแหน่งเสมอ ("48.0 ล้านบาท", "35.0 → 17.9 ล้านบาท") · เดิม AI-294
 - **ระดับ:** ต่ำ · **หมวด:** `wording` · **บทบาท:** u_krit (rep) t2
 - **อาการ:** 'รวม 4 เอเย่นต์ +16.1%' reads as part of อีสานรุ่งโรจน์'s row; โคราชสหภัณฑ์'s prior prints '48 ล้านบาท' while others keep one decimal. (The unnamed-window part is merged into the AI-223 medium.)
 - **ที่ควรเป็น:** Total sits apart from row 1; money labels keep one decimal.
