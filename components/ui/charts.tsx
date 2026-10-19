@@ -6,7 +6,7 @@ import { FORMATTER, type Formatter } from "./format";
 export type ChartFormat = "number" | "currency" | "percent";
 export type ChartSeries = { name: string; values: Array<number | null>; style?: "solid" | "dashed" | null };
 
-const SERIES_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+const SERIES_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)"];
 const GRID_COLOR = "var(--border)";
 const AXIS_COLOR = "var(--muted-foreground)";
 const CHART_HEIGHT = { sm: 120, md: 180, lg: 260 } as const;
@@ -442,7 +442,7 @@ export function LineChart({ props }: { props: LineChartProps }) {
   const formatter = FORMATTER;
   const [ref, width] = useContainerWidth();
   const labels = props.labels ?? [];
-  const series = (props.series ?? []).slice(0, 5);
+  const series = (props.series ?? []).slice(0, SERIES_COLORS.length);
   const format = props.format ?? "number";
   const n = labels.length;
   const height = CHART_HEIGHT[props.height ?? "md"];

@@ -23,6 +23,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
   --radius-sm: calc(var(--radius, 0.625rem) * 0.6);
   --radius-md: calc(var(--radius, 0.625rem) * 0.8);
   --radius-lg: var(--radius, 0.625rem);
@@ -57,6 +58,7 @@
   --chart-3: #10b981;
   --chart-4: #f59e0b;
   --chart-5: #f43f5e;
+  --chart-6: #0ea5e9;
   --brand-violet: var(--ui-secondary, #7c3aed);
   --ui-media-bg: #0a0a0a;
   --ui-glow-soft: color-mix(in oklab, var(--primary) 28%, transparent);
@@ -106,6 +108,7 @@
   --chart-3: #34d399;
   --chart-4: #fbbf24;
   --chart-5: #fb7185;
+  --chart-6: #38bdf8;
   --ui-card-edge: color-mix(in oklab, #000 40%, transparent);
 }
 
@@ -144,6 +147,7 @@
     --chart-3: #34d399;
     --chart-4: #fbbf24;
     --chart-5: #fb7185;
+  --chart-6: #38bdf8;
     --background: #0f172a;
     --foreground: #f8fafc;
     --card: #1e293b;

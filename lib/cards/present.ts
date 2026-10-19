@@ -23,6 +23,7 @@ import {
   overlaidLines,
   sameUnit,
   scatterBody,
+  MAX_LINES,
   seriesByGroup,
   shareBody,
   type Source,
@@ -172,7 +173,6 @@ const PERCENT = 100;
 const NO_EXTRAS: CardExtras = {};
 const NO_ACTIONS: NextAction[] = [];
 const NO_TILES: Tile[] = [];
-const MAX_LINES = 5;
 const MAX_BAR_BUCKETS = 12;
 const MAX_SHARE_ROWS = 6;
 const MIN_PLOTTED_SCATTER = 7;

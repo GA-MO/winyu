@@ -357,3 +357,11 @@ test("a stacked area of millions of baht leaves room for its widest tick, so '10
   expect(widest.text).toContain("ล้าน");
   expect(widest.x).toBeGreaterThanOrEqual(widest.text.length * 5.4);
 });
+
+test("a line by the six regions names and draws every region, the sixth in its own colour", () => {
+  const regions = ["กรุงเทพฯ และปริมณฑล", "ภาคกลาง", "ภาคใต้", "ภาคเหนือ", "ภาคตะวันออก", "ภาคอีสาน"];
+  const series: ChartSeries[] = regions.map((name, index) => ({ name, values: [95 + index, 100, 92 + index], style: null }));
+  const html = render({ kind: "line", labels: ["ก.ย.", "ต.ค.", "พ.ย."], series, format: "percent", axis: "fitted" });
+  for (const region of regions) expect(html).toContain(region);
+  expect(html).toContain("var(--chart-6)");
+});

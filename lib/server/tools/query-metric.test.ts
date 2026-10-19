@@ -377,6 +377,9 @@ describe("a series split by one group may carry 120 rows before the smaller grou
     const card = presentCard({ title: "t", query: result.query, result });
     expect(card.verdict).toContain("ต.ค. 69 ทุกภาค");
     expect(card.verdict).toContain("ภาคอีสาน พ.ย. 69 (92.0% ของเป้าตามเวลา)");
+    if (card.body.kind !== "line") throw new Error(`not line: ${card.body.kind}`);
+    expect(card.body.axis).toBe("fitted");
+    expect(card.body.series.map((series) => series.name)).toHaveLength(6);
   });
 
   test("30 days by 8 brands: 240 rows fold to every day with floor(120 / 30) - 1 = 3 brands and one อื่น ๆ per day, the same total", async () => {

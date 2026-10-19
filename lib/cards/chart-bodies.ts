@@ -10,6 +10,8 @@ import type { CardBody, CardHero, ChartSeries, ColorScale, HeatCell, ScatterAxis
 export type Source = { query: MetricQuery; result: Extract<MetricResult, { ok: true }> };
 
 const MAX_SERIES = 5;
+/** Lines a time × group chart draws before it turns into a grid: six, so every region of the company gets its own line. */
+export const MAX_LINES = 6;
 const MAX_SLICES = 6;
 const MAX_NAMED_POINTS = 3;
 const MIN_CELL_GAP_PERCENT = 5;
@@ -75,12 +77,12 @@ function othersGroup(rest: Group[]): Group {
 }
 
 function keptGroups(groups: Group[], additive: boolean): Group[] {
+  if (!additive) return groups.slice(0, MAX_LINES);
   if (groups.length <= MAX_SERIES) return groups;
-  if (!additive) return groups.slice(0, MAX_SERIES);
   return [...groups.slice(0, MAX_SERIES - 1), othersGroup(groups.slice(MAX_SERIES - 1))];
 }
 
-/** One series per group along the time axis; beyond five groups the rest fold into "อื่น ๆ" when they add up, or are left out when they do not. */
+/** One series per group along the time axis; beyond five groups the rest fold into "อื่น ๆ" when they add up, and beyond six lines the rest are left out when they do not. */
 export function seriesByGroup(query: MetricQuery, rows: MetricRow[], additive: boolean): { labels: string[]; series: ChartSeries[]; hidden: number } {
   const buckets = bucketsOf(query, rows);
   const groups = groupsOf(query, rows);

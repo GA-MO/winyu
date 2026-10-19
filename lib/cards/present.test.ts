@@ -94,9 +94,15 @@ describe("time × group", () => {
     expect(body.labels).toHaveLength(6);
   });
 
-  test("an average by more than five groups becomes a heatmap of groups × months", () => {
-    const body = expectKind(bodyOf({ metric: "target_attainment", dims: ["month", "region"], range: SIX_MONTHS }), "heatmap");
-    expect(body.rowLabels).toHaveLength(6);
+  test("an average by the six regions is one line per region, every region named", () => {
+    const body = expectKind(bodyOf({ metric: "target_attainment", dims: ["month", "region"], range: SIX_MONTHS }), "line");
+    expect(body.series).toHaveLength(6);
+    expect(body.labels).toHaveLength(6);
+  });
+
+  test("an average by more than six groups becomes a heatmap of groups × months", () => {
+    const body = expectKind(bodyOf({ metric: "target_attainment", dims: ["month", "province"], range: SIX_MONTHS }), "heatmap");
+    expect(body.rowLabels.length).toBeGreaterThan(6);
     expect(body.columnLabels).toHaveLength(6);
     expect(body.scale).toBe("value");
   });
