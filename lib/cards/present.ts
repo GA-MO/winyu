@@ -497,12 +497,15 @@ function everyBrandOf(query: MetricQuery): string | null {
 }
 
 /** The footer every data card closes with: the date span, what the question was narrowed to (and `products`, the products it covers when that needs saying) and the source in one line; trust, as-of, coverage, masking and the notes behind it. */
-function footerOf(query: MetricQuery, result: OkResult, notes: readonly (string | null)[], products: string | null = null): CardFooter {
+/** A card's footer: date, scope and every source system the card reads (`alsoReads`, the other results a paired card draws: "MES, SAP SD"), verified only when every one of them is. */
+function footerOf(query: MetricQuery, result: OkResult, notes: readonly (string | null)[], products: string | null = null, alsoReads: readonly OkResult[] = []): CardFooter {
   const provenance = result.provenance;
   const masked = provenance.masked.length > 0 ? TH.dash.maskedNote(provenance.masked.length) : null;
+  const read = [result, ...alsoReads].map((each) => each.provenance);
+  const systems = [...new Set(read.map((each) => each.sourceSystem))].join(", ");
   return {
-    line: [compactPeriod(result.headline.periodLabel), ...scopeLabelsOf(query, result), ...(products ? [products] : []), provenance.sourceSystem].join(" · "),
-    verified: provenance.trust === "verified",
+    line: [compactPeriod(result.headline.periodLabel), ...scopeLabelsOf(query, result), ...(products ? [products] : []), systems].join(" · "),
+    verified: read.every((each) => each.trust === "verified"),
     details: joined([TH.dash.trust[provenance.trust], TH.read.asOf(formatDateTh(provenance.asOf)), result.headline.compareLabel, provenance.coverage?.label ?? null, masked, result.headline.compareNote, ...notes]),
   };
 }
@@ -1373,7 +1376,7 @@ function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
     tiles: lead.tiles,
     body,
     ...actionsOf(input.actions ?? NO_ACTIONS),
-    footer: footerOf(first.query, first.result, [...drawn.notes, indexed ? TH.dash.indexedNote : null]),
+    footer: footerOf(first.query, first.result, [...drawn.notes, indexed ? TH.dash.indexedNote : null], null, others.map((other) => other.result)),
     denied: null,
   };
 }
@@ -1426,7 +1429,7 @@ function parityCard(input: PresentInput, pairing: Pairing): CardParts {
   const hero = gapHero(first, second, unit);
   if (!hero) return presentCard({ ...input, others: [] });
   const reading = parityReading({ gaps: parityGaps(first, second), hero: { ...hero, detail: null }, verdict: hero.detail ?? "", unit });
-  return breakdownCard({ title: pairedTitleOf(pairing), ...actionsOf(input.actions ?? NO_ACTIONS), footer: footerOf(first.query, first.result, []), denied: null }, reading);
+  return breakdownCard({ title: pairedTitleOf(pairing), ...actionsOf(input.actions ?? NO_ACTIONS), footer: footerOf(first.query, first.result, [], null, [second.result]), denied: null }, reading);
 }
 
 /** A total and its own breakdown in one turn draw the breakdown alone: its overall row is the total, and it is titled by what it is split by. */

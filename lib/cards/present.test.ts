@@ -328,6 +328,15 @@ describe("two metrics on one card", () => {
     expect(Math.max(...body.stages.map((stage) => stage.width))).toBe(1);
   });
 
+  test("the funnel's footer names every source it reads: production from MES and sales from SAP SD", () => {
+    const produced = answer({ metric: "production_output", dims: [] });
+    const sold = [answer({ metric: "net_sales_volume", dims: [] }), answer({ metric: "sell_out_volume", dims: [] })];
+    const card = presentCard({ title: "t", query: produced.query, result: produced.result, others: sold });
+    const systems = [produced, ...sold].map(({ result }) => (result.ok ? result.provenance.sourceSystem : ""));
+    expect(new Set(systems).size).toBeGreaterThan(1);
+    new Set(systems).forEach((system) => expect(card.footer?.line).toContain(system));
+  });
+
   test("the funnel's hero says what its ratio is of: sold out over produced, not a bare 'อัตราส่วน'", () => {
     const { query, result } = answer({ metric: "production_output", dims: [] });
     const card = presentCard({ title: "t", query, result, others: [answer({ metric: "net_sales_volume", dims: [] }), answer({ metric: "sell_out_volume", dims: [] })] });
