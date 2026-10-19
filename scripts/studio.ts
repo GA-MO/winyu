@@ -17,7 +17,7 @@ writePersonaPresets();
 const app = await studioApi(`http://localhost:${STUDIO_PORT}`);
 Bun.serve({ port: API_PORT, fetch: app.fetch, idleTimeout: 0 });
 const ui = Bun.spawn(["bunx", "mastra", "studio", "--port", String(STUDIO_PORT), "--server-port", String(API_PORT), "--request-context-presets", PRESETS_FILE], { stdout: "inherit", stderr: "inherit", env: { ...process.env, MASTRA_TELEMETRY_DISABLED: "1" } });
-console.log(`Mastra API on http://localhost:${API_PORT}/api · Studio on http://localhost:${STUDIO_PORT} · pick a persona preset in the agent's request context`);
+console.log(`Mastra API on http://localhost:${API_PORT}/api · Studio on http://localhost:${STUDIO_PORT} · pick a persona preset in the agent's Request context and press Save`);
 process.on("SIGINT", () => {
   ui.kill();
   process.exit(0);

@@ -105,6 +105,35 @@ One difference from the copy: on the first boot of a fresh data folder, the engi
 
 **Rejected.** `ToolCallFilter` drops the call's arguments, which a follow-up reads ("the first region we looked at"), and its kept text is the model view, which for `query_metric` holds every row. `TokenLimiterProcessor` counts the system prompt into its limit, stops the run with a tripwire when the system prompt alone passes it, and can keep a reply without its question.
 
+## 7. Mastra Studio
+
+`bun run studio` serves the Mastra API over the app's own Mastra instance (same `.data`, memory and traces) and opens Mastra Studio. It is for development only; `studioApi` refuses to start in production. Set `WINYU_STUDIO_PORT` and `WINYU_STUDIO_API_PORT` to run a second Studio beside another one (defaults 3213 and 3214), and `WINYU_SCHEDULER=off` to keep the background jobs from spending model calls.
+
+**Use it.**
+
+1. Open the `winyu` agent and press **Request context** under the message box.
+2. Pick a persona preset (`u_thana · ceo`, `u_krit · sales_rep`, …) and press **Save**. Picking a preset without Save changes nothing.
+3. Check the Config panel. It shows the persona's prompt and tools. Without a persona it shows one line that asks for a preset and no tools.
+4. Start a new thread and chat. To switch persona, save another preset and start a new thread.
+
+**What the boundary does** (`lib/harness/adapters/mastra/studio.ts`). Every request that names a persona runs inside that persona's access, under the `studio` initiator and a turn id of its own. Studio's chat sends the persona inside the message signal (`ifIdle.streamOptions.requestContext`), and the boundary reads it there too.
+
+- Tools pass the gateway as in the app: the persona's scope, the admin rules and the audit. Audit rows carry initiator `studio` and the turn id. The `studio` initiator has no grant that `system` lacked: admin rules only deny, and a write still needs a recorded yes.
+- Each model call lands in `.data/model-calls.json` with source `studio`, the persona's user id and the turn id. The admin spend line shows Studio apart from chat, eval and background jobs.
+- A tool span in the Studio trace carries the gateway's decisions in its `gateway` metadata, though no harness run exists.
+- Memory lives under `studio:<userId>`, one resource per persona. The app keeps the persona's own threads under its user id, so Studio threads never mix into the app's history. The server sets Mastra's reserved resource key, which wins over the client's `memory.resource`, and the client cannot set that key. A persona cannot list, read or continue another persona's Studio thread (Mastra answers 403 "thread belongs to a different resource").
+- A request without a persona is refused before any model or tool for agent calls (400), and its memory resource holds no thread.
+- Studio subscribes to a thread's runs with no persona. The subscription takes the Studio resource of the thread, or, for a thread that is not stored yet, of the persona the API last saw. Two browsers on two personas at once can therefore miss the live reply of a new thread. The reply is in memory and shows on reload.
+
+**Limits.**
+
+- No Winyu cards. Studio shows the reply text and the raw tool calls, not `ReplyCards`.
+- Write approvals cannot be used. A write needs a yes recorded for its tool call id through the app's approval card. Studio holds none, so the gateway refuses the write.
+- No harness run. A Studio chat has no run trace in the admin console, no tool budget, no checkpoint and no recovery after a restart. Use the ledger and audit turn id and the Mastra trace instead.
+- Metrics and Logs pages are empty. They need an observability store on ClickHouse, DuckDB or Postgres; Winyu stores spans in LibSQL, which serves Traces only.
+- The prompt cannot be edited in Studio. That needs `@mastra/editor`, which Winyu does not install. Change `WINYU_RULES` or the persona in code.
+- A workflow's Run button spends at once. `winyu-jobs` and `morning-investigation` call the real model as their jobs do.
+
 ## Open
 
 - **A stall after the first chunk waits 60 s.** AI-341 would now fail over at 60 s and answer at about 75 s. A gap budget of about 15 s between chunks would catch it sooner. Mastra 1.74 has none, and the gap data is one probe (3.4 s longest), so it is not built.
