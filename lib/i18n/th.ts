@@ -766,6 +766,8 @@ export const TH = {
     gapHeroLabel: (other: string, base: string) => `${other}เทียบ${base}`,
     gapShortCount: (count: number, total: number, unit: string, other: string, base: string, threshold: number) =>
       `${count} จาก ${total} ${unit} ${other}ต่ำกว่า${base}เกิน ${threshold}%`,
+    gapNearShortCount: (count: number, total: number, unit: string, other: string, base: string, threshold: number) =>
+      `${count} จาก ${total} ${unit} ${other}ต่ำกว่า${base}ราว ${threshold}% ขึ้นไป`,
     gapNoneShort: (unit: string, other: string, base: string, threshold: number) => `ไม่มี${unit}ไหน${other}ต่ำกว่า${base}เกิน ${threshold}%`,
     underTarget: "ต่ำกว่าเป้า",
     underCover: (days: number) => `สต๊อกพอขายต่ำกว่า ${days} วัน`,

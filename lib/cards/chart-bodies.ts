@@ -19,6 +19,8 @@ const MIN_INTENSITY = 0.15;
 const PERCENT = 100;
 const PARITY_RATIO = 3;
 const WIDE_GAP_PCT = 5;
+const NEAR_CUT_POINTS = 1;
+const CLUSTER_STEP_POINTS = 0.5;
 const PARENTHETICAL = /\s*\(.*\)$/;
 const PERCENT_METRIC_SHARE: ReadonlySet<MetricId> = new Set(["market_share", "share_of_voice"]);
 const MILLION = 1_000_000;
@@ -382,23 +384,34 @@ function gapsOf(first: Source, second: Source): Gap[] {
     .sort((left, right) => left.percent - right.percent);
 }
 
+/** How many gaps (widest shortfall first) fall well short: every one past the cut, then the ones that sit in one tight run with them within a point of the cut, so a cut never splits near-equal rows (94.8% red, 95.2% grey, AI-332); `near` when that run took any row the cut alone would not. */
+function shortfallOf(gaps: readonly Gap[]): { count: number; near: boolean } {
+  const past = gaps.filter((gap) => gap.percent <= -WIDE_GAP_PCT).length;
+  let count = past;
+  while (count > 0 && count < gaps.length && gaps[count].percent < NEAR_CUT_POINTS - WIDE_GAP_PCT && gaps[count].percent - gaps[count - 1].percent <= CLUSTER_STEP_POINTS) count += 1;
+  return { count, near: count > past };
+}
+
 /** One thing measured twice in one unit: the second as a percent of the first (sell-out as a share of sell-in), and whether it falls well short. */
 export type ParityGap = { label: string; ratio: number; short: boolean };
 
 /** The same things measured twice in one unit (sell-in against sell-out), each as the second over the first, the widest shortfall first. */
 export function parityGaps(first: Source, second: Source): ParityGap[] {
-  return gapsOf(first, second).map((gap) => ({ label: gap.entry.label, ratio: PERCENT + gap.percent, short: gap.percent <= -WIDE_GAP_PCT }));
+  const gaps = gapsOf(first, second);
+  const { count } = shortfallOf(gaps);
+  return gaps.map((gap, index) => ({ label: gap.entry.label, ratio: PERCENT + gap.percent, short: index < count }));
 }
 
-/** The headline of a gap card: the second metric as a share of the first across everything shown, and how many fall well short. */
+/** The headline of a gap card: the second metric as a share of the first across everything shown, and how many fall well short, said as "ราว 5% ขึ้นไป" when a tight run near the cut is counted with them. */
 export function gapHero(first: Source, second: Source, unit: string | null): CardHero | null {
   const additive = first.result.headline.aggregate === "sum" && second.result.headline.aggregate === "sum";
   const gaps = gapsOf(first, second);
   if (!additive || gaps.length === 0) return null;
   const total = (source: "x" | "y") => gaps.reduce((sum, gap) => sum + (numericOf(gap.entry[source], "value") ?? 0), 0);
   const overall = gapPercent(total("x"), total("y"));
-  const short = gaps.filter((gap) => gap.percent <= -WIDE_GAP_PCT).length;
+  const short = shortfallOf(gaps);
   const [base, other] = [shortLabel(first), shortLabel(second)];
+  const shortText = short.near ? TH.dash.gapNearShortCount : TH.dash.gapShortCount;
   return {
     label: TH.dash.gapHeroLabel(other, base),
     value: formatPercent(Math.round((PERCENT + overall) * 10) / 10),
@@ -406,7 +419,7 @@ export function gapHero(first: Source, second: Source, unit: string | null): Car
     trend: directionOf(overall),
     tone: toneOf(second.query.metric, overall),
     unit: null,
-    detail: short > 0 ? TH.dash.gapShortCount(short, gaps.length, unit ?? "", other, base, WIDE_GAP_PCT) : TH.dash.gapNoneShort(unit ?? "", other, base, WIDE_GAP_PCT),
+    detail: short.count > 0 ? shortText(short.count, gaps.length, unit ?? "", other, base, WIDE_GAP_PCT) : TH.dash.gapNoneShort(unit ?? "", other, base, WIDE_GAP_PCT),
   };
 }
 

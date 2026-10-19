@@ -287,7 +287,7 @@ describe("two metrics on one card", () => {
     const rows = [...body.strip.rows, ...(body.kind === "exceptions" ? (body.fold?.rows ?? []) : [])];
     expect(rows.length).toBeGreaterThanOrEqual(2);
     rows.forEach((row) => expect(`${row.text} ${row.sub ?? ""}`).not.toContain("→"));
-    rows.filter((row) => row.exception).forEach((row) => expect(row.measure ?? 100).toBeLessThanOrEqual(95));
+    rows.filter((row) => row.exception).forEach((row) => expect(row.measure ?? 100).toBeLessThan(96));
     expect(card.hero?.value).toMatch(/%$/);
     expect(card.verdict).toMatch(/เอเย่นต์/);
   });
@@ -301,6 +301,20 @@ describe("two metrics on one card", () => {
     expect(rows.length).toBeGreaterThanOrEqual(3);
     expect(rows.length).toBeLessThanOrEqual(8);
     rows.forEach((row) => expect(row.valued).toBe(true));
+  });
+
+  test("a cut never splits near-equal rows: the five northeast agents within half a point of 95% are all drawn short, and the verdict counts those five and says 'ราว 5%' (AI-332)", () => {
+    const filters = { region: ["northeast"] };
+    const sellIn = { ...queryOf({ metric: "net_sales_volume", dims: ["agent"], range: MONTH_TO_DATE, compare: "none" }), filters };
+    const sellOut = { ...sellIn, metric: "sell_out_volume" as const };
+    const card = presentCard({ title: "t", query: sellIn, result: runMetric(sellIn, CEO), others: [{ query: sellOut, result: runMetric(sellOut, CEO) }] });
+    const rows = stripOf(card.body).rows;
+    const red = rows.filter((row) => row.exception);
+    const grey = rows.filter((row) => !row.exception);
+    const closest = Math.min(...grey.map((row) => Math.min(...red.map((short) => Math.abs((row.measure ?? 0) - (short.measure ?? 0))))));
+    expect(closest).toBeGreaterThan(0.5);
+    expect(card.verdict).toStartWith(`${red.length} จาก ${rows.length} `);
+    expect(card.verdict).toContain("ราว 5% ขึ้นไป");
   });
 
   test("produced → sold in → sold out is a funnel in the order given", () => {
