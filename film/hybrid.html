@@ -1,0 +1,1252 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Winyu Hybrid Film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=block" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="sound.js"></script>
+<style>
+:root{
+  --bg:#faf7f2; --ink:#1f1b3a; --muted:#6b6785; --violet:#7c3aed;
+  --coral-ink:#e11d48; --coral-soft:#ffe4e8; --green:#059669; --green-soft:#dcf5ea; --line:rgba(49,46,129,.13);
+  --shadow:0 18px 40px -12px rgba(49,46,129,.22), 0 2px 6px rgba(49,46,129,.06);
+  --s-ink:#0f172a; --s-ink2:#334155; --s-muted:#64748b; --s-faint:#94a3b8; --s-line:#e8eaf2; --s-soft:#f6f7fb;
+  --s-indigo:#4f46e5; --s-red:#e11d48; --s-redbg:#ffe4e6; --s-green:#047857; --s-greenbg:#e7f8ef; --s-amber:#b45309; --s-amberbg:#fef3c7; --s-ind50:#eef2ff;
+  --grad:linear-gradient(135deg,#4f46e5 0%,#7c3aed 55%,#fb7185 100%);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#ece7df;overflow:hidden;font-family:'Anuphan',system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+#viewport{position:absolute;left:0;top:0;right:0;bottom:64px;display:flex;align-items:center;justify-content:center}
+#frame{position:relative;overflow:hidden;border-radius:10px;box-shadow:0 20px 60px rgba(31,27,58,.18)}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;background:var(--bg);overflow:hidden;opacity:0}
+#stage.ready{opacity:1}
+body.capture{background:var(--bg)}
+body.capture #viewport{bottom:0}
+body.capture #frame{border-radius:0;box-shadow:none}
+body.capture #transport{display:none}
+svg{display:block}
+#ground{position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 62%,rgba(196,181,253,.22),rgba(196,181,253,0) 70%)}
+#world,#fx{position:absolute;left:0;top:0}
+#labels,#ui,#devs{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none}
+.lbl{position:absolute;left:0;top:0;will-change:transform,opacity;white-space:nowrap}
+.t80{font-size:80px;line-height:1.3;font-weight:600;letter-spacing:-.01em}
+.t76{font-size:76px;line-height:1.3;font-weight:600;letter-spacing:-.01em}
+.t48{font-size:48px;line-height:1.3;font-weight:700;letter-spacing:-.3px}
+.t44{font-size:44px;line-height:1.35;font-weight:700;letter-spacing:-.005em}
+.t32{font-size:32px;line-height:1.45;font-weight:600}
+.t30{font-size:30px;line-height:1.45}
+.t26{font-size:26px;line-height:1.5;font-weight:500}
+.t24{font-size:24px;line-height:1.5}
+.b{font-weight:700}.b5{font-weight:500}.b6{font-weight:600}.b7{font-weight:700}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.ab{position:absolute}
+
+#title{position:absolute;left:96px;top:84px;width:1500px;height:120px}
+.hl{position:absolute;left:0;top:0;white-space:nowrap;opacity:0;color:var(--ink)}
+.hl em{font-style:normal;background:linear-gradient(90deg,#4f46e5,#7c3aed 60%,#fb7185);-webkit-background-clip:text;background-clip:text;color:transparent}
+#bug{position:absolute;right:96px;top:114px;display:flex;align-items:center;gap:16px}
+#bug .tile{width:56px;height:56px;border-radius:16px;background:var(--grad);display:flex;align-items:center;justify-content:center}
+#bug .tile svg{width:44px;height:44px}
+
+.pill{display:inline-flex;align-items:center;gap:12px;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:6px 22px;box-shadow:var(--shadow)}
+.pill.sys{padding:4px 20px}
+.chip{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:2px 16px;font-size:26px;line-height:1.5;font-weight:600}
+.chip.ok{background:var(--green-soft);color:var(--green)}
+.chip.soft{background:#efedfb;color:#4338ca}
+.chip svg{width:22px;height:22px;flex:none}
+.stack{display:flex;flex-direction:column;align-items:center;gap:12px}
+.numcard{display:flex;align-items:center;gap:16px;background:#fff;border:1.5px solid var(--line);border-radius:24px;padding:10px 26px;box-shadow:var(--shadow)}
+.spin{width:26px;height:26px;border-radius:50%;border:4px solid #ddd6fe;border-top-color:var(--violet);flex:none}
+.lockb{width:64px;height:64px;border-radius:50%;background:#fff;border:1.5px solid #fda4af;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+.lockb svg{width:34px;height:34px}
+
+.ui{position:absolute;left:0;top:0;opacity:0;will-change:transform,opacity}
+.card{background:#fff;border:1.5px solid var(--line);border-radius:32px;box-shadow:0 40px 80px -30px rgba(49,46,129,.35),0 4px 12px rgba(49,46,129,.06)}
+#qbox{display:flex;align-items:center;gap:20px;padding:22px 40px 22px 24px;border-radius:999px;width:610px}
+#qbox .mini{width:60px;height:60px;border-radius:18px;background:var(--grad);display:flex;align-items:center;justify-content:center;flex:none}
+#qbox .mini svg{width:46px;height:46px}
+.caret{display:inline-block;width:4px;height:48px;background:var(--violet);margin-left:4px;vertical-align:-8px;border-radius:2px}
+.say{padding:12px 26px;border-radius:28px 28px 28px 8px;color:#fff;background:linear-gradient(135deg,#4f46e5,#7c3aed);white-space:nowrap;box-shadow:0 14px 30px -14px rgba(79,70,229,.6);transform-origin:0 100%}
+.memc{display:flex;align-items:center;gap:16px;padding:14px 26px 14px 16px;border-radius:24px;white-space:nowrap}
+.memc .mi{width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#fb7185);display:flex;align-items:center;justify-content:center}
+.memc .mi svg{width:36px;height:36px}
+#env{width:150px;height:104px}
+#bell{width:88px;height:88px}
+#bell .bc{width:88px;height:88px;border-radius:50%;background:#fff;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+#bell .bc svg{width:46px;height:46px}
+#bell .badge{position:absolute;right:-12px;top:-12px;min-width:44px;height:44px;border-radius:22px;background:var(--coral-ink);color:#fff;font-size:26px;line-height:44px;font-weight:700;text-align:center;border:3px solid #fff}
+#mini{padding:22px 30px;border-radius:28px;display:flex;flex-direction:column;gap:2px}
+#mini .r{display:flex;align-items:center;gap:14px}
+#end{width:1920px;height:1080px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#end .big{width:168px;height:168px;border-radius:48px;background:var(--grad);display:flex;align-items:center;justify-content:center;box-shadow:0 40px 80px -30px rgba(124,58,237,.6)}
+#end .big svg{width:132px;height:132px}
+#end .wm{margin-top:36px}
+#end .tag{margin-top:8px;color:var(--muted);font-weight:500}
+
+.dev{position:absolute;left:0;top:0;transform-origin:0 0;opacity:0;visibility:hidden;font-family:'Anuphan',sans-serif;color:var(--s-ink)}
+svg.i{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.win{background:#fff;border-radius:22px;border:1px solid rgba(15,23,42,.08);overflow:hidden;clip-path:inset(0 round 22px);box-shadow:0 60px 110px -40px rgba(49,46,129,.42),0 18px 40px -16px rgba(30,27,75,.18)}
+.tb{position:absolute;left:0;top:0;right:0;height:52px;background:#fbfbfd;border-bottom:1px solid #eef0f5}
+.lights{position:absolute;left:22px;top:19px;display:flex;gap:9px}
+.lights i{width:14px;height:14px;border-radius:50%;display:block}
+.lights i:nth-child(1){background:#ff5f57}.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
+.url{position:absolute;left:50%;top:8px;height:36px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:0 20px;border-radius:18px;background:#f1f2f6;color:var(--s-muted)}
+.url svg.i{width:18px;height:18px}
+.who{position:absolute;right:12px;top:6px;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 6px;border-radius:20px;background:var(--s-ind50);color:#3730a3;white-space:nowrap}
+.who .av{width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;color:var(--s-indigo)}
+.who .av svg.i{width:18px;height:18px}
+.who.mid{right:auto;left:50%;transform:translateX(-50%)}
+.logo{display:flex;align-items:center;justify-content:center;background:var(--grad);flex:none}
+.side{position:absolute;left:0;top:52px;bottom:0;width:84px;background:#fff;border-right:1px solid #eef0f5}
+.side .logo{position:absolute;left:20px;top:18px;width:44px;height:44px;border-radius:13px}
+.side .logo svg{width:32px;height:32px}
+.sbtn{position:absolute;left:20px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#475569}
+.sact{position:absolute;left:18px;width:48px;height:48px;border-radius:14px;background:var(--s-ind50)}
+.chat{position:absolute;left:84px;top:52px;right:0;bottom:0;overflow:hidden;background:radial-gradient(ellipse 60% 70% at 85% 10%,rgba(199,210,254,.45),rgba(199,210,254,0) 70%),radial-gradient(ellipse 55% 60% at 30% 100%,rgba(251,207,232,.35),rgba(251,207,232,0) 70%),#f8f8fd}
+.apphead{position:absolute;right:20px;top:14px;display:flex;gap:12px;z-index:3}
+.apphead span{width:46px;height:46px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(30,27,75,.1);display:flex;align-items:center;justify-content:center;color:#475569}
+.apphead span.av{background:var(--grad);color:#fff}
+.eyebrow{color:var(--s-muted)}
+.fwd{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:20px;border:1.5px solid #e2e4ee;background:#fff;color:var(--s-ink2);white-space:nowrap}
+.fwd svg.i{width:20px;height:20px}
+.foot{display:flex;align-items:center;justify-content:space-between;margin-top:16px;color:var(--s-muted)}
+.tabs{display:inline-flex;gap:4px;padding:5px;border-radius:999px;background:#fff;border:1px solid #eceef4;box-shadow:0 4px 14px -8px rgba(30,27,75,.2)}
+.tabs span{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:22px;color:#475569;white-space:nowrap}
+.tabs span.on{background:var(--s-ink);color:#fff}
+.tabs svg.i{width:20px;height:20px}
+.step{display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 18px 0 8px;border-radius:23px;border:1.5px solid #eceef4;background:#fff;color:var(--s-faint);white-space:nowrap}
+.step b{width:30px;height:30px;border-radius:50%;background:#f1f2f6;color:var(--s-muted);display:flex;align-items:center;justify-content:center;font-weight:600}
+.step.on{background:var(--s-ink);border-color:var(--s-ink);color:#fff}
+.step.on b{background:#fff;color:var(--s-ink)}
+.step.done{color:var(--s-green);border-color:#bfe9d3;background:var(--s-greenbg)}
+.step.done b{background:#10b981;color:#fff}
+.layer{position:absolute;inset:0;opacity:0;visibility:hidden}
+.sc-bubble{position:absolute;padding:10px 26px;border-radius:26px 26px 8px 26px;background:#4f46e5;color:#fff;white-space:nowrap;transform-origin:100% 100%}
+.sc-card{position:absolute;background:#fff;border:1.5px solid var(--s-line);border-radius:28px;box-shadow:0 26px 60px -30px rgba(49,46,129,.28)}
+.sc-pill{display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 14px;border-radius:20px;white-space:nowrap;font-weight:600}
+.sc-pill svg.i{width:22px;height:22px;stroke-width:2.4}
+.pred{background:var(--s-redbg);color:var(--s-red)}
+.sc-row{display:flex;align-items:center;gap:16px}
+.track{height:10px;border-radius:5px;background:#f0f1f6;margin-top:8px;overflow:hidden}
+.fill{height:10px;border-radius:5px;background:#6366f1}
+.fill.hot{background:linear-gradient(90deg,#fb7185,#e11d48)}
+.piece{position:relative}
+.sc-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:52px;padding:0 24px;border-radius:26px;white-space:nowrap;font-weight:600}
+.sc-btn svg.i{width:24px;height:24px}
+.bdark{background:var(--s-ink);color:#fff}
+.bline{border:1.5px solid #dfe2ea;color:var(--s-ink2);background:#fff}
+.bgrad{background:var(--grad);color:#fff}
+.dpane{position:absolute;top:104px;width:620px;height:500px;background:#fff;border:1.5px solid var(--s-line);border-radius:28px;box-shadow:0 26px 60px -30px rgba(49,46,129,.28);overflow:hidden}
+.dlab{position:absolute;left:24px;top:20px;height:44px;display:flex;align-items:center;gap:10px;padding:0 16px 0 6px;border-radius:22px;white-space:nowrap}
+.wline{height:16px;border-radius:8px;background:#e4e6ee;margin-bottom:22px}
+.drow{display:flex;align-items:center;gap:16px;height:48px;border-radius:14px;padding:0 12px;margin:0 -12px 12px}
+.drow .lb{width:230px;flex:none;white-space:nowrap}
+.drow .tk,.crow .tk{flex:1;height:14px;border-radius:7px;background:#f0f1f6;overflow:hidden}
+.drow .fl,.crow .fl{display:block;height:14px;border-radius:7px;background:#6366f1}
+.drow .vl{width:180px;flex:none;text-align:right;white-space:nowrap;font-weight:600}
+.drow.hot,.crow.hot{background:#fff1f2}
+.drow.hot .lb,.crow.hot .lb{color:#be123c;font-weight:600}
+.drow.hot .fl,.crow.hot .fl{background:linear-gradient(90deg,#fb7185,#e11d48)}
+.qchip{position:absolute;top:28px;height:52px;display:flex;align-items:center;padding:0 22px;border-radius:26px 26px 8px 26px;background:#4f46e5;color:#fff;white-space:nowrap}
+.rcard{position:absolute;top:104px;width:410px;height:500px;background:#fff;border:1.5px solid var(--s-line);border-radius:28px;box-shadow:0 26px 60px -30px rgba(49,46,129,.28);overflow:hidden;padding:24px}
+.crow{border-radius:12px;padding:2px 10px 8px;margin:0 -10px 6px}
+.crow .tp{display:flex;justify-content:space-between;align-items:center;height:38px;white-space:nowrap}
+.prow{display:flex;align-items:center;gap:14px;height:78px}
+.prow img{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 0 0 2px #fff,0 3px 10px -4px rgba(30,27,75,.3)}
+.prow .tx{min-width:0;line-height:1.35}
+.prow .tx div{white-space:nowrap}
+.cursor{position:absolute;left:0;top:0;width:44px;height:44px;opacity:0}
+.cursor svg{width:44px;height:44px;display:block;filter:drop-shadow(0 4px 6px rgba(15,23,42,.28))}
+.ripple{position:absolute;left:0;top:0;width:80px;height:80px;margin:-40px 0 0 -40px;border-radius:50%;border:3px solid rgba(124,58,237,.7);background:rgba(124,58,237,.12);opacity:0}
+
+#phone{width:376px;height:736px;border-radius:64px;background:#1c1b29;padding:12px;box-shadow:0 60px 110px -40px rgba(49,46,129,.5),0 18px 40px -16px rgba(30,27,75,.25),inset 0 0 0 2px #3a3950}
+#pscr{position:relative;width:352px;height:712px;border-radius:52px;background:#fff;overflow:hidden;clip-path:inset(0 round 52px)}
+.island{position:absolute;left:121px;top:12px;width:110px;height:32px;border-radius:16px;background:#1c1b29}
+.pchip{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 6px;border-radius:20px;background:var(--s-ind50);color:#3730a3;white-space:nowrap}
+.pchip .av{width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;color:var(--s-indigo)}
+.pchip .av svg.i{width:18px;height:18px}
+.pcomp{position:absolute;left:16px;right:16px;bottom:36px;min-height:64px;border-radius:32px;border:1.5px solid #e2e4ee;background:#fff;padding:14px 64px 14px 22px;box-shadow:0 10px 30px -14px rgba(49,46,129,.25);white-space:nowrap}
+.psend{position:absolute;right:9px;bottom:9px;width:44px;height:44px;border-radius:50%;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center}
+.psend svg.i{width:22px;height:22px;stroke-width:2.4}
+.pcomp{border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#7c3aed,#4f46e5 50%,#22d3ee) border-box}
+.pcaret{display:inline-block;width:3px;height:28px;background:var(--s-indigo);margin-left:3px;vertical-align:-6px;border-radius:2px}
+.home-ind{position:absolute;left:116px;bottom:10px;width:120px;height:5px;border-radius:3px;background:#1c1b29}
+.balr .track{height:8px;margin-top:6px}
+.balr .fill{height:8px}
+.touch{position:absolute;left:0;top:0;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(15,23,42,.22);border:2.5px solid rgba(255,255,255,.9);box-shadow:0 4px 14px rgba(15,23,42,.25);opacity:0}
+
+#split{width:1728px;height:700px}
+#split .win{position:absolute}
+.tog{position:relative;width:100px;height:56px;border-radius:28px;flex:none}
+.tog .knob{position:absolute;left:6px;top:6px;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(15,23,42,.25)}
+.lock6{position:absolute;left:30px;top:70px;height:62px;gap:12px;color:#3730a3;opacity:0}
+.lock6 .lk{width:56px;height:56px;border-radius:50%;background:#fff;box-shadow:0 6px 18px -6px rgba(30,27,75,.35);display:flex;align-items:center;justify-content:center}
+
+#transport{position:absolute;left:0;right:0;bottom:0;height:64px;display:flex;align-items:center;gap:16px;padding:0 24px;font:500 14px/1 'Anuphan',system-ui,sans-serif;color:#4a4566}
+#transport button{width:40px;height:40px;border-radius:50%;border:0;background:#1f1b3a;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#transport input{flex:1;accent-color:#4f46e5}
+#transport .tm{min-width:110px;text-align:right;font-variant-numeric:tabular-nums}
+#transport #snd[aria-pressed="false"]{opacity:.45}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="frame"><div id="stage">
+  <div id="ground"></div>
+  <svg id="world" width="1920" height="1080" viewBox="0 0 1920 1080">
+    <defs>
+      <linearGradient id="gBrand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f46e5"/><stop offset=".55" stop-color="#7c3aed"/><stop offset="1" stop-color="#fb7185"/></linearGradient>
+      <linearGradient id="gHubTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c7cdfd"/><stop offset=".6" stop-color="#d9cbfd"/><stop offset="1" stop-color="#fecdd6"/></linearGradient>
+      <radialGradient id="gGlow"><stop offset="0" stop-color="#a5b4fc" stop-opacity=".55"/><stop offset=".6" stop-color="#c4b5fd" stop-opacity=".18"/><stop offset="1" stop-color="#c4b5fd" stop-opacity="0"/></radialGradient>
+      <radialGradient id="gSun"><stop offset="0" stop-color="#fde68a"/><stop offset=".55" stop-color="#fdba74" stop-opacity=".75"/><stop offset="1" stop-color="#fb7185" stop-opacity="0"/></radialGradient>
+      <radialGradient id="gFade" cx="960" cy="620" r="980" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <mask id="mFade" maskUnits="userSpaceOnUse" x="0" y="0" width="1920" height="1080"><rect width="1920" height="1080" fill="url(#gFade)"/></mask>
+      <linearGradient id="fg-indigo" x1="0" x2="1"><stop offset="0" stop-color="#c7cdfd"/><stop offset="1" stop-color="#8f97f3"/></linearGradient>
+      <linearGradient id="fg-violet" x1="0" x2="1"><stop offset="0" stop-color="#ddd1fe"/><stop offset="1" stop-color="#a98cf6"/></linearGradient>
+      <linearGradient id="fg-coral" x1="0" x2="1"><stop offset="0" stop-color="#fecdd3"/><stop offset="1" stop-color="#f68a9b"/></linearGradient>
+      <linearGradient id="fg-mint" x1="0" x2="1"><stop offset="0" stop-color="#c8eedd"/><stop offset="1" stop-color="#86cfb0"/></linearGradient>
+    </defs>
+    <g id="floor" mask="url(#mFade)"></g>
+    <g id="wg"></g>
+  </svg>
+  <svg id="fx" width="1920" height="1080" viewBox="0 0 1920 1080"><g id="fxg"></g></svg>
+  <div id="labels"></div>
+  <div id="ui">
+    <div id="qbox" class="ui card"><div class="mini"><svg viewBox="0 0 44 44"><path d="M6 14 L13 31 L20 19 L27 29 L37 9" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="9" r="3.2" fill="#fff"/></svg></div><span class="t44" id="qtext"></span></div>
+    <div id="say1" class="ui say t32">จำไว้ว่าผมดูแลภาคอีสานเป็นพิเศษ</div>
+    <div id="memc" class="ui card memc"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span><span class="t44" id="memtext"></span></div>
+    <div id="daychip" class="ui"><span class="pill t44"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>วันถัดมา</span></div>
+    <div id="env" class="ui"><svg viewBox="0 0 150 104" width="150" height="104"><rect x="2" y="2" width="146" height="100" rx="16" fill="#fff" stroke="#c7cdfd" stroke-width="3"/><path id="envflap" d="M6 8 L75 58 L144 8" fill="#ede9fe" stroke="#7c3aed" stroke-width="4" stroke-linejoin="round"/></svg></div>
+    <div id="bell" class="ui"><div class="bc"><svg viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/></svg></div><div class="badge" id="badge">1</div></div>
+    <div id="mini" class="ui card"></div>
+    <div id="end" class="ui">
+      <div class="big" id="end-logo"><svg viewBox="0 0 44 44"><path d="M6 14 L13 31 L20 19 L27 29 L37 9" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="9" r="3.2" fill="#fff"/></svg></div>
+      <div class="wm t80 b" id="end-wm">Winyu</div>
+      <div class="tag t48" id="end-tag">ผู้ช่วย AI ของทุกคนในองค์กร</div>
+    </div>
+  </div>
+  <div id="devs">
+    <div class="dev win" id="win"></div>
+    <div class="dev" id="phone"></div>
+    <div class="dev" id="split"></div>
+  </div>
+  <div id="title">
+    <div class="hl t80" id="hl0">หลายระบบ <em>เหลือคำถามเดียว</em></div>
+    <div class="hl t80" id="hl1">ตรวจให้ <em>ก่อนคุณตื่น</em></div>
+    <div class="hl t80" id="hl2">บอกครั้งเดียว <em>จำตลอด</em></div>
+    <div class="hl t80" id="hlA">ไม่ใช่<em>ข้อความยาว</em></div>
+    <div class="hl t80" id="hlB">ถามอะไร <em>ได้ภาพที่ใช่</em></div>
+    <div class="hl t80" id="hl3">ส่งต่อ <em>ในคลิกเดียว</em></div>
+    <div class="hl t80" id="hl4">แค่<em>พิมพ์บอก</em></div>
+    <div class="hl t80" id="hl5">เห็นเท่าที่<em>สิทธิ์ให้</em></div>
+    <div class="hl t80" id="hl6">เชื่อมระบบใหม่ <em>ได้ทันที</em></div>
+  </div>
+  <div id="bug"><div class="tile"><svg viewBox="0 0 44 44"><path d="M6 14 L13 31 L20 19 L27 29 L37 9" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="9" r="3.2" fill="#fff"/></svg></div><span class="t32 b">Winyu</span></div>
+</div></div></div>
+<div id="transport"><button id="pp" aria-label="play/pause"><svg width="16" height="16" viewBox="0 0 16 16" id="ppi"></svg></button><button id="snd" aria-label="sound" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 6h3l4-3.5v11L5 10H2z" fill="#fff"/><path d="M11.5 5.2a4 4 0 0 1 0 5.6M13.3 3.5a6.5 6.5 0 0 1 0 9" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></button><input id="scrub" type="range" min="0" step="0.01"><span class="tm" id="tm"></span></div>
+
+<script>
+(async () => {
+const FACTS = await (await fetch('facts.json')).json();
+
+const T = {
+  sysAt: (i) => 0.55 + i * 0.1, fold: 2.3, qIn: 2.85, q: [3.1, 0.8], ask: 4.5,
+  sun: 5.6, isan: 7.75, shops: 8.6, morningOut: 14.3,
+  win1: [8.4, 14.9], push1: [9.2, 10.2], card1: 10.25, pull1: [13.4, 14.3],
+  memIn: 14.75, say1: 15.0, memc: 15.95, memDrop: 17.6, day: 18.15,
+  win2: [17.4, 39.2], push2: [19.0, 20.0], ask2: 20.15, card2: 20.4, why: 21.3,
+  wall: 23.35, ask3: 23.5, panes: 23.75,
+  dyn: 27.35, chips: [27.55, 27.95, 28.35],
+  fwd: 32.35, fwdClick: 33.3, pop: 33.45, sendClick: 34.2, sent: 34.35, pull2: [35.1, 36.0],
+  envFly: [36.05, 1.0], bell: 37.1, mini: 37.55, fwdOut: 39.0,
+  leaveIn: 39.4, phone: [39.7, 50.3], push3: [40.4, 41.4], leaveQ: [41.6, 0.55], bal: 42.55, scroll: 45.15,
+  leave: [45.25, 0.85], conf: 46.45, press: 47.5, done: 47.8, pull3: [48.7, 49.6], approved: 49.95, leaveOut: 50.4,
+  permIn: 50.75, split: [51.4, 59.3], push4: [52.3, 53.3], nums: 53.4, flip: 55.0, lock: 55.25, pull4: [57.8, 58.7], permOut: 59.0,
+  connIn: 59.35, plug: [60.4, 0.45], win3: [60.1, 68.3], push5: [61.3, 62.2], connClick: 62.7, connected: 63.5, ask5: 63.95, assets: 64.2,
+  pull5: [66.8, 67.7], logo: 68.2, endOut: 70.4, hlRein: 70.8,
+};
+const LENGTH = Math.round(71.8 * 30) / 30;
+const HLS = [['hl0', -1, T.ask + 0.7], ['hl1', T.sun + 0.15, T.pull1[1] - 0.25], ['hl2', T.memIn - 0.4, T.wall - 0.35], ['hlA', T.wall, T.dyn - 0.35], ['hlB', T.dyn, T.fwd - 0.35], ['hl3', T.fwd, T.leaveIn - 0.4], ['hl4', T.leaveIn - 0.05, T.permIn - 0.4], ['hl5', T.permIn, T.connIn - 0.4], ['hl6', T.connIn, T.pull5[1]]];
+const BREATH = 0.3;
+const UNIT = 72;
+const FIG = 1.35;
+const C30 = Math.cos(Math.PI / 6);
+const LINE = 'rgba(49,46,129,.28)';
+const ISO_X = 54.7356, ISO_Z = 45, ISO_FLAT = Math.sqrt(2 / 3);
+const pe = n => gsap.parseEase(n);
+const EOX = pe('expo.out'), EO3 = pe('power3.out'), EI3 = pe('power3.in'), EIO3 = pe('power3.inOut'), EBK = pe('back.out(1.7)'), EXIO = pe('expo.inOut'), LIN = p => p;
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, q) => a + (b - a) * q;
+const k = (t, a, d, e = EO3) => e(clamp((t - a) / d));
+const win = (t, a, d, b, d2, ei = EOX, eo = EI3) => k(t, a, d, ei) * (1 - k(t, b, d2, eo));
+const bump = (t, a, d) => Math.sin(clamp((t - a) / d) * Math.PI);
+const f1 = v => v.toFixed(1);
+const seg = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter('th', { granularity: 'grapheme' }) : null;
+const graphemes = s => seg ? Array.from(seg.segment(s), g => g.segment) : Array.from(s);
+const typedCount = (t, [a, d], G) => Math.round(k(t, a, d, LIN) * G.length);
+const $ = id => document.getElementById(id);
+let RT = 0;
+
+const SPOT = FACTS.director.rows.find(r => r.label === FACTS.spotlight);
+const amount = v => parseFloat(v.replace(/,/g, ''));
+const pct = d => `${d < 0 ? '−' : '+'}${Math.abs(d).toFixed(1)}%`;
+const dayMonth = d => d.replace(/\s\d{4}$/, '');
+const MAX_ROW = Math.max(...FACTS.director.rows.map(r => amount(r.value)));
+const Q = graphemes('ภาคไหนยอดลดมากที่สุด');
+const LEAVE_Q = graphemes('เหลือวันลากี่วัน');
+const LEAVE = graphemes(`ขอลาพักร้อน ${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}`);
+const TEAM_SHOWN = 4;
+const CONNECT_STEPS = ['เชื่อมต่อ', 'เลือกเครื่องมือ', 'บทบาท', 'ขอบเขตข้อมูล', 'ตรวจและทดสอบ'];
+
+const M = {
+  stone: { t: '#ffffff', l: '#f1ebe3', r: '#e4dccf' },
+  indigo: { t: '#e3e6ff', l: '#c5cbfb', r: '#a9b0f4' },
+  violet: { t: '#eee7ff', l: '#d8cbfd', r: '#c0abf8' },
+  coral: { t: '#ffe5e8', l: '#fdc6cd', r: '#f9a6b2' },
+  sky: { t: '#e2f1fb', l: '#c4e1f5', r: '#a5cfee' },
+  mint: { t: '#ddf5eb', l: '#bde8d5', r: '#9cd9be' },
+  amber: { t: '#fdf1d7', l: '#f8e0b0', r: '#f1cc88' },
+  hub: { t: 'url(#gHubTop)', l: '#8187f3', r: '#6d5fe2' },
+  gate: { t: '#ffe5e8', l: '#fb9fae', r: '#f47c92' },
+};
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mixHex = (a, b, q) => { const A = hex(a), B = hex(b); return 'rgb(' + A.map((v, i) => Math.round(lerp(v, B[i], q))).join(',') + ')'; };
+const mixMat = (a, b, q) => ({ t: mixHex(a.t, b.t, q), l: mixHex(a.l, b.l, q), r: mixHex(a.r, b.r, q) });
+
+let cam = { cx: 960, cy: 690, z: 1 };
+const S = () => UNIT * cam.z;
+const P = (x, y, z = 0) => { const s = S(); return [cam.cx + (x - y) * C30 * s, cam.cy + (x + y) * 0.5 * s - z * s]; };
+const look = (x, y, sx, sy, z, h = 0) => ({ cx: sx - (x - y) * C30 * UNIT * z, cy: sy - (x + y) * 0.5 * UNIT * z + h * UNIT * z, z });
+const pts = a => a.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ');
+const poly = (a, fill) => `<polygon points="${pts(a)}" fill="${fill}" stroke="${LINE}" stroke-width="1.3" stroke-linejoin="round"/>`;
+
+function box(x, y, z, w, d, h, m, o = 1) {
+  if (o <= 0.002) return '';
+  h = Math.max(h, 0.002);
+  const x1 = x + w, y1 = y + d, z1 = z + h;
+  const top = [P(x, y, z1), P(x1, y, z1), P(x1, y1, z1), P(x, y1, z1)];
+  const left = [P(x, y1, z), P(x1, y1, z), P(x1, y1, z1), P(x, y1, z1)];
+  const right = [P(x1, y, z), P(x1, y1, z), P(x1, y1, z1), P(x1, y, z1)];
+  return `<g opacity="${o.toFixed(3)}">${poly(left, m.l)}${poly(right, m.r)}${poly(top, m.t)}</g>`;
+}
+const boxC = (cx, cy, z, w, d, h, m, o) => box(cx - w / 2, cy - d / 2, z, w, d, h, m, o);
+function shadow(cx, cy, w, d, o) {
+  const g = 0.18;
+  const a = [P(cx - w / 2 - g, cy - d / 2 + g * 2), P(cx + w / 2 + g * 2, cy - d / 2 + g * 2), P(cx + w / 2 + g * 2, cy + d / 2 + g * 2), P(cx - w / 2 - g, cy + d / 2 + g * 2)];
+  return `<polygon points="${pts(a)}" fill="rgba(60,50,120,${(0.07 * o).toFixed(3)})"/>`;
+}
+function windows(cx, cy, w, d, z0, h, rows, o) {
+  if (h < 0.5 || o <= 0.01) return '';
+  let s = '';
+  const x0 = cx - w / 2, x1 = cx + w / 2, y0 = cy - d / 2, y1 = cy + d / 2;
+  const nRows = Math.max(1, Math.floor((h - 0.25) / 0.38));
+  for (let r = 0; r < Math.min(rows, nRows); r++) {
+    const za = z0 + h - 0.3 - r * 0.38, zb = za - 0.16;
+    if (zb < z0 + 0.12) break;
+    for (let c = 0; c < 2; c++) {
+      const xa = x0 + w * (0.18 + c * 0.42), xb = xa + w * 0.24;
+      s += `<polygon points="${pts([P(xa, y1, zb), P(xb, y1, zb), P(xb, y1, za), P(xa, y1, za)])}" fill="#fff" opacity="${(0.75 * o).toFixed(2)}"/>`;
+      const ya = y0 + d * (0.18 + c * 0.42), yb = ya + d * 0.24;
+      s += `<polygon points="${pts([P(x1, ya, zb), P(x1, yb, zb), P(x1, yb, za), P(x1, ya, za)])}" fill="#fff" opacity="${(0.5 * o).toFixed(2)}"/>`;
+    }
+  }
+  return s;
+}
+const building = (cx, cy, w, h, m, o) => shadow(cx, cy, w, w, o) + boxC(cx, cy, 0, w, w, h, m, o) + `<g>${windows(cx, cy, w, w, 0, h, 3, o)}</g>`;
+function isoEllipse(x, y, z, r, fill, extra = '') {
+  const [sx, sy] = P(x, y, z); const s = S();
+  return `<ellipse cx="${f1(sx)}" cy="${f1(sy)}" rx="${f1(r * 1.2247 * s)}" ry="${f1(r * 0.7071 * s)}" fill="${fill}" ${extra}/>`;
+}
+function figure(x, y, mat, o, lift = 0) {
+  if (o <= 0.002) return '';
+  const s = S() * FIG;
+  const [bx, by0] = P(x, y, 0);
+  const by = by0 - lift * s;
+  const w = 0.56 * s, h = 0.84 * s, hr = 0.27 * s;
+  const body = `M${f1(bx - w / 2)},${f1(by)} L${f1(bx - w / 2)},${f1(by - h + w / 2)} A${f1(w / 2)},${f1(w / 2)} 0 0 1 ${f1(bx + w / 2)},${f1(by - h + w / 2)} L${f1(bx + w / 2)},${f1(by)} A${f1(w / 2)},${f1(w / 4)} 0 0 1 ${f1(bx - w / 2)},${f1(by)} Z`;
+  return `<g opacity="${o.toFixed(3)}">${isoEllipse(x, y, 0, 0.38 * FIG, 'rgba(60,50,120,.10)')}<path d="${body}" fill="url(#fg-${mat})" stroke="${LINE}" stroke-width="1.3"/><circle cx="${f1(bx)}" cy="${f1(by - h - hr * 0.55)}" r="${f1(hr)}" fill="url(#fg-${mat})" stroke="${LINE}" stroke-width="1.3"/></g>`;
+}
+const figHead = (x, y) => { const [sx, sy] = P(x, y, 0); return [sx, sy - S() * FIG * 1.42]; };
+function glowDot(sx, sy, color, o, r = 6) {
+  if (o <= 0.01) return '';
+  return `<circle cx="${f1(sx)}" cy="${f1(sy)}" r="${f1(r * 2.8)}" fill="${color}" opacity="${(0.16 * o).toFixed(3)}"/><circle cx="${f1(sx)}" cy="${f1(sy)}" r="${r}" fill="${color}" opacity="${o.toFixed(3)}"/><circle cx="${f1(sx)}" cy="${f1(sy)}" r="${f1(r * 0.4)}" fill="#fff" opacity="${(0.9 * o).toFixed(3)}"/>`;
+}
+function pathLen(path) { let L = 0; for (let i = 1; i < path.length; i++) L += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); return L; }
+function along(path, u) {
+  let d = clamp(u) * pathLen(path);
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1], b = path[i], sg = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (d <= sg || i === path.length - 1) { const q = sg ? clamp(d / sg) : 0; return [lerp(a[0], b[0], q), lerp(a[1], b[1], q)]; }
+    d -= sg;
+  }
+  return path[path.length - 1];
+}
+function groundPath(path, o, color = '#cfc8f6') {
+  if (o <= 0.01) return '';
+  return `<polyline points="${pts(path.map(p => P(p[0], p[1], 0.02)))}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 12" opacity="${o.toFixed(3)}"/>`;
+}
+function flowDots(acc, path, t, t0, t1, opts = {}) {
+  const { n = 3, speed = 0.75, color = '#6366f1', z = 0.12, r = 6, cut = 2, phase = 0 } = opts;
+  const env = k(t, t0, 0.35, LIN) * (1 - k(t, t1 - 0.35, 0.35, LIN));
+  if (env <= 0.01) return;
+  for (let i = 0; i < n; i++) {
+    const u = (((RT * speed + i / n + phase) % 1) + 1) % 1;
+    if (u > cut) continue;
+    const ee = Math.min(1, u * 8, (1 - u) * 8);
+    const [x, y] = along(path, u);
+    const [sx, sy] = P(x, y, z);
+    acc.items.push({ d: x + y + 0.01, s: glowDot(sx, sy, color, env * ee, r) });
+  }
+}
+const bez = (a, c, b, u) => [(1 - u) * (1 - u) * a[0] + 2 * u * (1 - u) * c[0] + u * u * b[0], (1 - u) * (1 - u) * a[1] + 2 * u * (1 - u) * c[1] + u * u * b[1]];
+function screenDots(acc, a, c, b, t, t0, t1, opts = {}) {
+  const { n = 4, speed = 0.9, color = '#7c3aed', r = 6 } = opts;
+  const env = k(t, t0, 0.3, LIN) * (1 - k(t, t1 - 0.3, 0.3, LIN));
+  if (env <= 0.01) return;
+  for (let i = 0; i < n; i++) {
+    const u = (((RT * speed + i / n) % 1) + 1) % 1;
+    const [x, y] = bez(a, c, b, u);
+    acc.fx.push(glowDot(x, y, color, env * Math.min(1, u * 8, (1 - u) * 8), r));
+  }
+}
+const LOGO = '<path d="M6 14 L13 31 L20 19 L27 29 L37 9" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="9" r="3.2" fill="#fff"/>';
+function logoTile(cx, cy, size, o) {
+  return `<g opacity="${o.toFixed(3)}"><rect x="${f1(cx - size / 2)}" y="${f1(cy - size / 2)}" width="${f1(size)}" height="${f1(size)}" rx="${f1(size * 0.28)}" fill="url(#gBrand)"/><g transform="translate(${f1(cx - size / 2 + size * 0.1)},${f1(cy - size / 2 + size * 0.1)}) scale(${(size * 0.8 / 44).toFixed(4)})">${LOGO}</g></g>`;
+}
+
+const labelsEl = $('labels');
+const pool = new Map();
+let used = new Set();
+function label(id, html, x, y, o, opts = {}) {
+  if (o <= 0.005) return;
+  const { ax = 0.5, ay = 1, s = 1 } = opts;
+  let el = pool.get(id);
+  if (!el) { el = document.createElement('div'); el.className = 'lbl'; labelsEl.appendChild(el); pool.set(id, el); el._h = ''; }
+  if (el._h !== html) { el.innerHTML = html; el._h = html; }
+  el.style.display = 'block';
+  el.style.opacity = clamp(o).toFixed(3);
+  el.style.transformOrigin = `${ax * 100}% ${ay * 100}%`;
+  el.style.transform = `translate(${f1(x)}px,${f1(y)}px) translate(${-ax * 100}%,${-ay * 100}%) scale(${s.toFixed(4)})`;
+  used.add(id);
+}
+function stem(acc, x1, y1, x2, y2, o) {
+  if (o <= 0.01) return;
+  acc.fx.push(`<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="#7c74c9" stroke-width="2" stroke-dasharray="3 6" stroke-linecap="round" opacity="${(0.6 * o).toFixed(3)}"/><circle cx="${f1(x1)}" cy="${f1(y1)}" r="5" fill="#7c3aed" opacity="${(0.8 * o).toFixed(3)}"/>`);
+}
+function setUI(el, o, x = 0, y = 0, s = 1, extra = '') {
+  if (o <= 0.003) { el.style.opacity = '0'; el.style.visibility = 'hidden'; return; }
+  el.style.visibility = 'visible';
+  el.style.opacity = clamp(o).toFixed(3);
+  el.style.transform = `translate(${f1(x)}px,${f1(y)}px) scale(${s.toFixed(4)})${extra}`;
+}
+const fade = (el, o) => { el.style.opacity = clamp(o).toFixed(3); el.style.visibility = o <= 0.003 ? 'hidden' : 'visible'; };
+const rise = (el, o, dy = 18) => { el.style.opacity = clamp(o).toFixed(3); el.style.transform = `translateY(${f1((1 - clamp(o)) * dy)}px)`; };
+
+const ICON = {
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  user: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+  down: '<svg class="i" viewBox="0 0 24 24"><path d="M7 7l10 10M17 9v8H9"/></svg>',
+  send: '<svg class="i" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>',
+  spark: '<svg class="i" viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg>',
+  sun: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  store: '<svg class="i" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0V9z"/><path d="M5 13v8h14v-8"/></svg>',
+  db: '<svg class="i" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>',
+  chat: '<svg class="i" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M12 8v6M9 11h6"/></svg>',
+  menu: '<svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+  inbox: '<svg class="i" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></svg>',
+  fwd: '<svg class="i" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></svg>',
+  search: '<svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+  hist: '<svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>',
+  okc: '<svg class="i" viewBox="0 0 24 24" style="width:20px;height:20px;color:#10b981"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>',
+  wrench: '<svg class="i" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>',
+  list: '<svg class="i" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  bell: '<svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+  grid: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  plug: '<svg class="i" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0V8zM12 18v4"/></svg>',
+  lockS: '<svg class="i" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  shield: '<svg class="i" viewBox="0 0 24 24" style="width:32px;height:32px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  cal: '<svg class="i" viewBox="0 0 24 24" style="width:22px;height:22px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  ok: '<svg class="i" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  up: '<svg class="i" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+  laptop: '<svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg>',
+  phone: '<svg class="i" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
+  people: '<svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M16 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"/></svg>',
+  bot: '<svg class="i" viewBox="0 0 24 24" style="width:20px;height:20px"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 14h.01M15 14h.01"/></svg>',
+};
+const ASSET_ICON = { 'โน้ตบุ๊ก': ICON.laptop, 'โทรศัพท์': ICON.phone };
+const CURSOR = '<svg viewBox="0 0 28 28"><path d="M7 4 L7 23 L11.6 18.6 L14.8 25.4 L18 24 L14.9 17.3 L21.2 17.1 Z" fill="#111827" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+const logoBox = (size, inner) => `<span class="logo" style="width:${size}px;height:${size}px;border-radius:${Math.round(size * 0.3)}px"><svg viewBox="0 0 44 44" style="width:${inner}px;height:${inner}px">${LOGO}</svg></span>`;
+const who = (role, cls = '') => `<div class="who t24 b5 ${cls}"><span class="av">${ICON.user}</span>${role}</div>`;
+const bar = (value, hot) => `<div class="track"><div class="fill${hot ? ' hot' : ''}" style="width:${(amount(value) / MAX_ROW * 100).toFixed(1)}%"></div></div>`;
+
+function buildWindow() {
+  const rows3 = FACTS.director.rows.slice(0, 3);
+  const regionRow = (r) => {
+    const hot = r.label === FACTS.spotlight;
+    const why = hot ? `<span class="sc-pill t24" id="w2why" style="height:40px;gap:6px;padding:0 14px 0 10px;background:var(--grad);color:#fff">${ICON.spark}เพราะคุณสนใจ${FACTS.spotlight}</span>` : '';
+    return `<div class="piece" style="height:62px;margin-top:14px">${hot ? '<div class="ab" id="w2tint" style="left:-14px;right:-14px;top:-6px;bottom:-4px;border-radius:16px;background:#f5f3ff;box-shadow:inset 0 0 0 1.5px #ddd6fe"></div>' : ''}<div style="position:relative"><div class="sc-row" style="height:44px"><span class="t30${hot ? ' b6' : ''}">${r.label}</span>${why}<span style="flex:1"></span><span class="t30 b6">${r.value}</span><span style="width:124px;display:flex;justify-content:flex-end"><span class="sc-pill pred t24">${pct(r.delta)}</span></span></div>${bar(r.value, hot)}</div></div>`;
+  };
+  const drows = FACTS.director.rows.map((r, i) => `<div class="drow${r.label === FACTS.spotlight ? ' hot' : ''}" id="dr${i}"><span class="lb t24">${r.label}</span><span class="tk"><span class="fl" style="width:${(amount(r.value) / MAX_ROW * 100).toFixed(1)}%"></span></span><span class="vl t24">${r.value}</span></div>`).join('');
+  const crows = FACTS.director.rows.map((r) => `<div class="crow${r.label === FACTS.spotlight ? ' hot' : ''}"><div class="tp"><span class="lb t24">${r.label}</span><span class="t24 b6">${amount(r.value).toFixed(1)}</span></div><div class="tk"><div class="fl" style="width:${(amount(r.value) / MAX_ROW * 100).toFixed(1)}%"></div></div></div>`).join('');
+  const team = FACTS.team.slice(0, TEAM_SHOWN).map((m) => `<div class="prow"><img src="${m.photo}" alt=""><div class="tx"><div class="t24 b6">${m.name}</div><div class="t24" style="color:var(--s-muted)">${m.title}</div></div></div>`).join('');
+  const weeks = FACTS.trend.weeks;
+  const spotUnit = FACTS.director.total.replace(/^[\d.,]+\s*/, '');
+  $('win').innerHTML = `
+    <div class="tb"><div class="lights"><i></i><i></i><i></i></div><div class="url t24">${ICON.lockS.replace('class="i"', 'class="i" style="width:18px;height:18px"')}winyu.app</div><div id="wwho"></div></div>
+    <div class="side">${logoBox(44, 32).replace('class="logo"', 'class="logo" style="position:absolute;left:20px;top:18px"')}<div class="sact" id="sact"></div>
+      ${[ICON.menu, ICON.chat, ICON.grid, ICON.inbox, ICON.fwd, ICON.search, ICON.hist].map((ic, i) => `<div class="sbtn" style="top:${86 + i * 60}px">${ic}</div>`).join('')}</div>
+    <div class="chat">
+      <div class="apphead"><span>${ICON.bell.replace('class="i"', 'class="i" style="width:22px;height:22px"')}</span><span class="av">${ICON.user.replace('class="i"', 'class="i" style="width:22px;height:22px"')}</span></div>
+      <div class="layer" id="L1">
+        <div class="sc-bubble t30" id="w1q" style="right:212px;top:26px">ภาคไหนยอดลดมากที่สุด</div>
+        <div class="sc-card" style="left:212px;top:108px;width:960px;padding:30px 36px 32px">
+          <div class="sc-row t24 piece" id="w1a" style="gap:10px;color:var(--s-muted)"><span style="width:40px;height:40px;border-radius:12px;background:var(--s-amberbg);color:#d97706;display:flex;align-items:center;justify-content:center">${ICON.sun.replace('class="i"', 'class="i" style="width:24px;height:24px"')}</span>ตรวจไว้แล้วตั้งแต่เช้า</div>
+          <div class="sc-row piece" id="w1b" style="margin-top:14px;gap:20px"><span class="t48">${FACTS.spotlight}</span><span class="sc-pill pred t30" style="height:52px;padding:0 18px;border-radius:26px">${ICON.down}${Math.abs(SPOT.delta).toFixed(1)}%</span><span class="t30" style="color:var(--s-muted)">ยอดขายลดมากที่สุด</span></div>
+          <div style="margin-top:18px;background:var(--s-soft);border-radius:22px;padding:8px 20px">
+            ${FACTS.drops.map((d, i) => `${i ? '<div style="height:1px;background:#e9ebf2"></div>' : ''}<div class="sc-row piece" id="w1r${i}" style="height:72px"><span style="width:48px;height:48px;border-radius:14px;background:#fff;color:var(--s-indigo);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(30,27,75,.08)">${ICON.store}</span><span class="t30 b5" style="flex:1">${d.agent}</span><span class="t24" style="color:var(--s-muted)">แทบไม่สั่งซื้อ ตั้งแต่ ${dayMonth(d.since)}</span></div>`).join('')}
+          </div>
+          <div class="piece" id="w1c" style="margin-top:20px"><span class="sc-pill t24" style="background:var(--s-amberbg);color:var(--s-amber);height:48px;padding:0 20px;border-radius:24px;gap:10px">${ICON.spark}น่าจะติดปัญหาเครดิต</span></div>
+        </div>
+      </div>
+      <div class="layer" id="L2">
+        <div class="sc-bubble t30" id="w2q" style="right:212px;top:26px">ยอดขายเดือนนี้เป็นยังไง</div>
+        <div class="sc-card" id="w2card" style="left:212px;top:100px;width:960px;padding:26px 36px 24px">
+          <div class="t24 piece eyebrow" id="w2a">มูลค่าขายเข้า · รายภาค</div>
+          <div class="sc-row piece" id="w2b" style="height:66px;margin-top:4px;gap:18px"><span class="t48">${FACTS.director.total}</span><span class="sc-pill pred t24">${ICON.down}${Math.abs(FACTS.director.delta).toFixed(1)}%</span></div>
+          <div id="w2rows">${rows3.map(regionRow).join('')}</div>
+          <div class="foot t24 piece" id="w2f"><span class="sc-row" style="gap:8px">${FACTS.director.period} · ${FACTS.director.source}${ICON.okc}</span><span class="fwd t24 b5" id="fwdBtn">${ICON.fwd}ส่งต่อ</span></div>
+        </div>
+        <div class="sc-card" id="pop" style="left:700px;top:150px;width:460px;padding:24px;border-radius:24px;box-shadow:0 40px 80px -24px rgba(30,27,75,.38),0 0 0 1px rgba(15,23,42,.04);transform-origin:100% 100%;opacity:0">
+          <div class="t24" style="color:var(--s-muted)">ส่งต่อให้</div>
+          <div class="sc-row" style="margin-top:10px;height:60px;gap:14px"><span style="width:52px;height:52px;border-radius:50%;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.user}</span><span class="t30 b6">${FACTS.ceo.role}</span></div>
+          <div style="position:relative;margin-top:20px;height:56px">
+            <div class="sc-btn bgrad t24 ab" id="popSend" style="left:0;top:0;width:100%;height:56px;border-radius:28px">${ICON.send}ส่ง</div>
+            <div class="sc-btn t24 ab" id="popDone" style="left:0;top:0;width:100%;height:56px;border-radius:28px;background:var(--s-greenbg);color:var(--s-green);opacity:0">${ICON.ok}ส่งแล้ว</div>
+          </div>
+        </div>
+      </div>
+      <div class="layer" id="L3">
+        <div class="sc-bubble t30" id="w3q" style="right:150px;top:24px">ยอดแต่ละภาคเป็นยังไง</div>
+        <div class="dpane" id="w3a" style="left:40px">
+          <div class="dlab t24 b6" style="background:#f1f2f6;color:var(--s-muted)"><span style="width:32px;height:32px;border-radius:10px;background:#cbd2de;color:#fff;display:flex;align-items:center;justify-content:center">${ICON.bot}</span>แชตบอททั่วไป</div>
+          <div class="ab" style="left:28px;right:28px;top:96px">${[100, 96, 99, 92, 97, 94, 100, 95, 98, 90, 72].map((w, i) => `<div class="wline" id="ww${i}" style="width:${w}%"></div>`).join('')}</div>
+        </div>
+        <div class="dpane" id="w3b" style="left:724px">
+          <div class="dlab t24 b6" style="background:var(--s-ind50);color:#3730a3">${logoBox(32, 24)}Winyu</div>
+          <div class="ab" style="left:28px;right:28px;top:96px">${drows}</div>
+        </div>
+      </div>
+      <div class="layer" id="L4">
+        <div class="qchip t24" id="w4q0" style="left:40px">ยอดแต่ละภาค</div>
+        <div class="qchip t24" id="w4q1" style="left:477px">แนวโน้ม${FACTS.spotlight}</div>
+        <div class="qchip t24" id="w4q2" style="left:914px">ทีมขาย${FACTS.spotlight.replace(/^ภาค/, '')}มีใครบ้าง</div>
+        <div class="rcard" id="w4c0" style="left:40px"><div class="t24 b6" style="height:40px">มูลค่าขายเข้า · ${spotUnit}</div><div style="margin-top:8px">${crows}</div></div>
+        <div class="rcard" id="w4c1" style="left:477px"><div class="sc-row" style="justify-content:space-between;height:40px"><span class="t24 b6">${FACTS.trend.metric} ${FACTS.spotlight}</span><span class="t24" style="color:var(--s-muted)">${weeks.length} สัปดาห์</span></div>
+          <div style="position:relative;margin-top:14px;width:360px;height:380px"><svg id="trend" width="360" height="380" viewBox="0 0 360 380" style="position:absolute;left:0;top:0;overflow:visible"></svg>
+          <div class="ab t24 b6" id="trA" style="color:#4338ca;white-space:nowrap">${weeks[0].label}</div><div class="ab t24 b6" id="trB" style="color:#e11d48;white-space:nowrap">${weeks[weeks.length - 1].label}</div></div></div>
+        <div class="rcard" id="w4c2" style="left:914px"><div class="sc-row" style="justify-content:space-between;height:40px"><span class="t24 b6">ทีมขาย${FACTS.spotlight.replace(/^ภาค/, '')}</span><span class="sc-pill t24" style="background:var(--s-ind50);color:#3730a3;height:36px">${FACTS.team.length} คน</span></div><div style="margin-top:6px">${team}</div><div class="t24" style="color:var(--s-muted);margin-top:4px">+ อีก ${FACTS.team.length - TEAM_SHOWN} คน</div></div>
+      </div>
+      <div class="layer" id="L5">
+        <div class="ab t48" style="left:120px;top:20px;background:linear-gradient(90deg,#4f46e5,#7c3aed 60%,#fb7185);-webkit-background-clip:text;background-clip:text;color:transparent">Admin console</div>
+        <div class="ab tabs t24" style="left:120px;top:102px"><span>${ICON.grid}ภาพรวม</span><span>${ICON.shield.replace('width:32px;height:32px', 'width:20px;height:20px')}สิทธิ์</span><span>${ICON.wrench}เครื่องมือ</span><span>${ICON.list}Audit</span><span class="on">${ICON.plug.replace('class="i"', 'class="i" style="width:20px;height:20px"')}การเชื่อมต่อ</span></div>
+        <div class="sc-card" style="left:120px;top:184px;width:1120px;padding:28px 32px 30px">
+          <div class="t30 b6">เชื่อมต่อระบบใหม่</div>
+          <div class="t24" style="color:var(--s-muted)">ต่อระบบอื่นของบริษัทผ่าน MCP ให้ Winyu ใช้ได้ โดยทุกคนเห็นเฉพาะข้อมูลในสิทธิ์ของตัวเอง</div>
+          <div class="sc-row" style="margin-top:18px;gap:10px">${CONNECT_STEPS.map((n, i) => `<span class="step t24" id="cs${i}"><b>${i + 1}</b>${n}</span>`).join('')}</div>
+          <div class="sc-row" id="cRow" style="margin-top:22px;height:92px;padding:0 22px;gap:18px;border-radius:22px;background:var(--s-soft)"><span style="width:56px;height:56px;border-radius:16px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center">${ICON.laptop}</span><span class="t30 b6">ทะเบียนทรัพย์สิน</span><span class="sc-pill t24" style="background:var(--s-ind50);color:#3730a3;height:36px">MCP</span><span style="flex:1"></span>
+            <span style="position:relative;width:230px;height:52px">
+              <span class="sc-btn bdark t24 ab" id="cBtn" style="right:0;top:0;height:52px">${ICON.plug.replace('class="i"', 'class="i" style="width:22px;height:22px"')}เชื่อม</span>
+              <span class="sc-pill t24 ab" id="cIng" style="right:0;top:6px;background:var(--s-amberbg);color:var(--s-amber);gap:10px;opacity:0"><svg class="i" id="cSpin" viewBox="0 0 24 24" style="width:22px;height:22px"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>กำลังเชื่อม…</span>
+              <span class="sc-pill t24 ab" id="cOk" style="right:0;top:6px;background:var(--s-greenbg);color:var(--s-green);gap:8px;opacity:0"><i style="width:10px;height:10px;border-radius:50%;background:#10b981"></i>เชื่อมแล้ว</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="layer" id="L6">
+        <div class="sc-bubble t30" id="w6q" style="right:212px;top:26px">อุปกรณ์ของทีม${FACTS.spotlight}</div>
+        <div class="sc-card" id="w6card" style="left:212px;top:108px;width:960px;padding:28px 36px 32px">
+          <div class="sc-row piece" id="w6a" style="gap:14px"><span class="sc-pill t24" style="background:var(--s-ind50);color:#3730a3;gap:8px;font-weight:500">${ICON.db.replace('class="i"', 'class="i" style="width:22px;height:22px"')}ทะเบียนทรัพย์สิน</span><span class="t30 b6">ทีม${FACTS.spotlight}</span></div>
+          <div class="sc-row" style="margin-top:22px;gap:20px;align-items:stretch">${FACTS.assets.map((a, i) => `<div class="piece" id="w6t${i}" style="flex:1;background:var(--s-soft);border-radius:22px;padding:20px 26px"><div class="sc-row t24" style="gap:10px;color:var(--s-muted)"><span style="color:var(--s-indigo);display:flex">${ASSET_ICON[a.label] ?? ICON.laptop}</span>${a.label}</div><div class="t48" style="margin-top:4px">${a.count} เครื่อง</div></div>`).join('')}</div>
+        </div>
+      </div>
+      <div class="cursor" id="wcur">${CURSOR}</div>
+      <div class="ripple" id="wrip"></div>
+    </div>`;
+}
+
+function buildPhone() {
+  const bal = FACTS.leaveBalance.map((b, i) => `<div class="balr" id="pb${i}" style="margin-top:12px"><div class="sc-row" style="justify-content:space-between;height:34px"><span class="t24">${b.label}</span><span class="t24"><b class="b7">${b.left}</b><span style="color:var(--s-muted)">/${b.entitled} วัน</span></span></div><div class="track"><div class="fill" id="pbf${i}" style="width:${(b.left / b.entitled * 100).toFixed(1)}%"></div></div></div>`).join('');
+  $('phone').innerHTML = `<div id="pscr">
+    <div class="island"></div>
+    <div class="sc-row ab" style="left:18px;top:60px;gap:12px">${logoBox(44, 32)}<div class="pchip t24 b5"><span class="av">${ICON.user}</span>${FACTS.rep.role}</div></div>
+    <div class="ab" style="left:0;right:0;top:120px;height:1px;background:#eef0f5"></div>
+    <div class="ab" style="left:0;right:0;top:121px;bottom:118px;overflow:hidden">
+      <div class="ab" id="pscroll" style="left:0;right:0;top:0;height:900px">
+        <div class="sc-bubble t24" id="pq0" style="right:16px;top:18px;padding:12px 20px;border-radius:24px 24px 6px 24px"></div>
+        <div class="sc-card" id="pbal" style="left:16px;top:92px;width:320px;padding:16px 20px 18px;border-radius:26px"><div class="t30 b6">วันลาคงเหลือ</div>${bal}</div>
+        <div class="sc-bubble t24" id="pq1" style="right:16px;top:392px;white-space:normal;width:250px;padding:12px 20px;border-radius:24px 24px 6px 24px"></div>
+        <div class="sc-card" id="plv" style="left:16px;top:498px;width:320px;padding:20px;border-radius:26px">
+          <div class="sc-row" style="gap:12px"><span style="width:44px;height:44px;border-radius:50%;background:var(--s-ink);color:#fff;display:flex;align-items:center;justify-content:center;flex:none">${ICON.cal}</span><span class="t30 b6" style="white-space:nowrap">ยื่นใบลาพักร้อน</span></div>
+          <div style="margin-top:12px"><div class="t24" style="color:var(--s-muted)">ช่วงวันลา</div><div class="t30 b5">${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}</div></div>
+          <div style="position:relative;margin-top:14px;height:52px">
+            <div class="sc-row ab" id="plvBtns" style="left:0;top:0;width:280px;gap:12px"><span class="sc-btn bline t24" style="flex:1;padding:0">ยังไม่ส่ง</span><span class="sc-btn bdark t24" id="plvOk" style="flex:1;padding:0">ยื่นใบลา</span></div>
+            <div class="sc-btn t24 ab" id="plvDone" style="left:0;top:0;width:280px;padding:0;background:var(--s-greenbg);color:var(--s-green);opacity:0">${ICON.ok}ส่งเข้าระบบ HR แล้ว</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pcomp t24"><span id="pph" style="color:var(--s-muted)">พิมพ์บอกได้เลย</span><span id="ptyped"></span><span class="pcaret" id="pcaret"></span><div class="psend">${ICON.up}</div></div>
+    <div class="home-ind"></div>
+    <div class="touch" id="ptouch"></div>
+  </div>`;
+}
+
+function buildSplit() {
+  const kpi = (v, id, extra = '') => `<div class="sc-card" id="${id}" style="left:40px;top:150px;width:760px;padding:24px 30px;box-shadow:none"><div class="t24" style="color:var(--s-muted)">มูลค่าขายเข้า</div>${extra}<div id="${id}v"><div class="t48">${v.total}</div><div class="sc-row" style="margin-top:8px;gap:14px"><span class="sc-pill t24" style="background:var(--s-ind50);color:#3730a3">${v.rows.length} ภาค</span><span class="t24" style="color:var(--s-muted)">ที่มา ${v.source}</span></div></div></div>`;
+  const lock = `<div class="sc-row lock6" id="s6lock"><span class="lk">${ICON.lockS}</span><span class="t30 b6">ถูกปิดตามสิทธิ์</span></div>`;
+  $('split').innerHTML = `
+    <div class="win" id="s6a" style="left:0;top:0;width:840px;height:400px"><div class="tb"><div class="lights"><i></i><i></i><i></i></div>${who(FACTS.ceo.role, 'mid')}</div><div class="sc-bubble t30" id="s6qa" style="right:40px;top:72px">ยอดขายเดือนนี้</div>${kpi(FACTS.ceo, 's6ka')}</div>
+    <div class="win" id="s6b" style="left:888px;top:0;width:840px;height:400px"><div class="tb"><div class="lights"><i></i><i></i><i></i></div>${who(FACTS.rep.role, 'mid')}</div><div class="sc-bubble t30" id="s6qb" style="right:40px;top:72px">ยอดขายเดือนนี้</div>${kpi(FACTS.rep, 's6kb', lock)}</div>
+    <div class="win" id="s6c" style="left:504px;top:448px;width:720px;height:252px"><div class="tb"><div class="lights"><i></i><i></i><i></i></div>${who('ฝ่ายไอที', 'mid')}</div>
+      <div class="sc-row ab" style="left:36px;right:36px;top:52px;height:200px;gap:20px"><span style="width:64px;height:64px;border-radius:18px;background:var(--s-ind50);color:var(--s-indigo);display:flex;align-items:center;justify-content:center">${ICON.shield}</span><div style="flex:1"><div class="t30 b6">พนักงานขาย</div><div class="t24" style="color:var(--s-muted)">ดูยอดขายทุกภาค</div></div><div class="tog" id="tog"><div class="ab" id="togOn" style="inset:0;border-radius:28px;background:var(--grad)"></div><div class="ab" id="togOff" style="inset:0;border-radius:28px;background:#cfd5e1;opacity:0"></div><div class="knob" id="knob"></div></div></div>
+      <div class="cursor" id="scur">${CURSOR}</div></div>`;
+}
+
+buildWindow();
+buildPhone();
+buildSplit();
+$('memtext').textContent = `จำไว้แล้ว · สนใจ${FACTS.spotlight}`;
+$('mini').innerHTML = `<span class="t26 muted">มูลค่าขายเข้า</span><div class="r"><span class="t44 num">${FACTS.director.total}</span><span class="chip" style="background:var(--coral-soft);color:var(--coral-ink)">${pct(FACTS.director.delta)}</span></div>`;
+
+const DEV = {
+  win: { el: $('win'), lw: 1480, lh: 690, ww: 2.7, flat: [960, 652, 1.22] },
+  phone: { el: $('phone'), lw: 376, lh: 736, ww: 0.62, flat: [1010, 612, 1.18] },
+  split: { el: $('split'), lw: 1728, lh: 700, ww: 3.2, flat: [960, 652, 1.0] },
+};
+DEV.win.el.style.width = DEV.win.lw + 'px'; DEV.win.el.style.height = DEV.win.lh + 'px';
+const PLINTH = 0.06;
+const VISITS = [
+  { dev: DEV.win, at: [3.7, -3.1], show: T.win1, push: T.push1, pull: T.pull1 },
+  { dev: DEV.win, at: [1.6, 4.4], show: T.win2, push: T.push2, pull: T.pull2 },
+  { dev: DEV.phone, at: [6.6, 2.5], show: T.phone, push: T.push3, pull: T.pull3 },
+  { dev: DEV.split, at: [2.2, 3.8], show: T.split, push: T.push4, pull: T.pull4 },
+  { dev: DEV.win, at: [3.4, 3.0], show: T.win3, push: T.push5, pull: T.pull5 },
+];
+const depthOf = (d) => d.ww * d.lh / d.lw;
+function visitU(v, t) {
+  if (t < v.push[0] || t >= v.pull[1]) return 0;
+  if (t < v.push[1]) return EIO3((t - v.push[0]) / (v.push[1] - v.push[0]));
+  if (t < v.pull[0]) return 1;
+  return 1 - EIO3((t - v.pull[0]) / (v.pull[1] - v.pull[0]));
+}
+function projectOn(W, x, y, z) { const s = UNIT * W.z; return [W.cx + (x - y) * C30 * s, W.cy + (x + y) * 0.5 * s - z * s]; }
+function pose(v, W, u) {
+  const d = v.dev;
+  const [hx, hy] = projectOn(W, v.at[0], v.at[1], PLINTH);
+  const kk = UNIT * W.z * d.ww / (d.lw * ISO_FLAT);
+  const [fx, fy, as] = d.flat;
+  const sc = Math.exp(lerp(Math.log(kk), Math.log(as), u));
+  const w = u <= 0 ? 0 : u >= 1 ? 1 : (1 / kk - 1 / sc) / (1 / kk - 1 / as);
+  const r = 1 - EIO3(clamp(u / 0.92));
+  return { k: kk, S: sc, x: lerp(hx, fx, w), y: lerp(hy, fy, w), ax: ISO_X * r, az: ISO_Z * r };
+}
+function applyPose(d, p, o) {
+  if (o <= 0.003) { d.el.style.visibility = 'hidden'; d.el.style.opacity = '0'; return; }
+  d.el.style.visibility = 'visible';
+  d.el.style.opacity = clamp(o).toFixed(3);
+  d.el.style.transform = `translate(${p.x.toFixed(2)}px,${p.y.toFixed(2)}px) scale(${p.S.toFixed(5)}) rotateX(${p.ax.toFixed(3)}deg) rotateZ(${p.az.toFixed(3)}deg) translate(${(-d.lw / 2).toFixed(1)}px,${(-d.lh / 2).toFixed(1)}px)`;
+}
+const showOf = (v, t) => k(t, v.show[0], 0.45, EO3) * (1 - k(t, v.show[1] - 0.45, 0.45, EI3));
+
+const V = {
+  open: look(0, 0, 960, 690, 1),
+  morning: look(1.6, -4.6, 1010, 600, 1.0),
+  memory: look(1.2, 3.0, 980, 770, 1.0),
+  forward: look(2.8, 1.6, 1000, 660, 0.98),
+  leave: look(4.6, 1.0, 1000, 640, 1.08),
+  perm: look(2.0, 2.0, 960, 610, 0.98),
+  conn: look(2.4, 2.0, 980, 640, 1.0),
+  wide: look(1.2, 0.8, 960, 650, 0.92),
+};
+const CAM_KEYS = [
+  [T.sun - 0.3, 1.2, V.morning], [T.pull1[1] + 0.05, 1.0, V.memory], [T.pull2[0] - 0.6, 0.5, V.forward],
+  [T.fwdOut - 0.1, 1.0, V.leave], [T.leaveOut - 0.1, 1.0, V.perm], [T.permOut - 0.1, 1.0, V.conn],
+  [T.pull5[0] - 0.6, 0.5, V.wide], [T.endOut, 1.2, V.open],
+];
+function townCam(t) {
+  let cur = V.open;
+  for (const [at, dur, view] of CAM_KEYS) {
+    if (t <= at) break;
+    const q = EXIO(clamp((t - at) / dur));
+    cur = { cx: lerp(cur.cx, view.cx, q), cy: lerp(cur.cy, view.cy, q), z: lerp(cur.z, view.z, q) };
+  }
+  return cur;
+}
+function solve(t) {
+  const W = townCam(t);
+  const moving = VISITS.find(v => { const u = visitU(v, t); return u > 0 && u < 1; });
+  let world = W;
+  const poses = new Map();
+  if (moving) {
+    const p = pose(moving, W, visitU(moving, t));
+    poses.set(moving, p);
+    const z = W.z * p.S / p.k;
+    world = look(moving.at[0], moving.at[1], p.x, p.y, z, PLINTH);
+  }
+  for (const v of VISITS) if (!poses.has(v)) poses.set(v, pose(v, world, visitU(v, t)));
+  const shown = VISITS.filter(v => t > v.show[0] && t < v.show[1]);
+  const inside = Math.max(0, ...shown.map(v => k(visitU(v, t), 0.3, 0.6, LIN)));
+  const away = Math.max(0, ...shown.map(v => k(visitU(v, t), 0, 0.2, LIN)));
+  return { world, poses, inside, away };
+}
+
+const PULSES = [T.ask, T.isan - 0.2, T.memDrop + 0.4, T.sent + 1.3, T.leave[0] + T.leave[1] + 3.5, T.plug[0] + T.plug[1], T.connected + 4.3];
+function hubTileCenter() {
+  const bob = 0.06 * Math.sin(2 * Math.PI * RT * Math.round(LENGTH / 4.2) / LENGTH);
+  return P(0, 0, 2.05 + bob);
+}
+function drawHub(acc, t) {
+  const pulse = PULSES.reduce((a, pt) => a + bump(t, pt, 0.55) * 0.7, 0);
+  const [gx, gy] = P(0, 0, 0); const s = S();
+  acc.under.push(`<ellipse cx="${f1(gx)}" cy="${f1(gy)}" rx="${f1(s * (4.2 + pulse * 0.6))}" ry="${f1(s * (2.4 + pulse * 0.35))}" fill="url(#gGlow)"/>`);
+  acc.items.push({ d: -0.6, s: shadow(0, 0, 2.8, 2.8, 1) + boxC(0, 0, 0, 2.8, 2.8, 0.24, M.stone, 1) });
+  acc.items.push({ d: -0.5, s: boxC(0, 0, 0.24, 1.6, 1.6, 0.6, M.hub, 1) + isoEllipse(0, 0, 0.84, 0.42, '#fff', 'opacity=".55"') });
+  const [tx, ty] = hubTileCenter();
+  const size = 92 * cam.z * (1 + pulse * 0.1);
+  const [ex, ey] = P(0, 0, 0.84);
+  acc.items.push({ d: 0.2, s: `<ellipse cx="${f1(ex)}" cy="${f1(ey)}" rx="${f1(size * 0.42)}" ry="${f1(size * 0.2)}" fill="rgba(79,70,229,.18)"/>` + logoTile(tx, ty, size, 1) });
+  for (const pt of PULSES) {
+    const p = clamp((t - pt) / 0.9);
+    if (p > 0 && p < 1) acc.under.push(isoEllipse(0, 0, 0.02, 1.2 + p * 2.6, 'none', `stroke="#8b5cf6" stroke-width="3" opacity="${(0.5 * (1 - p)).toFixed(3)}"`));
+  }
+}
+function drawPlinths(acc, t, solved) {
+  for (const v of VISITS) {
+    const o = showOf(v, t);
+    if (o <= 0.01) continue;
+    const d = v.dev, w = d.ww + 0.3, dd = depthOf(d) + 0.3;
+    acc.items.push({ d: v.at[0] + v.at[1] - dd, s: shadow(v.at[0], v.at[1], w, dd, o) + boxC(v.at[0], v.at[1], 0, w, dd, PLINTH, M.stone, o) });
+  }
+}
+
+const SYS = [
+  { n: 'ERP', m: M.indigo, h: 1.9 }, { n: 'CRM', m: M.violet, h: 1.5 }, { n: 'HR', m: M.coral, h: 1.3 },
+  { n: 'Excel', m: M.mint, h: 1.0 }, { n: 'Email', m: M.sky, h: 1.2 }, { n: 'LMS', m: M.amber, h: 1.6 }, { n: 'BI', m: M.violet, h: 1.8 },
+];
+function townSystems(acc, t) {
+  const qb = $('qbox');
+  if (t > T.ask + 0.8) { setUI(qb, 0); return; }
+  const out = k(t, T.fold, 0.9, EI3);
+  SYS.forEach((sy, i) => {
+    const phi = (-90 + 360 / 14 + i * 360 / 7) * Math.PI / 180;
+    const u = 7.2 * Math.cos(phi), v = 7.0 * Math.sin(phi);
+    const rf = 1 - 0.86 * out;
+    const x = (u + v) / 2 * rf, y = (v - u) / 2 * rf;
+    const rs = k(t, 0.2 + i * 0.1, 1.0, EOX);
+    const h = sy.h * rs * (1 - out);
+    const o = clamp(rs * 3) * (1 - clamp(out * 1.3));
+    acc.items.push({ d: x + y, s: building(x, y, 1.1, h, sy.m, o) });
+    const path = [[x, y], [x, 0], [0, 0]];
+    acc.under.push(groundPath(path, clamp(rs * 2) * (1 - clamp(out * 2)) * 0.9));
+    flowDots(acc, path, t, 1.1 + i * 0.05, T.fold + 0.5, { n: 2, speed: 0.8, phase: i * 0.13, color: i % 2 ? '#7c3aed' : '#4f46e5' });
+    const lo = k(t, T.sysAt(i), 0.5) * (1 - k(t, T.fold - 0.1, 0.4, EI3));
+    const [lx, ly] = P(x, y, h + 0.2);
+    label('sys' + i, `<span class="pill sys t32">${sy.n}</span>`, lx, ly, lo, { s: lerp(0.85, 1, k(t, T.sysAt(i), 0.6, EBK)) });
+  });
+  const qo = win(t, T.qIn, 0.6, T.ask, 0.4);
+  const n = typedCount(t, T.q, Q);
+  const caret = (t < T.q[0] + T.q[1] || Math.floor(RT * 2.4) % 2 === 0) ? '<i class="caret"></i>' : '<i class="caret" style="opacity:0"></i>';
+  const qh = Q.slice(0, n).join('') + caret;
+  if (qb._h !== qh) { $('qtext').innerHTML = qh; qb._h = qh; }
+  const [tx, ty] = hubTileCenter();
+  setUI(qb, qo, tx - 305, ty - 196 - 20 * k(t, T.ask, 0.4, EI3), lerp(0.8, 1, k(t, T.qIn, 0.7, EBK)) * lerp(1, 0.5, k(t, T.ask, 0.4, EI3)));
+  if (qo > 0.01) stem(acc, tx, ty - 58, tx, ty - 90, qo);
+}
+
+const REGIONS = [...FACTS.director.rows.filter(r => r.label !== FACTS.spotlight), SPOT];
+const BAR_X = 1.2, BAR_Y0 = -2.3, BAR_STEP = 1.2, BAR_W = 0.86;
+function townMorning(acc, t) {
+  if (t < T.sun - 0.2 || t > T.morningOut + 0.6) return;
+  const exit = k(t, T.morningOut, 0.45, EIO3);
+  const L = t - T.sun + 5.0;
+  const sunK = k(L, 5.0, 1.6, EO3) * (1 - exit);
+  if (sunK > 0.01) {
+    const [sx0, sy0] = P(-1.5, -6.5, 0);
+    const sy = lerp(sy0 + 60, sy0 - 150, sunK);
+    acc.under.unshift(`<circle cx="${f1(sx0)}" cy="${f1(sy)}" r="150" fill="url(#gSun)" opacity="${(0.85 * sunK).toFixed(3)}"/><circle cx="${f1(sx0)}" cy="${f1(sy)}" r="54" fill="#fde68a" opacity="${(0.9 * sunK).toFixed(3)}"/>`);
+  }
+  const scanPath = [[0, -1.4], [0, BAR_Y0 - BAR_STEP * 5 - 0.6]];
+  acc.under.push(groundPath(scanPath, k(L, 5.3, 0.5) * (1 - exit)));
+  flowDots(acc, scanPath, L, 5.5, 7.0, { n: 3, speed: 0.9, color: '#4f46e5' });
+  const hot = REGIONS.length - 1;
+  REGIONS.forEach((r, i) => {
+    const x = BAR_X, y = BAR_Y0 - i * BAR_STEP;
+    const now = amount(r.value), prev = now / (1 + r.delta / 100);
+    const hPrev = prev / MAX_ROW * 2.6, hNow = now / MAX_ROW * 2.6;
+    const rs = k(L, 5.3 + i * 0.09, 0.9, EOX);
+    const drop = k(L, 6.6 + i * 0.04, 0.8, EIO3);
+    const h = lerp(hPrev, hNow, drop) * rs * (1 - exit);
+    const heat = i === hot ? k(L, 6.9, 0.6, EIO3) : 0;
+    const lit = bump(L, 5.6 + i * 0.22, 0.5);
+    acc.items.push({ d: x + y, s: shadow(x, y, BAR_W, BAR_W, rs * (1 - exit)) + boxC(x, y, 0, BAR_W, BAR_W, h, mixMat(M.violet, M.coral, heat), clamp(rs * 3) * (1 - exit)) + (lit > 0.02 ? isoEllipse(x, y, h + 0.01, 0.3, '#fff', `opacity="${(lit * 0.9).toFixed(3)}"`) : '') });
+    if (i === hot) {
+      const ring = (RT % 1.2) / 1.2;
+      if (L > 7.2) acc.under.push(isoEllipse(x, y, 0.02, 0.6 + ring * 0.9, 'none', `stroke="#fb7185" stroke-width="3" opacity="${(0.6 * (1 - ring) * (1 - exit)).toFixed(3)}"`));
+      const lo = k(t, T.isan, 0.6) * (1 - exit);
+      const [ax, ay] = P(x, y, h);
+      stem(acc, ax, ay, ax + 70, ay - 12, lo);
+      label('isan', `<div class="numcard"><span class="t32">${r.label}</span><span class="t44 num" style="color:var(--coral-ink)">${pct(r.delta)}</span></div>`, ax + 70, ay - 12, lo, { ax: 0, ay: 0.5, s: lerp(0.9, 1, k(t, T.isan, 0.6, EBK)) });
+    }
+  });
+  FACTS.drops.forEach((_, j) => {
+    const x = 3.0, y = -7.4 - j * 1.3;
+    const rs = k(t, T.shops + j * 0.12, 0.7, EOX) * (1 - exit);
+    acc.items.push({ d: x + y, s: shadow(x, y, 0.9, 0.9, rs) + boxC(x, y, 0, 0.9, 0.9, 0.6 * rs, M.amber, clamp(rs * 3)) + boxC(x + 0.05, y, 0.6 * rs, 1.0, 1.0, 0.12 * rs, M.coral, clamp(rs * 3)) });
+    const [px, py] = P(x, y, 1.15);
+    const po = k(t, T.shops + 0.4 + j * 0.1, 0.4) * (1 - exit);
+    if (po > 0.01) acc.fx.push(`<g opacity="${po.toFixed(3)}"><circle cx="${f1(px)}" cy="${f1(py)}" r="20" fill="#fff" stroke="#fda4af" stroke-width="2"/><rect x="${f1(px - 7)}" y="${f1(py - 8)}" width="5" height="16" rx="1.5" fill="#e11d48"/><rect x="${f1(px + 2)}" y="${f1(py - 8)}" width="5" height="16" rx="1.5" fill="#e11d48"/></g>`);
+  });
+}
+
+const F3 = [-1.4, 4.2], VAULT = [3.6, 2.6];
+function townMemory(acc, t) {
+  const ids = ['say1', 'memc', 'daychip'];
+  if (t < T.memIn - 0.3 || t > T.push2[1] + 1) { ids.forEach(id => setUI($(id), 0)); return; }
+  const exit = k(t, T.push2[1] + 0.3, 0.4, EI3);
+  const [fx, fy] = F3;
+  const fin = k(t, T.memIn, 0.6, EOX) * (1 - exit);
+  acc.items.push({ d: fx + fy, s: figure(fx, fy, 'indigo', clamp(fin * 3), (1 - fin) * 0.4) });
+  const [hx0, hy0] = figHead(fx, fy);
+  label('f3', `<span class="pill t32">${FACTS.director.role}</span>`, hx0, hy0 - 14, k(t, T.memIn + 0.25, 0.4) * (1 - exit), { s: lerp(0.9, 1, k(t, T.memIn + 0.1, 0.4, EBK)) });
+  const s1 = k(t, T.say1, 0.4, EBK) * (1 - k(t, T.memDrop, 0.35, EI3));
+  setUI($('say1'), s1 > 0.01 ? clamp(s1) : 0, hx0 - 430, hy0 - 178, lerp(0.85, 1, clamp(s1)));
+  const askPath = [[fx + 0.5, fy], [0, fy], [0, 1.4]];
+  acc.under.push(groundPath(askPath, k(t, T.say1 + 0.2, 0.4) * (1 - k(t, T.memc + 0.3, 0.4))));
+  flowDots(acc, askPath, t, T.say1 + 0.2, T.memc + 0.1, { n: 3, speed: 1.4, color: '#4f46e5' });
+  const [tx, ty] = hubTileCenter();
+  const [vx, vy] = P(VAULT[0], VAULT[1], 1.15);
+  const mIn = k(t, T.memc, 0.45, EBK);
+  const drop = k(t, T.memDrop, 0.6, EIO3);
+  const memc = $('memc');
+  const mw = memc.offsetWidth || 470, mh = memc.offsetHeight || 80;
+  setUI(memc, mIn > 0.01 && drop < 1 ? clamp(mIn) * (1 - k(t, T.memDrop + 0.4, 0.2, LIN)) : 0, lerp(tx, vx, drop) - mw / 2, lerp(ty - 130, vy - 10, drop) - mh / 2, lerp(0.8, 1, clamp(mIn)) * lerp(1, 0.25, drop));
+  const vin = k(t, T.memIn + 0.3, 0.6, EOX) * (1 - exit);
+  const glow = k(t, T.memDrop + 0.5, 0.4, EOX) * (1 - exit);
+  const pulse = bump(t, T.memDrop + 0.5, 0.6);
+  if (vin > 0.01) {
+    if (glow > 0.01) acc.under.push(isoEllipse(VAULT[0], VAULT[1], 0.02, 1.25 + pulse * 0.3, 'url(#gGlow)', `opacity="${glow.toFixed(3)}"`));
+    const m = mixMat(M.violet, { t: '#f5f0ff', l: '#c9b5fb', r: '#a98cf6' }, glow);
+    let v = shadow(VAULT[0], VAULT[1], 1.3, 1.3, vin) + boxC(VAULT[0], VAULT[1], 0, 1.3, 1.3, 1.0 * vin, m, clamp(vin * 3));
+    v += `<polyline points="${pts([P(VAULT[0] - 0.35, VAULT[1] - 0.1, vin + 0.01), P(VAULT[0] + 0.35, VAULT[1] - 0.1, vin + 0.01)])}" stroke="#6d28d9" stroke-width="5" stroke-linecap="round" opacity="${(0.6 * clamp(vin * 3)).toFixed(3)}"/>`;
+    if (glow > 0.01) v += isoEllipse(VAULT[0], VAULT[1], vin + 0.02, 0.32 + pulse * 0.1, '#fff', `opacity="${(0.7 * glow).toFixed(3)}"`);
+    acc.items.push({ d: VAULT[0] + VAULT[1], s: v });
+    const [lx, ly] = P(VAULT[0], VAULT[1], 1.3);
+    label('vault', `<span class="pill t26">ความจำ</span>`, lx, ly - 4, vin * k(t, T.memIn + 0.6, 0.4), {});
+  }
+  const day = k(t, T.day + 0.1, 0.6, EIO3);
+  const dayO = k(t, T.day, 0.3, LIN) * (1 - k(t, T.push2[0] + 0.2, 0.3, EI3));
+  if (dayO > 0.01) {
+    const cx = 1500, cy = 300, sx = Math.abs(Math.cos(Math.PI * day));
+    const disc = day > 0.5 ? `<circle cx="0" cy="0" r="34" fill="#fcd34d"/><circle cx="0" cy="0" r="50" fill="#fde68a" opacity=".45"/>` : `<circle cx="0" cy="0" r="34" fill="#a5b4fc"/><circle cx="14" cy="-10" r="28" fill="#faf7f2"/>`;
+    acc.fx.push(`<g opacity="${dayO.toFixed(3)}" transform="translate(${cx},${cy}) scale(${Math.max(sx, 0.02).toFixed(3)},1)">${disc}</g>`);
+  }
+  setUI($('daychip'), dayO, 1150, 262, lerp(0.9, 1, k(t, T.day + 0.2, 0.4, EBK)));
+}
+
+const CEO_AT = [5.4, -1.6];
+function townForward(acc, t, winCenter) {
+  const ids = ['env', 'bell', 'mini'];
+  if (t < T.pull2[0] - 0.5 || t > T.fwdOut + 0.6) { ids.forEach(id => setUI($(id), 0)); return; }
+  const exit = k(t, T.fwdOut, 0.45, EI3);
+  const [RX, RY] = CEO_AT;
+  const rr = k(t, T.pull2[0], 0.7, EOX) * (1 - exit);
+  acc.items.push({ d: RX + RY, s: figure(RX, RY, 'violet', clamp(rr * 3), (1 - rr) * 0.4) });
+  const [fhx, fhy] = figHead(RX, RY);
+  label('ceoF', `<span class="pill t26">${FACTS.ceo.role}</span>`, fhx, fhy - 14, k(t, T.pull2[1] - 0.3, 0.5) * (1 - exit));
+  const fly = clamp((t - T.envFly[0]) / T.envFly[1]);
+  const envO = k(t, T.envFly[0], 0.2, LIN) * (1 - k(t, T.envFly[0] + T.envFly[1] + 0.4, 0.3, LIN));
+  const src = winCenter, tgt = [fhx, fhy - 210];
+  const ctl = [(src[0] + tgt[0]) / 2, Math.min(src[1], tgt[1]) - 220];
+  const e = EIO3(fly);
+  const [exx, eyy] = bez(src, ctl, tgt, e);
+  if (fly > 0 && fly < 1) for (let i = 1; i <= 6; i++) { const [a, b] = bez(src, ctl, tgt, clamp(e - i * 0.045)); acc.fx.push(`<circle cx="${f1(a)}" cy="${f1(b)}" r="${f1(6 - i * 0.6)}" fill="#a78bfa" opacity="${(0.5 - i * 0.07).toFixed(3)}"/>`); }
+  setUI($('env'), envO, exx - 75, eyy - 52, lerp(0.5, 1, k(t, T.envFly[0], 0.4, EBK)) * (1 + bump(t, T.envFly[0] + T.envFly[1], 0.3) * 0.08), ` rotate(${f1(Math.sin(fly * Math.PI) * -8)}deg)`);
+  $('envflap').setAttribute('d', `M6 8 L75 ${f1(lerp(58, -36, k(t, T.envFly[0] + T.envFly[1] + 0.1, 0.35, EIO3)))} L144 8`);
+  const bo = k(t, T.bell, 0.45, EBK) * (1 - exit);
+  setUI($('bell'), bo > 0.01 ? clamp(bo) : 0, fhx + 150, fhy - 110, bo, ` rotate(${f1(Math.sin((t - T.bell) * 18) * 12 * (1 - k(t, T.bell, 0.9, LIN)))}deg)`);
+  $('badge').style.transform = `scale(${k(t, T.bell + 0.2, 0.4, EBK).toFixed(3)})`;
+  const mi = k(t, T.mini, 0.6, EOX) * (1 - exit);
+  setUI($('mini'), mi, fhx - 250, fhy - 300 + (1 - mi) * 40, lerp(0.85, 1, mi));
+}
+
+const REP_AT = [6.4, 1.2], HR_AT = [4.2, -1.6];
+function townLeave(acc, t) {
+  if (t < T.leaveIn - 0.4 || t > T.leaveOut + 0.6) return;
+  const exit = k(t, T.leaveOut, 0.45, EI3);
+  const rin = k(t, T.leaveIn, 0.6, EOX) * (1 - exit);
+  acc.items.push({ d: REP_AT[0] + REP_AT[1], s: figure(REP_AT[0], REP_AT[1], 'coral', clamp(rin * 3), (1 - rin) * 0.4) });
+  const [rx, ry] = figHead(...REP_AT);
+  label('rep7', `<span class="pill t26">${FACTS.rep.role}</span>`, rx, ry - 14, k(t, T.leaveIn + 0.2, 0.5) * (1 - exit));
+  const hr = k(t, T.leaveIn + 0.15, 0.9, EOX) * (1 - exit);
+  acc.items.push({ d: HR_AT[0] + HR_AT[1], s: building(HR_AT[0], HR_AT[1], 1.4, 1.7 * hr, M.coral, clamp(hr * 3)) });
+  const [lx, ly] = P(HR_AT[0], HR_AT[1], 1.7 * hr + 0.2);
+  const ok = k(t, T.approved, 0.5, EBK);
+  label('hr7', `<span class="pill t32">HR${ok > 0.01 ? `<span class="chip ok" style="padding:2px 10px;transform:scale(${ok.toFixed(3)})">${ICON.check}</span>` : ''}</span>`, lx, ly, k(t, T.leaveIn + 0.4, 0.5) * (1 - exit));
+  const toHub = [[REP_AT[0] - 0.4, REP_AT[1]], [REP_AT[0] - 0.4, 0], [1.4, 0]];
+  const toHr = [[1.4, 0], [HR_AT[0], 0], [HR_AT[0], HR_AT[1] + 0.7]];
+  const po = k(t, T.leaveIn + 0.4, 0.5) * (1 - exit);
+  acc.under.push(groundPath(toHub, po), groundPath(toHr, po));
+  flowDots(acc, toHub, t, T.pull3[1] - 0.2, T.approved - 0.1, { n: 3, speed: 1.6, color: '#7c3aed' });
+  flowDots(acc, toHr, t, T.pull3[1] + 0.1, T.approved + 0.3, { n: 3, speed: 1.6, color: '#fb7185' });
+}
+
+const PERM = { ceo: [-1.8, 5.4], rep: [6.0, -1.2], it: [6.0, 3.4], gate: [3.6, -0.6] };
+function townPerm(acc, t) {
+  if (t < T.permIn - 0.4 || t > T.permOut + 0.6) return;
+  const exit = k(t, T.permOut, 0.45, EI3);
+  const fr = i => k(t, T.permIn + 0.1 + i * 0.15, 0.7, EOX) * (1 - exit);
+  const [CX, CY] = PERM.ceo, [RX, RY] = PERM.rep, [IX, IY] = PERM.it, [GX, GY] = PERM.gate;
+  acc.items.push({ d: CX + CY, s: figure(CX, CY, 'indigo', clamp(fr(0) * 3), (1 - fr(0)) * 0.4) });
+  acc.items.push({ d: RX + RY, s: figure(RX, RY, 'coral', clamp(fr(1) * 3), (1 - fr(1)) * 0.4) });
+  acc.items.push({ d: IX + IY, s: figure(IX, IY, 'mint', clamp(fr(2) * 3), (1 - fr(2)) * 0.4) });
+  const ceoPath = [[0, 1.4], [0, CY], [CX + 0.5, CY]];
+  const repPath = [[1.4, 0], [RX, 0], [RX, RY + 0.5]];
+  const po = k(t, T.permIn + 0.3, 0.5) * (1 - exit);
+  acc.under.push(groundPath(ceoPath, po), groundPath(repPath, po));
+  const COLS = ['#4f46e5', '#7c3aed', '#fb7185', '#6366f1', '#a855f7', '#f472b6'];
+  FACTS.ceo.rows.forEach((_, i) => flowDots(acc, ceoPath, t, T.permIn + 0.5 + i * 0.05, T.permOut, { n: 1, speed: 0.55, phase: i / FACTS.ceo.rows.length, color: COLS[i % COLS.length] }));
+  const close = k(t, T.flip, 0.45, EIO3);
+  flowDots(acc, repPath, t, T.permIn + 0.5, T.permOut, { n: 2, speed: 0.55, color: '#fb7185', cut: close > 0.5 ? 0.37 : 2 });
+  let g = boxC(GX, GY - 0.7, 0, 0.2, 0.2, 1.2, M.indigo, po) + boxC(GX, GY + 0.7, 0, 0.2, 0.2, 1.2, M.indigo, po);
+  g += boxC(GX, GY, 0, 0.12, 1.2, 1.0 * close, M.gate, clamp(close * 4) * (1 - exit));
+  g += boxC(GX, GY, 1.2, 0.24, 1.64, 0.14, M.violet, po);
+  acc.items.push({ d: GX + GY, s: g });
+  const [cx, cy] = figHead(CX, CY), [rx, ry] = figHead(RX, RY), [ix, iy] = figHead(IX, IY);
+  label('ceo', `<span class="pill t26">${FACTS.ceo.role}</span>`, cx, cy - 14, fr(0));
+  label('rep', `<span class="pill t26">${FACTS.rep.role}</span>`, rx, ry - 14, fr(1));
+  label('it', `<span class="pill t26">ฝ่ายไอที</span>`, ix, iy - 14, fr(2));
+  const [gx, gy] = P(GX, GY, 1.5);
+  const lk = k(t, T.lock, 0.45, EBK) * (1 - exit);
+  label('lock', `<div class="lockb">${ICON.lock}</div>`, gx, gy - 8, lk, { s: lk });
+}
+
+const IT_AT = [-1.2, 4.0], REG_AT = [5.6, 0];
+function townConnect(acc, t) {
+  if (t < T.connIn - 0.4 || t > T.logo + 0.4) return;
+  const exit = k(t, T.logo - 0.4, 0.5, EI3);
+  const itIn = k(t, T.connIn + 0.1, 0.7, EOX) * (1 - exit);
+  acc.items.push({ d: IT_AT[0] + IT_AT[1], s: figure(IT_AT[0], IT_AT[1], 'mint', clamp(itIn * 3), (1 - itIn) * 0.4) });
+  const [ix, iy] = figHead(...IT_AT);
+  label('it8', `<span class="pill t26">ฝ่ายไอที</span>`, ix, iy - 14, k(t, T.connIn + 0.4, 0.5) * (1 - exit));
+  const slide = k(t, T.connIn + 0.1, 1.0, EOX);
+  const AX = lerp(REG_AT[0] + 4.6, REG_AT[0], slide), AY = REG_AT[1];
+  const ao = clamp(slide * 2.5) * (1 - exit);
+  let s = shadow(AX, AY, 1.5, 1.5, ao) + boxC(AX, AY, 0, 1.5, 1.5, 1.15, M.mint, ao);
+  if (ao > 0.01) for (let r = 0; r < 3; r++) {
+    const za = 0.28 + r * 0.32;
+    s += `<polyline points="${pts([P(AX - 0.55, AY + 0.75, za), P(AX + 0.55, AY + 0.75, za)])}" stroke="#5fae8c" stroke-width="2.4" stroke-linecap="round" opacity="${(0.7 * ao).toFixed(3)}"/>`;
+    s += `<polyline points="${pts([P(AX + 0.75, AY - 0.55, za), P(AX + 0.75, AY + 0.55, za)])}" stroke="#4f9c7c" stroke-width="2.4" stroke-linecap="round" opacity="${(0.5 * ao).toFixed(3)}"/>`;
+  }
+  acc.items.push({ d: AX + AY, s });
+  const plug = k(t, ...T.plug, EIO3);
+  if (plug > 0.01) {
+    const a = P(AX - 0.75, 0, 0.3), b = P(lerp(AX - 0.75, 1.4, plug), 0, 0.3);
+    acc.items.push({ d: 1.5, s: `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="#8b80f0" stroke-width="7" stroke-linecap="round" opacity="${(1 - exit).toFixed(3)}"/>` });
+  }
+  flowDots(acc, [[AX - 0.75, 0], [1.4, 0]], t, T.connected, T.logo - 0.3, { n: 3, speed: 1.0, color: '#059669', z: 0.3 });
+  const [lx, ly] = P(AX, AY, 2.0);
+  const status = t < T.connected
+    ? `<span class="chip soft"><span class="spin" style="transform:rotate(${f1(RT * 400)}deg)"></span>กำลังเชื่อม…</span>`
+    : `<span class="chip ok">${ICON.check}เชื่อมแล้ว</span>`;
+  label('reg', `<div class="stack"><span class="pill t32">ทะเบียนทรัพย์สิน</span>${status}</div>`, lx, ly, k(t, T.connIn + 0.6, 0.5) * (1 - exit), { s: lerp(0.9, 1, k(t, T.connIn + 0.6, 0.5, EBK)) });
+}
+
+const centerIn = (el, root) => { let x = el.offsetWidth / 2, y = el.offsetHeight / 2; for (let e = el; e && e !== root; e = e.offsetParent) { x += e.offsetLeft; y += e.offsetTop; } return [x, y]; };
+let CUR_KEYS = null;
+function measure() {
+  const chat = $('L2').parentElement;
+  const [fx, fy] = centerIn($('fwdBtn'), chat);
+  const pop = $('pop');
+  pop.style.left = f1(fx + $('fwdBtn').offsetWidth / 2 - pop.offsetWidth) + 'px';
+  pop.style.top = f1(fy - $('fwdBtn').offsetHeight / 2 - pop.offsetHeight - 14) + 'px';
+  const [sx, sy] = centerIn($('popSend'), chat), [cx, cy] = centerIn($('cBtn'), chat);
+  CUR_KEYS = {
+    fwd: [[T.fwd + 0.2, fx + 160, fy + 120], [T.fwdClick, fx, fy], [T.fwdClick + 0.5, fx - 30, fy + 30], [T.sendClick, sx, sy], [T.sendClick + 0.6, sx + 90, sy + 140]],
+    conn: [[T.push5[1], cx + 120, cy + 170], [T.connClick, cx, cy], [T.connClick + 0.8, cx + 80, cy + 140]],
+  };
+}
+function cursorAt(keys, t) {
+  if (t <= keys[0][0]) return [keys[0][1], keys[0][2]];
+  for (let i = 1; i < keys.length; i++) if (t < keys[i][0]) { const a = keys[i - 1], b = keys[i], p = EIO3((t - a[0]) / (b[0] - a[0])); return [lerp(a[1], b[1], p), lerp(a[2], b[2], p)]; }
+  const l = keys[keys.length - 1]; return [l[1], l[2]];
+}
+function trendSvg(prog) {
+  const weeks = FACTS.trend.weeks, vals = weeks.map(w => w.value);
+  const lo = Math.min(...vals), hi = Math.max(...vals), n = weeks.length - 1;
+  const pt = i => [12 + i / n * 336, 40 + (hi - vals[i]) / (hi - lo) * 260];
+  const shown = [];
+  for (let i = 0; i <= n; i++) { if (i <= prog) shown.push(pt(i)); else { const q = prog - (i - 1); if (q > 0) { const a = pt(i - 1), b = pt(i); shown.push([lerp(a[0], b[0], q), lerp(a[1], b[1], q)]); } break; } }
+  let s = `<line x1="0" y1="340" x2="360" y2="340" stroke="#eceef4" stroke-width="2"/>`;
+  if (shown.length > 1) {
+    const last = shown[shown.length - 1];
+    s += `<defs><linearGradient id="trg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6366f1" stop-opacity=".22"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></linearGradient></defs>`;
+    s += `<polygon points="${f1(shown[0][0])},340 ${pts(shown)} ${f1(last[0])},340" fill="url(#trg)"/><polyline points="${pts(shown)}" fill="none" stroke="#6366f1" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+  for (let i = 0; i <= n && i <= prog + 1e-6; i++) { const [x, y] = pt(i); s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${i === 0 || i === n ? 9 : 5}" fill="#fff" stroke="${i === n ? '#e11d48' : '#6366f1'}" stroke-width="4"/>`; }
+  return { svg: s, a: pt(0), b: pt(n) };
+}
+const layerOf = (t) => t < T.pull1[1] + 0.5 ? 'L1' : t < T.wall ? 'L2' : t < T.dyn ? 'L3' : t < T.fwd ? 'L4' : t < T.pull2[1] + 0.5 ? 'L2' : t < T.ask5 ? 'L5' : 'L6';
+const LAYER_SWAP = 0.35;
+function screenWin(t) {
+  const swaps = [T.wall, T.dyn, T.fwd, T.ask5];
+  const near = swaps.find(s => Math.abs(t - s) < LAYER_SWAP);
+  const cur = layerOf(t);
+  ['L1', 'L2', 'L3', 'L4', 'L5', 'L6'].forEach(id => {
+    let o = id === cur ? 1 : 0;
+    if (near !== undefined) {
+      const q = clamp((t - near + LAYER_SWAP) / (2 * LAYER_SWAP));
+      if (id === layerOf(near - 0.01)) o = EI3(clamp(1 - 2 * q));
+      if (id === layerOf(near + 0.01)) o = EO3(clamp(2 * q - 1));
+    }
+    fade($(id), o);
+  });
+  const W2_ROLE = FACTS.director.role;
+  const roleHtml = cur === 'L5' || cur === 'L6' ? who('ฝ่ายไอที') : who(W2_ROLE);
+  const ww = $('wwho'); if (ww._h !== roleHtml) { ww.innerHTML = roleHtml; ww._h = roleHtml; }
+  $('sact').style.top = (cur === 'L5' || cur === 'L6' ? 204 : 144) + 'px';
+
+  rise($('w1q'), k(t, T.push1[0] - 0.4, 0.4, EBK), 10);
+  [['w1a', 0], ['w1b', 0.15], ...FACTS.drops.map((_, i) => ['w1r' + i, 0.4 + i * 0.15]), ['w1c', 0.8]].forEach(([id, d]) => rise($(id), k(t, T.card1 + d, 0.45, EOX)));
+
+  const recall = cur === 'L2' && t < T.wall;
+  rise($('w2q'), recall ? k(t, T.ask2, 0.4, EBK) : 1, 10);
+  [['w2a', 0], ['w2b', 0.12], ['w2rows', 0.25], ['w2f', 0.4]].forEach(([id, d]) => rise($(id), recall ? k(t, T.card2 + d, 0.45, EOX) : 1));
+  $('w2tint').style.opacity = (recall ? k(t, T.why - 0.3, 0.4, EIO3) : 1).toFixed(3);
+  const why = recall ? k(t, T.why, 0.45, EBK) : 1;
+  $('w2why').style.opacity = clamp(why).toFixed(3);
+  $('w2why').style.transform = `scale(${lerp(0.7, 1, clamp(why)).toFixed(3)})`;
+  const press = bump(t, T.fwdClick, 0.25);
+  $('fwdBtn').style.transform = `scale(${(1 - press * 0.08).toFixed(3)})`;
+  const pop = k(t, T.pop, 0.4, EBK) * (1 - k(t, T.pull2[0] - 0.1, 0.3, EI3));
+  $('pop').style.opacity = clamp(pop).toFixed(3);
+  $('pop').style.transform = `scale(${lerp(0.85, 1, clamp(pop)).toFixed(3)})`;
+  const sent = k(t, T.sent, 0.25, LIN);
+  $('popSend').style.opacity = (1 - sent).toFixed(3);
+  $('popSend').style.transform = `scale(${(1 - bump(t, T.sendClick, 0.25) * 0.06).toFixed(3)})`;
+  $('popDone').style.opacity = sent.toFixed(3);
+
+  rise($('w3q'), k(t, T.ask3, 0.4, EBK), 10);
+  rise($('w3a'), k(t, T.panes, 0.5, EOX), 24);
+  rise($('w3b'), k(t, T.panes + 0.2, 0.5, EOX), 24);
+  for (let i = 0; i < 11; i++) $('ww' + i).style.opacity = k(t, T.panes + 0.2 + i * 0.07, 0.15, LIN).toFixed(3);
+  FACTS.director.rows.forEach((_, i) => rise($('dr' + i), k(t, T.panes + 0.45 + i * 0.1, 0.4, EOX), 12));
+
+  T.chips.forEach((c, i) => { rise($('w4q' + i), k(t, c, 0.4, EBK), 10); rise($('w4c' + i), k(t, c + 0.15, 0.5, EOX), 24); });
+  const tr = trendSvg(clamp((t - T.chips[1] - 0.4) / 0.9) * (FACTS.trend.weeks.length - 1));
+  const sv = $('trend'); if (sv._h !== tr.svg) { sv.innerHTML = tr.svg; sv._h = tr.svg; }
+  const ta = $('trA'), tb = $('trB');
+  ta.style.left = f1(tr.a[0] - 8) + 'px'; ta.style.top = f1(tr.a[1] - 48) + 'px'; ta.style.opacity = k(t, T.chips[1] + 0.5, 0.3).toFixed(3);
+  tb.style.right = '0px'; tb.style.top = f1(tr.b[1] + 16) + 'px'; tb.style.opacity = k(t, T.chips[1] + 1.3, 0.3).toFixed(3);
+
+  const cPress = bump(t, T.connClick, 0.25);
+  $('cBtn').style.opacity = (1 - k(t, T.connClick + 0.1, 0.2, LIN)).toFixed(3);
+  $('cBtn').style.transform = `scale(${(1 - cPress * 0.08).toFixed(3)})`;
+  $('cIng').style.opacity = (k(t, T.connClick + 0.1, 0.2, LIN) * (1 - k(t, T.connected - 0.2, 0.15, LIN))).toFixed(3);
+  $('cSpin').style.transform = `rotate(${f1(RT * 400)}deg)`;
+  const ok = k(t, T.connected, 0.4, EBK);
+  $('cOk').style.opacity = clamp(ok).toFixed(3);
+  $('cOk').style.transform = `scale(${lerp(0.8, 1, clamp(ok)).toFixed(3)})`;
+  $('cRow').style.boxShadow = `0 0 0 ${f1(3 * k(t, T.connected, 0.4))}px rgba(16,185,129,.35)`;
+  const stepEvery = (T.connected - T.connClick - 0.1) / CONNECT_STEPS.length;
+  CONNECT_STEPS.forEach((_, i) => { const done = t >= T.connClick + 0.1 + (i + 1) * stepEvery, on = !done && (i === 0 || t >= T.connClick + 0.1 + i * stepEvery); $('cs' + i).className = `step t24${done ? ' done' : on ? ' on' : ''}`; });
+  rise($('w6q'), k(t, T.ask5, 0.4, EBK), 10);
+  rise($('w6a'), k(t, T.assets, 0.45, EOX));
+  FACTS.assets.forEach((_, i) => rise($('w6t' + i), k(t, T.assets + 0.2 + i * 0.15, 0.45, EOX)));
+
+  const fwdCur = t > T.fwd && t < T.pull2[0];
+  const connCur = t > T.push5[1] - 0.2 && t < T.ask5;
+  const keys = fwdCur ? CUR_KEYS.fwd : CUR_KEYS.conn;
+  const [cx, cy] = cursorAt(keys, t);
+  const co = fwdCur ? k(t, T.fwd + 0.2, 0.3) * (1 - k(t, T.pull2[0] - 0.4, 0.3)) : connCur ? k(t, T.push5[1], 0.3) * (1 - k(t, T.ask5 - 0.4, 0.3)) : 0;
+  const cur2 = $('wcur');
+  cur2.style.opacity = co.toFixed(3);
+  const clickT = [T.fwdClick, T.sendClick, T.connClick].find(c => t > c - 0.1 && t < c + 0.5);
+  cur2.style.transform = `translate(${f1(cx - 11)}px,${f1(cy - 6)}px) scale(${(1 - (clickT ? bump(t, clickT, 0.25) * 0.12 : 0)).toFixed(3)})`;
+  const rip = $('wrip'), rp = clickT ? clamp((t - clickT) / 0.5) : 0;
+  rip.style.opacity = (rp > 0 && rp < 1 ? 1 - rp : 0).toFixed(3);
+  rip.style.transform = `translate(${f1(cx)}px,${f1(cy)}px) scale(${(0.4 + rp * 0.9).toFixed(3)})`;
+}
+
+function screenPhone(t) {
+  const n0 = typedCount(t, T.leaveQ, LEAVE_Q), n1 = typedCount(t, T.leave, LEAVE);
+  const sent0 = t >= T.leaveQ[0] + T.leaveQ[1] + 0.15, sent1 = t >= T.leave[0] + T.leave[1] + 0.15;
+  const typing = !sent0 ? LEAVE_Q.slice(0, n0).join('') : sent0 && !sent1 ? LEAVE.slice(0, n1).join('') : '';
+  const pt = $('ptyped'); if (pt._h !== typing) { pt.textContent = typing; pt._h = typing; }
+  $('pph').style.display = typing ? 'none' : 'inline';
+  $('pcaret').style.opacity = (typing || Math.floor(RT * 2.4) % 2 === 0) ? '1' : '0';
+  const q0 = $('pq0'), q1 = $('pq1');
+  if (q0._h === undefined) { q0.textContent = LEAVE_Q.join(''); q1.textContent = LEAVE.join(''); q0._h = 1; }
+  const b0 = k(t, T.leaveQ[0] + T.leaveQ[1] + 0.15, 0.35, EBK), b1 = k(t, T.leave[0] + T.leave[1] + 0.15, 0.35, EBK);
+  q0.style.opacity = clamp(b0).toFixed(3); q0.style.transform = `scale(${lerp(0.7, 1, clamp(b0)).toFixed(3)})`;
+  q1.style.opacity = clamp(b1).toFixed(3); q1.style.transform = `scale(${lerp(0.7, 1, clamp(b1)).toFixed(3)})`;
+  rise($('pbal'), k(t, T.bal, 0.45, EOX), 24);
+  FACTS.leaveBalance.forEach((b, i) => { const p = k(t, T.bal + 0.15 + i * 0.15, 0.45, EOX); $('pb' + i).style.opacity = p.toFixed(3); $('pbf' + i).style.width = (b.left / b.entitled * 100 * p).toFixed(1) + '%'; });
+  $('pscroll').style.transform = `translateY(${f1(-k(t, T.scroll, 0.5, EIO3) * 376)}px)`;
+  rise($('plv'), k(t, T.conf, 0.5, EOX), 30);
+  const okP = bump(t, T.press, 0.3);
+  $('plvOk').style.transform = `scale(${(1 - okP * 0.08).toFixed(3)})`;
+  const dn = k(t, T.done, 0.4, EBK);
+  $('plvBtns').style.opacity = (1 - clamp(dn * 2)).toFixed(3);
+  $('plvDone').style.opacity = clamp(dn).toFixed(3);
+  $('plvDone').style.transform = `scale(${lerp(0.85, 1, clamp(dn)).toFixed(3)})`;
+  const taps = [[T.leaveQ[0] + T.leaveQ[1] + 0.05, 307, 650], [T.leave[0] + T.leave[1] + 0.05, 307, 650], [T.press, 243, 507]];
+  const tap = taps.find(([a]) => t > a - 0.25 && t < a + 0.35);
+  const touch = $('ptouch');
+  touch.style.opacity = tap ? (bump(t, tap[0] - 0.25, 0.6) * 0.9).toFixed(3) : '0';
+  if (tap) touch.style.transform = `translate(${tap[1]}px,${tap[2]}px) scale(${(1 - bump(t, tap[0], 0.25) * 0.2).toFixed(3)})`;
+}
+
+function screenSplit(t) {
+  rise($('s6qa'), k(t, T.push4[0] - 0.3, 0.4, EBK), 10);
+  rise($('s6qb'), k(t, T.push4[0] - 0.1, 0.4, EBK), 10);
+  rise($('s6ka'), k(t, T.nums, 0.5, EOX), 24);
+  rise($('s6kb'), k(t, T.nums + 0.2, 0.5, EOX), 24);
+  const flip = k(t, T.flip, 0.35, EIO3);
+  $('knob').style.transform = `translateX(${f1((1 - flip) * 44)}px)`;
+  $('togOff').style.opacity = flip.toFixed(3);
+  const blur = k(t, T.lock - 0.1, 0.5, EIO3);
+  const v = $('s6kbv');
+  v.style.filter = `blur(${f1(blur * 14)}px)`;
+  v.style.opacity = (1 - blur * 0.45).toFixed(3);
+  const lk = k(t, T.lock, 0.45, EBK);
+  $('s6lock').style.opacity = clamp(lk).toFixed(3);
+  $('s6lock').style.transform = `scale(${lerp(0.8, 1, clamp(lk)).toFixed(3)})`;
+  const [cx, cy] = cursorAt([[T.push4[1], 600, 230], [T.flip - 0.05, 618, 128], [T.flip + 0.6, 660, 210]], t);
+  const sc = $('scur');
+  sc.style.opacity = (k(t, T.push4[1], 0.3) * (1 - k(t, T.flip + 0.7, 0.3))).toFixed(3);
+  sc.style.transform = `translate(${f1(cx)}px,${f1(cy)}px) scale(${(1 - bump(t, T.flip - 0.1, 0.25) * 0.12).toFixed(3)})`;
+}
+
+function endCard(t) {
+  const end = $('end');
+  const o = k(t, T.logo, 0.6, EOX) * (1 - k(t, T.endOut, 0.4, EI3));
+  setUI(end, o, 0, 0, 1);
+  const lg = k(t, T.logo, 0.8, EBK), wm = k(t, T.logo + 0.3, 0.7, EOX), tg = k(t, T.logo + 0.6, 0.7, EOX);
+  $('end-logo').style.transform = `scale(${lerp(0.6, 1, lg).toFixed(3)})`;
+  $('end-logo').style.opacity = clamp(lg).toFixed(3);
+  rise($('end-wm'), wm, 24);
+  rise($('end-tag'), tg, 24);
+}
+function headlines(t) {
+  HLS.forEach(([id, inT, outT]) => {
+    let o, y;
+    if (inT < 0 && t > LENGTH / 2) { const re = k(t, T.hlRein, 0.8, EOX); o = re; y = (1 - re) * 36; }
+    else { const a = inT < 0 ? 1 : k(t, inT, 0.75, EOX), b = k(t, outT, 0.4, EI3); o = a * (1 - b); y = (1 - a) * 36 - b * 24; }
+    $(id).style.opacity = clamp(o).toFixed(3);
+    $(id).style.transform = `translateY(${f1(y)}px)`;
+  });
+  $('bug').style.opacity = clamp((1 - k(t, T.logo - 0.2, 0.4, EI3)) + k(t, T.hlRein, 0.6, EOX)).toFixed(3);
+}
+
+const floorEl = $('floor'), wg = $('wg'), fxg = $('fxg');
+function drawFloor() {
+  let s = '';
+  for (let i = -16; i <= 16; i++) {
+    const a = P(i, -16), b = P(i, 16), c = P(-16, i), d = P(16, i);
+    s += `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}"/><line x1="${f1(c[0])}" y1="${f1(c[1])}" x2="${f1(d[0])}" y2="${f1(d[1])}"/>`;
+  }
+  return `<g stroke="#e9e1d4" stroke-width="1.2">${s}</g>`;
+}
+function render(t) {
+  t = clamp(t, 0, LENGTH);
+  RT = t;
+  const solved = solve(t);
+  cam = solved.world;
+  used = new Set();
+  const acc = { items: [], under: [], fx: [] };
+  const winVisit = VISITS.filter(v => v.dev === DEV.win).find(v => t >= v.show[0] - 0.5 && t <= v.show[1] + 0.5) ?? VISITS[0];
+  for (const v of VISITS) {
+    const active = v.dev !== DEV.win || v === winVisit;
+    if (active) applyPose(v.dev, solved.poses.get(v), Math.max(showOf(v, t), visitU(v, t) > 0 ? 1 : 0));
+  }
+  if (!VISITS.some(v => v.dev === DEV.phone && showOf(v, t) > 0.003)) applyPose(DEV.phone, null, 0);
+  if (!VISITS.some(v => v.dev === DEV.split && showOf(v, t) > 0.003)) applyPose(DEV.split, null, 0);
+  drawHub(acc, t);
+  drawPlinths(acc, t, solved);
+  townSystems(acc, t);
+  townMorning(acc, t);
+  townMemory(acc, t);
+  const wp = solved.poses.get(winVisit);
+  townForward(acc, t, [wp.x, wp.y]);
+  townLeave(acc, t);
+  townPerm(acc, t);
+  townConnect(acc, t);
+  screenWin(t);
+  screenPhone(t);
+  screenSplit(t);
+  endCard(t);
+  headlines(t);
+  acc.items.sort((a, b) => a.d - b.d);
+  const wo = (1 - solved.inside) * clamp((1 - k(t, T.logo - 0.3, 0.6, EIO3)) + k(t, T.endOut, 0.9, EIO3));
+  floorEl.innerHTML = drawFloor();
+  floorEl.setAttribute('opacity', clamp(wo).toFixed(3));
+  wg.innerHTML = acc.under.join('') + acc.items.map(i => i.s).join('');
+  wg.setAttribute('opacity', clamp(wo).toFixed(3));
+  fxg.innerHTML = acc.fx.join('');
+  $('fx').style.opacity = (1 - solved.inside).toFixed(3);
+  $('labels').style.opacity = (1 - solved.away).toFixed(3);
+  $('ui').style.opacity = (1 - solved.away).toFixed(3);
+  for (const [id, el] of pool) if (!used.has(id)) el.style.display = 'none';
+}
+
+window.film = { length: LENGTH, render };
+
+const stage = $('stage'), frame = $('frame');
+const capture = /capture/.test(location.search);
+if (capture) document.body.classList.add('capture');
+function fit() {
+  const vw = window.innerWidth, vh = window.innerHeight - (capture ? 0 : 64);
+  const sc = capture ? 1 : Math.min((vw - 32) / 1920, (vh - 24) / 1080);
+  stage.style.transform = `scale(${sc})`;
+  frame.style.width = 1920 * sc + 'px';
+  frame.style.height = 1080 * sc + 'px';
+}
+window.addEventListener('resize', fit);
+fit();
+
+const scrub = $('scrub'), tm = $('tm'), ppi = $('ppi');
+scrub.max = LENGTH;
+let playing = !capture, cur = 0, last = null;
+const speaker = null;
+const drawPP = () => { ppi.innerHTML = playing ? '<rect x="3" y="2" width="3.5" height="12" fill="#fff"/><rect x="9.5" y="2" width="3.5" height="12" fill="#fff"/>' : '<path d="M4 2 L14 8 L4 14 Z" fill="#fff"/>'; };
+const show = () => { render(cur); scrub.value = cur; tm.textContent = cur.toFixed(1) + ' / ' + LENGTH.toFixed(1) + ' s'; };
+$('pp').onclick = () => { playing = !playing; last = null; drawPP(); speaker?.sync(cur, playing); };
+scrub.oninput = () => { cur = parseFloat(scrub.value); show(); speaker?.sync(cur, playing); };
+$('snd').style.display = 'none';
+function loop(ts) {
+  if (playing) { const heard = speaker?.clock(); if (heard != null) cur = heard; else if (last !== null) cur = (cur + (ts - last) / 1000) % LENGTH; last = ts; show(); } else last = null;
+  requestAnimationFrame(loop);
+}
+await Promise.all([
+  document.fonts.load('600 80px Anuphan', 'ภาคไหน'), document.fonts.load('700 48px Anuphan', '1,110.2'),
+  document.fonts.load('600 32px Anuphan', 'ภาค'), document.fonts.load('500 24px Anuphan', 'ภาค'), document.fonts.load('400 30px Anuphan', 'ภาค'),
+]);
+await document.fonts.ready;
+await Promise.all([...document.images].map(img => img.decode().catch(() => null)));
+measure();
+drawPP();
+stage.classList.add('ready');
+const qt = new URLSearchParams(location.search).get('t');
+if (qt !== null) { cur = parseFloat(qt); playing = false; drawPP(); }
+show();
+window.film.ready = true;
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

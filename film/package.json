@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "preview": "bun run preview.ts",
     "render": "bun run render.ts",
     "shots": "bun run shots.ts",
     "check-audio": "bun run check-audio.ts",
