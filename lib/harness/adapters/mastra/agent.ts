@@ -68,13 +68,20 @@ export function studioResourceOf(userId: string): string {
   return `${STUDIO_RESOURCE_PREFIX}${userId}`;
 }
 
-function accessOf(requestContext: RequestContext<UserContext>): AccessContext {
+function personaAccessOf(requestContext: RequestContext<UserContext>): AccessContext | null {
   const userId = requestContext.get(USER_ID_KEY);
   const user = typeof userId === "string" ? findUser(userId) : null;
-  if (!user) throw new Error(`no user ${String(userId)} in the request context`);
+  if (!user) return null;
   const resource = requestContext.get(MASTRA_RESOURCE_ID_KEY);
   if (resource !== undefined && resource !== user.id && resource !== studioResourceOf(user.id)) throw new Error(`memory resource ${String(resource)} does not belong to ${user.id}`);
   return liveAccessFor(user);
+}
+
+const NO_PERSONA: CoreSystemMessage = { role: "system", content: TH.harness.studioPickPersona };
+
+function instructionsOf(requestContext: RequestContext<UserContext>): CoreSystemMessage {
+  const access = personaAccessOf(requestContext);
+  return access ? instructionsFor(access) : NO_PERSONA;
 }
 
 function instructionsFor(access: AccessContext): CoreSystemMessage {
@@ -155,11 +162,11 @@ function buildMastra(): Mastra {
   const agent = new Agent<typeof AGENT_ID, ToolsInput, undefined, UserContext>({
     id: AGENT_ID,
     name: AGENT_ID,
-    instructions: ({ requestContext }) => instructionsFor(accessOf(requestContext)),
+    instructions: ({ requestContext }) => instructionsOf(requestContext),
     model: CHAT_MODELS,
     tools: ({ requestContext }) => {
-      const access = accessOf(requestContext);
-      return mastraTools(toolsForAccess(access), access);
+      const access = personaAccessOf(requestContext);
+      return access ? mastraTools(toolsForAccess(access), access) : {};
     },
     memory: new ChatMemory({ options: { lastMessages: REMEMBERED_MESSAGES, semanticRecall: false, generateTitle: { model: titleModelFor, instructions: TH.harness.titleInstructions } } }),
     inputProcessors: [new HistoryTrim()],

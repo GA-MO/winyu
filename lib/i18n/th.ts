@@ -1725,6 +1725,7 @@ export const TH = {
     },
   },
   harness: {
+    studioPickPersona: "ยังไม่ได้เลือกผู้ใช้ เลือก preset ของผู้ใช้ในช่อง Request context แล้วกด Save ก่อนคุย (pick a persona preset in Request context and press Save)",
     runLimit: (max: number) => `คำถามนี้เรียกเครื่องมือครบ ${max} ครั้งแล้ว สรุปจากที่ได้มา แล้วถามผู้ใช้ว่าจะไปต่ออย่างไร`,
     timeout: (seconds: number) => `เครื่องมือไม่ตอบภายใน ${seconds} วินาที`,
     metricFix: (label: string, id: string, dims: string, compares: string) =>

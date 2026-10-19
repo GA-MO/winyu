@@ -82,4 +82,12 @@ describe("a Studio chat run", () => {
     expect((await threadsListed("studio:u_thana", "u_thana")).map((listed) => listed.id)).toContain(thread);
     expect(await threadsListed("studio:u_thana")).toEqual([]);
   });
+
+  test("without a persona, a run is refused before any model call", async () => {
+    const calls = scripted.calls;
+    scripted.script([{ text: "ไม่ควรถึงตรงนี้" }]);
+    const response = await ask("", crypto.randomUUID(), "ยอดขาย");
+    expect(response.status).toBe(400);
+    expect(scripted.calls).toBe(calls);
+  });
 });

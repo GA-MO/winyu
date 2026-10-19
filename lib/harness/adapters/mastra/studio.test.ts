@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { MASTRA_RESOURCE_ID_KEY, RequestContext } from "@mastra/core/request-context";
+import { TH } from "@/lib/i18n/th";
 import { USER_ID_KEY, studioResourceOf, winyuMastra } from "./agent";
 import { studioApi } from "./studio";
 
@@ -33,6 +34,15 @@ describe("the Studio API", () => {
   test("grants nothing to an unknown persona", async () => {
     const { status } = await execute({ userId: "u_nobody" });
     expect(status).toBeGreaterThanOrEqual(400);
+  });
+
+  test("lists the agent without a persona with a line that says to pick one, and no tools", async () => {
+    const app = await studioApi(STUDIO_ORIGIN);
+    const response = await app.fetch(new Request(AGENT));
+    const body = (await response.json()) as { instructions?: { content?: string }; tools?: Record<string, unknown> };
+    expect(response.status).toBe(200);
+    expect(body.instructions?.content).toBe(TH.harness.studioPickPersona);
+    expect(body.tools).toEqual({});
   });
 
   test("the agent refuses a memory resource that is not the persona's own", async () => {
