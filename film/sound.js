@@ -2,13 +2,18 @@
   const RATE = 48000;
   const PRE = 2;
   const TAIL = 6;
+  const WINDOW = 4;
+  const VOICE_TAIL = 4;
   const CONTROL_RATE = 400;
+  const HIGHPASS_HZ = 90;
+  const SHELF_HZ = 6000;
+  const SHELF_DB = -5;
+  const LOWPASS_HZ = 15000;
+  const MAX_HZ = 12000;
   const CEILING_DB = -1.5;
   const TARGET_LUFS = -16;
   const LUFS_TOLERANCE = 0.05;
   const COMPRESSOR_LOOKAHEAD = 0.006;
-  const TAU = Math.PI * 2;
-  const TOP = { shelfDb: -6, lowpassHz: 11000, maxHz: 6500 };
 
   const hz = (midi) => 440 * 2 ** ((midi - 69) / 12);
   const dbGain = (db) => 10 ** (db / 20);
@@ -38,24 +43,23 @@
     return out;
   }
 
-  function grid(score, length, preset) {
-    const want = score.tempo?.beat ?? 60 / preset.bpm;
-    const bars = Math.max(1, Math.round(length / (4 * want)));
+  function grid(score, length) {
+    const bars = Math.max(1, Math.round(length / (4 * 60 / BOUNCE.bpm)));
     const beat = length / (bars * 4);
-    const phase = wrap(score.tempo?.on ?? 0, beat);
-    return { bars, beat, phase, bpm: 60 / beat, at: (beatIndex) => phase + beatIndex * beat };
+    const phase = wrap(score.tempo.on, beat);
+    return { bars, beat, phase, at: (beatIndex) => phase + beatIndex * beat };
   }
 
-  function noiseBuffer(ctx, seconds, seed) {
-    const buf = ctx.createBuffer(1, Math.ceil(seconds * ctx.sampleRate), ctx.sampleRate);
+  function noiseBuffer(seconds, seed) {
+    const buf = new AudioBuffer({ length: Math.ceil(seconds * RATE), numberOfChannels: 1, sampleRate: RATE });
     const d = buf.getChannelData(0), r = rng(seed);
     for (let i = 0; i < d.length; i++) d[i] = r() * 2 - 1;
     return buf;
   }
 
-  function impulse(ctx, seconds, damp, seed) {
-    const n = Math.ceil(seconds * ctx.sampleRate), pre = Math.round(0.012 * ctx.sampleRate);
-    const buf = ctx.createBuffer(2, n, ctx.sampleRate);
+  function impulse(seconds, damp, seed) {
+    const n = Math.ceil(seconds * RATE), pre = Math.round(0.012 * RATE);
+    const buf = new AudioBuffer({ length: n, numberOfChannels: 2, sampleRate: RATE });
     for (let c = 0; c < 2; c++) {
       const d = buf.getChannelData(c), r = rng(seed + c * 17);
       let lp = 0;
@@ -69,9 +73,10 @@
     return buf;
   }
 
-  function voiceKit(ctx, buses, key, top) {
-    const noise = noiseBuffer(ctx, 4, 7);
-    const T = (t) => t + PRE;
+  /** The voices of one render window: a voice builds its nodes only when it starts inside [from, from + WINDOW). */
+  function voiceKit(ctx, buses, from, noise) {
+    const T = (t) => t + PRE - from;
+    const ours = (at) => at >= 0 && at < WINDOW;
 
     function envelope(param, t, { a = 0.005, h = 0, d = 0.2, peak = 1 }) {
       param.setValueAtTime(0, t);
@@ -93,18 +98,18 @@
         s.gain.value = send;
         p.connect(s).connect(buses.verb);
       }
-      if (source) source.onended = () => [g, p, s].forEach((node) => node?.disconnect());
+      source.onended = () => [g, p, s].forEach((node) => node?.disconnect());
       return g;
     }
 
-    function tone({ t, f, from, glide = 0.03, type = "sine", a, h, d, gain = 0.2, out = buses.sfx, pan = 0, send = 0.2, detune = 0 }) {
-      if (f > top.maxHz) return;
+    function tone({ t, f, from: start, glide = 0.03, type = "sine", a, h, d, gain = 0.2, out = buses.sfx, pan = 0, send = 0.2, detune = 0 }) {
       const at = T(t);
+      if (f > MAX_HZ || !ours(at)) return;
       const o = ctx.createOscillator();
       o.type = type;
       o.detune.value = detune;
-      o.frequency.setValueAtTime(from ?? f, at);
-      if (from) o.frequency.exponentialRampToValueAtTime(f, at + glide);
+      o.frequency.setValueAtTime(start ?? f, at);
+      if (start) o.frequency.exponentialRampToValueAtTime(f, at + glide);
       const g = chain(out, pan, send, o);
       const end = envelope(g.gain, at, { a, h, d, peak: gain });
       o.connect(g);
@@ -112,15 +117,34 @@
       o.stop(end);
     }
 
+    function synth({ t, f, type = "sawtooth", detune = 0, a = 0.003, h = 0, d = 0.2, gain = 0.1, pan = 0, send = 0.2, cut = 4000, cutTo, cutIn = 0.1, q = 0.7, out = buses.sfx }) {
+      const at = T(t);
+      if (!ours(at)) return;
+      const o = ctx.createOscillator(), fl = ctx.createBiquadFilter();
+      o.type = type;
+      o.frequency.value = f;
+      o.detune.value = detune;
+      fl.type = "lowpass";
+      fl.Q.value = q;
+      fl.frequency.setValueAtTime(cut, at);
+      if (cutTo) fl.frequency.exponentialRampToValueAtTime(cutTo, at + cutIn);
+      const g = chain(out, pan, send, o);
+      const end = envelope(g.gain, at, { a, h, d, peak: gain });
+      o.connect(fl).connect(g);
+      o.start(at);
+      o.stop(end);
+    }
+
     function hiss({ t, f, to, q = 1, type = "bandpass", a, h = 0, d, gain = 0.1, out = buses.sfx, pan = 0, send = 0.15, seed = 0 }) {
       const at = T(t);
+      if (!ours(at)) return;
       const src = ctx.createBufferSource();
       src.buffer = noise;
       const bq = ctx.createBiquadFilter();
       bq.type = type;
       bq.Q.value = q;
-      bq.frequency.setValueAtTime(Math.min(f, top.maxHz), at);
-      if (to) bq.frequency.exponentialRampToValueAtTime(Math.min(to, top.maxHz), at + (a ?? 0.005) + h + d);
+      bq.frequency.setValueAtTime(Math.min(f, MAX_HZ), at);
+      if (to) bq.frequency.exponentialRampToValueAtTime(Math.min(to, MAX_HZ), at + (a ?? 0.005) + h + d);
       const g = chain(out, pan, send, src);
       const end = envelope(g.gain, at, { a, h, d, peak: gain });
       src.connect(bq).connect(g);
@@ -128,24 +152,37 @@
       src.stop(end);
     }
 
+    /** A struck note: its partials share one panner and send, and each decays at its own rate. The first partial rings longest. */
     function struck({ t, f, partials, d = 0.6, gain = 0.2, out = buses.sfx, pan = 0, send = 0.25, a = 0.003 }) {
-      partials.forEach(([ratio, level, decay]) => tone({ t, f: f * ratio, a, d: d * decay, gain: gain * level, out, pan, send }));
+      const at = T(t);
+      const audible = partials.filter(([ratio]) => f * ratio <= MAX_HZ);
+      if (!ours(at) || !audible.length) return;
+      const oscs = audible.map(() => ctx.createOscillator());
+      const bus = chain(out, pan, send, oscs[0]);
+      audible.forEach(([ratio, level, decay], i) => {
+        const o = oscs[i], g = ctx.createGain();
+        o.frequency.value = f * ratio;
+        const end = envelope(g.gain, at, { a, d: d * decay, peak: gain * level });
+        o.connect(g).connect(bus);
+        if (i) o.onended = () => g.disconnect();
+        o.start(at);
+        o.stop(end);
+      });
     }
 
-    return { ctx, buses, key, top, tone, hiss, struck, hz, T, envelope, chain };
+    return { key: BOUNCE.key, tone, synth, hiss, struck };
   }
 
-  function automate(param, fn, length) {
-    const span = PRE + length + TAIL, n = Math.ceil(span * CONTROL_RATE) + 1;
+  function automate(param, fn, from, seconds) {
+    const n = Math.ceil(seconds * CONTROL_RATE) + 1;
     const curve = new Float32Array(n);
-    for (let i = 0; i < n; i++) curve[i] = fn(i / CONTROL_RATE - PRE);
-    param.setValueCurveAtTime(curve, 0, span);
+    for (let i = 0; i < n; i++) curve[i] = fn(from + i / CONTROL_RATE - PRE);
+    param.setValueCurveAtTime(curve, 0, (n - 1) / CONTROL_RATE);
   }
 
-  function sectionLevel(sections, mixes, layer, length) {
-    if (!sections.length) return () => 1;
+  function sectionLevel(sections, layer, length) {
     const sorted = [...sections].sort((p, q) => p.at - q.at);
-    const level = (s) => mixes[s.mix]?.[layer] ?? 0;
+    const level = (s) => BOUNCE.mixes[s.mix][layer] ?? 0;
     return (x) => {
       const u = wrap(x, length);
       const next = sorted.findIndex((s) => s.at > u);
@@ -164,11 +201,11 @@
     const since = [], left = [];
     index.forEach((s, b) => (since[b] = b && index[b - 1] === s ? since[b - 1] + 1 : 0));
     for (let b = g.bars - 1; b >= 0; b--) left[b] = b < g.bars - 1 && index[b + 1] === index[b] ? left[b + 1] + 1 : 1;
-    return index.map((s, b) => ({ mix: sorted[s]?.mix, since: since[b], left: left[b] }));
+    return index.map((s, b) => ({ mix: sorted[s].mix, since: since[b], left: left[b] }));
   }
 
-  function duckCurve(cues, sfx, length) {
-    const dips = cues.map((c) => ({ at: c.at, depth: sfx[c.sfx]?.duck ?? 0.3 }));
+  function duckCurve(cues, length) {
+    const dips = cues.map((c) => ({ at: c.at, depth: SFX[c.sfx].duck }));
     return (x) => {
       let g = 1;
       for (const k of [-1, 0, 1]) for (const d of dips) {
@@ -181,91 +218,108 @@
     };
   }
 
-  async function renderPass(score, length) {
-    const preset = MUSIC[score.music];
-    if (!preset) throw new Error(`Unknown music preset "${score.music}"`);
-    const kit = { ...SFX, ...preset.sfx };
-    const unknown = score.cues.filter((c) => !kit[c.sfx]).map((c) => c.sfx);
+  function checkScore(score, length) {
+    const unknown = score.cues.filter((c) => !SFX[c.sfx]).map((c) => c.sfx);
     if (unknown.length) throw new Error(`Unknown sfx: ${[...new Set(unknown)].join(", ")}`);
-    const sections = score.sections ?? [];
-    const noMix = sections.filter((s) => !preset.mixes[s.mix]).map((s) => s.mix);
-    if (noMix.length) throw new Error(`Music preset "${score.music}" has no mix ${[...new Set(noMix)].join(", ")}`);
-    const top = { ...TOP, ...preset.top };
+    const noMix = score.sections.filter((s) => !BOUNCE.mixes[s.mix]).map((s) => s.mix);
+    if (noMix.length) throw new Error(`No mix ${[...new Set(noMix)].join(", ")}`);
+    const outside = score.cues.find((c) => c.at < 0 || c.at >= length);
+    if (outside) throw new Error(`Cue ${outside.sfx} at ${outside.at} is outside the film`);
+  }
 
-    const span = PRE + length + TAIL;
-    const ctx = new OfflineAudioContext({ numberOfChannels: 2, length: Math.ceil(span * RATE), sampleRate: RATE });
+  /** Renders the voices that start in [from, from + WINDOW), with their tails, through the whole mix. The mix is linear, so the windows sum to the full score. */
+  function renderWindow(score, plan, from, seconds) {
+    const ctx = new OfflineAudioContext({ numberOfChannels: 2, length: Math.ceil(seconds * RATE), sampleRate: RATE });
     const master = ctx.createGain();
     const hp1 = ctx.createBiquadFilter(), hp2 = ctx.createBiquadFilter(), shelf = ctx.createBiquadFilter(), lp = ctx.createBiquadFilter();
     hp1.type = hp2.type = "highpass";
-    hp1.frequency.value = hp2.frequency.value = 90;
+    hp1.frequency.value = hp2.frequency.value = HIGHPASS_HZ;
     hp1.Q.value = hp2.Q.value = 0.6;
     shelf.type = "highshelf";
-    shelf.frequency.value = 6000;
-    shelf.gain.value = top.shelfDb;
+    shelf.frequency.value = SHELF_HZ;
+    shelf.gain.value = SHELF_DB;
     lp.type = "lowpass";
-    lp.frequency.value = top.lowpassHz;
+    lp.frequency.value = LOWPASS_HZ;
     lp.Q.value = 0.5;
     master.connect(hp1).connect(hp2).connect(shelf).connect(lp).connect(ctx.destination);
 
     const music = ctx.createGain(), sfx = ctx.createGain(), verb = ctx.createGain();
     const room = ctx.createConvolver();
     room.normalize = true;
-    room.buffer = impulse(ctx, preset.room.seconds, preset.room.damp, 3);
+    room.buffer = plan.room;
     const wet = ctx.createGain();
-    wet.gain.value = preset.room.wet;
+    wet.gain.value = BOUNCE.room.wet;
     verb.connect(room).connect(wet).connect(master);
-    music.gain.value = dbGain(preset.musicDb);
-    sfx.gain.value = dbGain(preset.sfxDb);
+    music.gain.value = dbGain(BOUNCE.musicDb);
+    sfx.gain.value = dbGain(BOUNCE.sfxDb);
     const duck = ctx.createGain();
     duck.gain.value = 0;
-    automate(duck.gain, duckCurve(score.cues, kit, length), length);
+    automate(duck.gain, plan.duck, from, seconds);
     music.connect(duck).connect(master);
     sfx.connect(master);
 
-    const g = grid(score, length, preset);
-    const layers = {};
-    for (const name of Object.keys(preset.layers)) {
+    const buses = {};
+    for (const [name, level] of Object.entries(plan.levels)) {
       const bus = ctx.createGain();
       bus.gain.value = 0;
-      const level = sectionLevel(sections, preset.mixes, name, length);
-      automate(bus.gain, level, length);
+      automate(bus.gain, level, from, seconds);
       bus.connect(music);
-      layers[name] = { bus, level };
+      buses[name] = bus;
     }
 
-    const v = voiceKit(ctx, { music, sfx, verb }, preset.key, top);
+    const v = voiceKit(ctx, { sfx, verb }, from, plan.noise);
+    const { g } = plan;
     const sixteenth = g.beat / 4;
-    const totalSteps = g.bars * 16;
-    const barSection = barSections(sections, g, length);
-    for (let s = 0; s < totalSteps; s++) {
+    for (let s = 0; s < g.bars * 16; s++) {
       const t = g.phase + s * sixteenth;
       const bar = Math.floor(s / 16);
-      const place = { bar, bars: g.bars, ...barSection[bar] };
-      const chord = preset.chord(place);
-      for (const [name, play] of Object.entries(preset.layers)) {
-        const { bus, level } = layers[name];
-        if (level(t) <= 0.001 && level(t + g.beat) <= 0.001) continue;
-        play({ ...v, out: bus }, { ...place, t, step: s % 16, chord, beat: g.beat, seed: s });
+      const place = { bar, bars: g.bars, ...plan.bars[bar] };
+      const chord = BOUNCE.chord(place);
+      for (const [name, play] of Object.entries(BOUNCE.layers)) {
+        const level = plan.levels[name];
+        if (!BOUNCE.mixes[place.mix][name] || (level(t) <= 0.001 && level(t + g.beat) <= 0.001)) continue;
+        play({ ...v, out: buses[name] }, { ...place, t, step: s % 16, chord, beat: g.beat, seed: s });
       }
     }
-    score.cues.forEach((cue, i) => {
-      if (cue.at < 0 || cue.at >= length) throw new Error(`Cue ${cue.sfx} at ${cue.at} is outside the film`);
-      kit[cue.sfx].play(v, { ...cue, step: cue.step ?? 0, seed: i, beat: g.beat });
-    });
-
+    score.cues.forEach((cue, i) => SFX[cue.sfx].play(v, { ...cue, step: cue.step ?? 0, seed: i, beat: g.beat }));
     return ctx.startRendering();
+  }
+
+  async function renderPass(score, length) {
+    checkScore(score, length);
+    const span = PRE + length + TAIL;
+    const g = grid(score, length);
+    const plan = {
+      g,
+      bars: barSections(score.sections, g, length),
+      levels: Object.fromEntries(Object.keys(BOUNCE.layers).map((name) => [name, sectionLevel(score.sections, name, length)])),
+      duck: duckCurve(score.cues, length),
+      noise: noiseBuffer(4, 7),
+      room: impulse(BOUNCE.room.seconds, BOUNCE.room.damp, 3),
+    };
+    const froms = Array.from({ length: Math.ceil(span / WINDOW) }, (_, i) => i * WINDOW);
+    const parts = await Promise.all(froms.map((from) => renderWindow(score, plan, from, Math.min(WINDOW + VOICE_TAIL, span - from))));
+    const n = Math.ceil(span * RATE);
+    return [0, 1].map((c) => {
+      const out = new Float32Array(n);
+      parts.forEach((part, i) => {
+        const d = part.getChannelData(c), at = froms[i] * RATE, end = Math.min(d.length, n - at);
+        for (let j = 0; j < end; j++) out[at + j] += d[j];
+      });
+      return out;
+    });
   }
 
   function fold(raw, length) {
     const n = Math.round(length * RATE), pre = Math.round(PRE * RATE);
-    return [0, 1].map((c) => {
-      const src = raw.getChannelData(c), out = new Float32Array(n);
+    return raw.map((src) => {
+      const out = new Float32Array(n);
       for (let j = 0; j < src.length; j++) out[wrap(j - pre, n)] += src[j];
       return out;
     });
   }
 
-  async function compress(chs, preset) {
+  async function compress(chs) {
     const n = chs[0].length, lookahead = Math.round(COMPRESSOR_LOOKAHEAD * RATE);
     const ctx = new OfflineAudioContext({ numberOfChannels: 2, length: n * 2 + lookahead, sampleRate: RATE });
     const buf = ctx.createBuffer(2, n, RATE);
@@ -274,7 +328,7 @@
     src.buffer = buf;
     src.loop = true;
     const comp = ctx.createDynamicsCompressor();
-    Object.entries(preset.glue).forEach(([k, val]) => (comp[k].value = val));
+    Object.entries(BOUNCE.glue).forEach(([k, val]) => (comp[k].value = val));
     src.connect(comp).connect(ctx.destination);
     src.start(0);
     const out = await ctx.startRendering();
@@ -341,13 +395,9 @@
     return out;
   }
 
-  const peakDb = (chs) => 20 * Math.log10(Math.max(...chs.map((d) => d.reduce((m, v) => Math.max(m, Math.abs(v)), 0))));
-
   /** Renders a score to one seamless loop of `length` seconds: 48 kHz stereo, about −16 LUFS, peaks below −1 dBFS. */
   async function renderScore(score, length) {
-    const preset = MUSIC[score.music];
-    const raw = await renderPass(score, length);
-    let chs = await compress(fold(raw, length), preset);
+    let chs = await compress(fold(await renderPass(score, length), length));
     for (let pass = 0, miss = TARGET_LUFS - lufs(chs); pass < 4 && Math.abs(miss) > LUFS_TOLERANCE; pass++, miss = TARGET_LUFS - lufs(chs)) {
       const gain = dbGain(miss);
       chs = limit(chs.map((d) => d.map((s) => s * gain)), CEILING_DB);
@@ -357,209 +407,17 @@
     return buffer;
   }
 
-  const PIANO = [[1, 1, 1], [2.002, 0.42, 0.7], [3.006, 0.2, 0.45], [4.012, 0.1, 0.3], [5.02, 0.05, 0.2]];
-  const CELESTA = [[1, 1, 1], [4.01, 0.18, 0.35], [8.03, 0.04, 0.15]];
-  const GLASS = [[1, 1, 1], [2.76, 0.28, 0.5], [5.4, 0.08, 0.25]];
-
-  const SUITE_CHORDS = [
-    { root: 39, pad: [55, 58, 62, 65] },
-    { root: 43, pad: [58, 62, 65, 67] },
-    { root: 44, pad: [56, 60, 62, 67] },
-    { root: 46, pad: [56, 60, 63, 65] },
-  ];
-
-  function piano(v, { t, f, gain, pan = 0, out, d = 2.6 }) {
-    v.struck({ t, f, partials: PIANO, d, gain, out, pan, send: 0.35, a: 0.004 });
-    v.hiss({ t, f: 900, type: "lowpass", a: 0.001, d: 0.02, gain: gain * 0.15, out, pan, send: 0.05, seed: t * 7 });
-  }
-
-  const SUITE = {
-    bpm: 79,
-    key: { root: 63, scale: [0, 2, 4, 7, 9] },
-    room: { seconds: 3.2, damp: 0.5, wet: 0.75 },
-    musicDb: -2,
-    sfxDb: 0,
-    glue: { threshold: -22, knee: 14, ratio: 2, attack: 0.02, release: 0.35 },
-    chord: ({ bar, bars }) => (bar >= bars - 2 ? SUITE_CHORDS[2 + bar - (bars - 2)] : SUITE_CHORDS[bar % 4]),
-    mixes: {
-      open: { pad: 0.9, piano: 0.7, air: 0.6 },
-      flow: { pad: 0.7, piano: 0.85, bass: 0.9, pulse: 0.7, brush: 0.6 },
-      lift: { pad: 0.7, piano: 0.85, bass: 0.9, pulse: 0.8, brush: 0.7, shimmer: 0.7 },
-      calm: { pad: 0.8, piano: 0.6, bass: 0.7, air: 0.4 },
-      hold: { pad: 0.45 },
-      end: { pad: 0.9, piano: 0.6, shimmer: 0.6, air: 0.5 },
-    },
-    layers: {
-      pad(v, n) {
-        if (n.step !== 0) return;
-        const dur = n.beat * 4;
-        n.chord.pad.forEach((m, i) => [-9, 9].forEach((cents) => {
-          const at = v.T(n.t), o = v.ctx.createOscillator(), f = v.ctx.createBiquadFilter();
-          o.type = i % 2 ? "triangle" : "sawtooth";
-          o.frequency.value = hz(m);
-          o.detune.value = cents;
-          f.type = "lowpass";
-          f.frequency.setValueAtTime(600, at);
-          f.frequency.linearRampToValueAtTime(1500, at + dur * 0.55);
-          f.frequency.linearRampToValueAtTime(700, at + dur + 1.2);
-          f.Q.value = 0.3;
-          const g = v.chain(v.out, Math.sign(cents) * (0.35 + 0.12 * i), 0.6);
-          g.gain.setValueAtTime(0, at);
-          g.gain.linearRampToValueAtTime(0.018, at + 0.9);
-          g.gain.setValueAtTime(0.018, at + dur - 0.1);
-          g.gain.linearRampToValueAtTime(0, at + dur + 1.2);
-          o.connect(f).connect(g);
-          o.start(at);
-          o.stop(at + dur + 1.25);
-        }));
-      },
-      piano(v, n) {
-        const pattern = { 0: [0, 1], 4: [2, 0.7], 6: [3, 0.6], 10: [1, 0.65], 12: [2, 0.55] };
-        const p = pattern[n.step];
-        if (!p) return;
-        const m = n.chord.pad[p[0]] + 12;
-        piano(v, { t: n.t, f: hz(m), gain: 0.085 * p[1], pan: (p[0] - 1.5) * 0.18, out: v.out });
-      },
-      bass(v, n) {
-        const hits = { 0: 0.95, 10: 0.5 };
-        const level = hits[n.step];
-        if (!level) return;
-        const at = v.T(n.t), dur = n.step === 0 ? n.beat * 2.4 : n.beat * 1.2;
-        const o = v.ctx.createOscillator(), f = v.ctx.createBiquadFilter();
-        o.type = "triangle";
-        o.frequency.value = hz(n.chord.root);
-        f.type = "lowpass";
-        f.frequency.value = 520;
-        const g = v.chain(v.out, 0, 0);
-        const end = v.envelope(g.gain, at, { a: 0.03, h: dur * 0.5, d: dur, peak: 0.2 * level });
-        o.connect(f).connect(g);
-        o.start(at);
-        o.stop(end);
-      },
-      pulse(v, n) {
-        if (n.step % 2) return;
-        const m = n.chord.pad[(n.step / 2) % 2 ? 1 : 0];
-        const at = v.T(n.t), o = v.ctx.createOscillator(), f = v.ctx.createBiquadFilter();
-        o.type = "square";
-        o.frequency.value = hz(m);
-        f.type = "lowpass";
-        f.frequency.setValueAtTime(1100, at);
-        f.frequency.exponentialRampToValueAtTime(380, at + 0.12);
-        const g = v.chain(v.out, n.step % 4 ? 0.25 : -0.25, 0.2);
-        const end = v.envelope(g.gain, at, { a: 0.004, d: 0.16, peak: n.step % 8 ? 0.016 : 0.024 });
-        o.connect(f).connect(g);
-        o.start(at);
-        o.stop(end);
-      },
-      brush(v, n) {
-        if (n.step !== 4 && n.step !== 12) return;
-        v.hiss({ t: n.t, f: 2600, type: "bandpass", q: 0.6, a: 0.02, d: 0.22, gain: 0.03, out: v.out, pan: 0.15, send: 0.3, seed: n.seed });
-      },
-      shimmer(v, n) {
-        if (n.step !== 0 && n.step !== 8) return;
-        const m = n.chord.pad[n.step ? 3 : 2] + 24;
-        v.struck({ t: n.t, f: hz(m), partials: CELESTA, d: 1.8, gain: 0.035, out: v.out, pan: n.step ? 0.4 : -0.4, send: 0.6 });
-      },
-      air(v, n) {
-        if (n.step !== 0) return;
-        v.hiss({ t: n.t, f: 2400, to: 3400, q: 0.5, a: n.beat * 2, h: 0, d: n.beat * 2.5, gain: 0.012, out: v.out, pan: 0, send: 0.4, seed: n.seed });
-      },
-    },
-  };
-
   const degree = (key, step, octave = 0) => hz(key.root + 12 * (octave + Math.floor(step / key.scale.length)) + key.scale[wrap(step, key.scale.length)]);
 
-  const SFX = {
-    key: { duck: 0, play: (v, c) => {
-      const r = rng(c.seed + 5);
-      v.hiss({ t: c.at, f: 1300 + 500 * r(), q: 1.4, a: 0.002, d: 0.022, gain: 0.04 + 0.02 * r(), pan: (r() - 0.5) * 0.5, send: 0.05, seed: c.seed });
-      v.tone({ t: c.at, f: 210 + 30 * r(), a: 0.002, d: 0.018, gain: 0.03, send: 0 });
-    } },
-    send: { duck: 0.25, play: (v, c) => {
-      v.hiss({ t: c.at, f: 700, to: 2600, q: 0.9, a: 0.05, d: 0.2, gain: 0.05, pan: 0.15, send: 0.3, seed: c.seed });
-      piano(v, { t: c.at + 0.04, f: degree(v.key, 3, 1), gain: 0.08, pan: 0.15 });
-    } },
-    click: { duck: 0.08, play: (v, c) => {
-      v.hiss({ t: c.at, f: 2200, q: 1.8, a: 0.001, d: 0.01, gain: 0.05, send: 0.03, seed: c.seed });
-    } },
-    air: { duck: 0, play: (v, c) => {
-      v.hiss({ t: c.at, f: 1800, to: 3600, q: 0.6, a: 1.2, d: 1.4, gain: 0.045, send: 0.6, seed: c.seed });
-      [4, 7].forEach((s, i) => v.struck({ t: c.at + 0.5 + i * 0.35, f: degree(v.key, s, 1), partials: CELESTA, d: 1.6, gain: 0.025, pan: i ? 0.4 : -0.4, send: 0.7 }));
-    } },
-    notify: { duck: 0.35, play: (v, c) => {
-      [[4, 0], [7, 0.13]].forEach(([s, dt]) => v.struck({ t: c.at + dt, f: degree(v.key, s, 0), partials: GLASS, d: 1.3, gain: 0.12, pan: 0.2, send: 0.45 }));
-    } },
-    memory: { duck: 0.45, play: (v, c) => {
-      [3, 5, 7].forEach((s, i) => v.struck({ t: c.at + i * c.beat / 2, f: degree(v.key, s, 0), partials: CELESTA, d: 1.8, gain: 0.13, pan: (i - 1) * 0.25, send: 0.55 }));
-      piano(v, { t: c.at + c.beat, f: degree(v.key, 0, -1), gain: 0.07, d: 3 });
-    } },
-    echo: { duck: 0.2, play: (v, c) => {
-      [5, 7].forEach((s, i) => v.struck({ t: c.at + i * c.beat / 2, f: degree(v.key, s, 0), partials: CELESTA, d: 1.4, gain: 0.06, pan: 0.3, send: 0.6 }));
-    } },
-    dawn: { duck: 0.15, play: (v, c) => {
-      v.hiss({ t: c.at - 0.3, f: 1200, to: 3200, q: 0.7, a: 0.3, d: 0.6, gain: 0.04, send: 0.5, seed: c.seed });
-      v.struck({ t: c.at, f: degree(v.key, 2, 1), partials: GLASS, d: 1.6, gain: 0.05, pan: -0.2, send: 0.6 });
-    } },
-    pop: { duck: 0.06, play: (v, c) => {
-      const f = degree(v.key, c.step, 1);
-      v.tone({ t: c.at, f, from: f * 0.75, glide: 0.03, a: 0.003, d: 0.12, gain: 0.05, pan: ((c.step % 3) - 1) * 0.25, send: 0.3 });
-    } },
-    glow: { duck: 0.1, play: (v, c) => {
-      v.struck({ t: c.at, f: degree(v.key, c.step % 2 ? 2 : 0, 0), partials: GLASS, d: 1.1, gain: 0.05, send: 0.5 });
-    } },
-    whoosh: { duck: 0.25, play: (v, c) => {
-      v.hiss({ t: c.at - 0.45, f: 320, to: 2200, q: 0.7, a: 0.4, d: 0.3, gain: 0.1, pan: 0.3, send: 0.35, seed: c.seed });
-    } },
-    bell: { duck: 0.4, play: (v, c) => {
-      v.struck({ t: c.at, f: degree(v.key, 0, 1), partials: [[1, 1, 1], [2.4, 0.35, 0.6], [3.9, 0.15, 0.35], [5.1, 0.06, 0.2]], d: 1.8, gain: 0.15, pan: 0.25, send: 0.5 });
-      v.struck({ t: c.at + 0.12, f: degree(v.key, 2, 1), partials: GLASS, d: 1.2, gain: 0.06, pan: 0.25, send: 0.5 });
-    } },
-    lock: { duck: 0.3, play: (v, c) => {
-      v.hiss({ t: c.at, f: 2600, q: 2.2, a: 0.001, d: 0.008, gain: 0.09, send: 0.1, seed: c.seed });
-      v.hiss({ t: c.at + 0.045, f: 1900, q: 2.2, a: 0.001, d: 0.012, gain: 0.1, send: 0.1, seed: c.seed + 3 });
-      v.tone({ t: c.at + 0.045, f: 175, from: 230, glide: 0.02, a: 0.002, d: 0.07, gain: 0.12, send: 0.05 });
-    } },
-    plug: { duck: 0.3, play: (v, c) => {
-      v.tone({ t: c.at, f: 95, from: 140, glide: 0.04, a: 0.002, d: 0.1, gain: 0.2, send: 0.05 });
-      v.hiss({ t: c.at, f: 1500, q: 1.5, a: 0.001, d: 0.014, gain: 0.1, send: 0.08, seed: c.seed });
-      v.tone({ t: c.at + 0.01, f: degree(v.key, 4, 0), a: 0.002, d: 0.09, gain: 0.04, send: 0.2 });
-    } },
-    toggle: { duck: 0.25, play: (v, c) => {
-      v.hiss({ t: c.at, f: 2400, q: 2, a: 0.001, d: 0.01, gain: 0.07, send: 0.05, seed: c.seed });
-      [[2, 0.02], [4, 0.09]].forEach(([s, dt]) => v.tone({ t: c.at + dt, f: degree(v.key, s, 1), a: 0.003, d: 0.12, gain: 0.06, send: 0.3 }));
-    } },
-    sting: { duck: 0.6, play: (v, c) => {
-      [0, 2, 4, 1].forEach((s, i) => piano(v, { t: c.at + i * 0.012, f: degree(v.key, s, i === 3 ? 1 : 0), gain: 0.1, d: 3.5, pan: (i - 1.5) * 0.2 }));
-      v.struck({ t: c.at + c.beat / 2, f: degree(v.key, 0, 2), partials: GLASS, d: 2.2, gain: 0.06, send: 0.7 });
-      v.hiss({ t: c.at - 0.6, f: 900, to: 3000, q: 0.6, a: 0.58, d: 0.5, gain: 0.04, send: 0.5, seed: c.seed });
-    } },
-  };
-
   const SPARKLE = [[1, 1, 1], [2.01, 0.3, 0.5], [3.02, 0.12, 0.3], [5.4, 0.05, 0.15]];
-  const GLASS_BRIGHT = [[1, 1, 1], [2.76, 0.35, 0.5], [5.4, 0.15, 0.3], [8.9, 0.06, 0.15]];
+  const GLASS = [[1, 1, 1], [2.76, 0.35, 0.5], [5.4, 0.15, 0.3], [8.9, 0.06, 0.15]];
+  const BELL = [[1, 1, 1], [2.4, 0.4, 0.6], [3.9, 0.2, 0.4], [5.1, 0.1, 0.25], [8.2, 0.05, 0.15]];
   const GLOCK = [[1, 1, 1], [2.76, 0.32, 0.45], [5.4, 0.12, 0.22], [8.93, 0.05, 0.1]];
   const EP = [[1, 1, 1], [2, 0.32, 0.45], [3, 0.1, 0.25], [7.02, 0.04, 0.08]];
-  const BRIGHT_TOP = { shelfDb: 0, lowpassHz: 15000, maxHz: 12000 };
-
-  function synth(v, { t, f, type = "sawtooth", detune = 0, a = 0.003, h = 0, d = 0.2, gain = 0.1, pan = 0, send = 0.2, cut = 4000, cutTo, cutIn = 0.1, q = 0.7, out = v.out ?? v.buses.sfx }) {
-    const at = v.T(t), o = v.ctx.createOscillator(), fl = v.ctx.createBiquadFilter();
-    o.type = type;
-    o.frequency.value = f;
-    o.detune.value = detune;
-    fl.type = "lowpass";
-    fl.Q.value = q;
-    fl.frequency.setValueAtTime(cut, at);
-    if (cutTo) fl.frequency.exponentialRampToValueAtTime(cutTo, at + cutIn);
-    const g = v.chain(out, pan, send, o);
-    const end = v.envelope(g.gain, at, { a, h, d, peak: gain });
-    o.connect(fl).connect(g);
-    o.start(at);
-    o.stop(end);
-  }
 
   /** Each section plays its own progression from its first bar; a build is aligned to its last bar so it always lands on the dominant. */
   const progression = (chords, table) => ({ mix, since, left }) => {
-    const names = table[mix] ?? Object.values(table)[0];
+    const names = table[mix];
     const i = mix === "build" ? names.length - 1 - ((left - 1) % names.length) : since % names.length;
     return chords[names[i]];
   };
@@ -567,7 +425,7 @@
   const hookNote = (phrase, n, fromBar = 0) => phrase.get(((n.since + fromBar) % 4) * 16 + n.step);
   const rise = (n) => (n.since + n.step / 16) / (n.since + n.left);
 
-  const BRIGHT = {
+  const SFX = {
     key: { duck: 0, play: (v, c) => {
       const r = rng(c.seed + 5);
       v.hiss({ t: c.at, f: 3600 + 1200 * r(), q: 1.6, a: 0.0006, d: 0.012, gain: 0.05 + 0.02 * r(), pan: (r() - 0.5) * 0.5, send: 0.04, seed: c.seed });
@@ -588,23 +446,23 @@
       v.hiss({ t: c.at, f: 8500, q: 0.8, a: 0.12, d: 0.5, gain: 0.025, send: 0.5, seed: c.seed });
     } },
     notify: { duck: 0.3, play: (v, c) => {
-      [[4, 0], [7, 0.1]].forEach(([s, dt]) => v.struck({ t: c.at + dt, f: degree(v.key, s, 0), partials: GLASS_BRIGHT, d: 0.9, gain: 0.11, pan: 0.2, send: 0.35 }));
+      [[4, 0], [7, 0.1]].forEach(([s, dt]) => v.struck({ t: c.at + dt, f: degree(v.key, s, 0), partials: GLASS, d: 0.9, gain: 0.11, pan: 0.2, send: 0.35 }));
     } },
     dawn: { duck: 0.15, play: (v, c) => {
       v.hiss({ t: c.at - 0.3, f: 1500, to: 7000, q: 0.8, a: 0.3, d: 0.5, gain: 0.045, send: 0.45, seed: c.seed });
-      v.struck({ t: c.at, f: degree(v.key, 2, 1), partials: GLASS_BRIGHT, d: 1.2, gain: 0.06, pan: -0.2, send: 0.5 });
+      v.struck({ t: c.at, f: degree(v.key, 2, 1), partials: GLASS, d: 1.2, gain: 0.06, pan: -0.2, send: 0.5 });
     } },
     whoosh: { duck: 0.3, play: (v, c) => {
       v.hiss({ t: c.at - 0.35, f: 500, to: 8000, q: 0.9, a: 0.3, d: 0.22, gain: 0.12, pan: -0.25, send: 0.3, seed: c.seed });
       v.hiss({ t: c.at - 0.3, f: 700, to: 8000, q: 1.4, a: 0.28, d: 0.18, gain: 0.06, pan: 0.35, send: 0.3, seed: c.seed + 4 });
     } },
     bell: { duck: 0.45, play: (v, c) => {
-      v.struck({ t: c.at, f: degree(v.key, 0, 1), partials: [[1, 1, 1], [2.4, 0.4, 0.6], [3.9, 0.2, 0.4], [5.1, 0.1, 0.25], [8.2, 0.05, 0.15]], d: 1.5, gain: 0.15, pan: 0.25, send: 0.45 });
+      v.struck({ t: c.at, f: degree(v.key, 0, 1), partials: BELL, d: 1.5, gain: 0.15, pan: 0.25, send: 0.45 });
       [4, 5, 6, 7, 9].forEach((s, i) => v.struck({ t: c.at + 0.06 + i * 0.04, f: degree(v.key, s, 1), partials: SPARKLE, d: 0.5, gain: 0.03, pan: 0.4 - i * 0.15, send: 0.5 }));
       v.hiss({ t: c.at + 0.02, f: 9000, q: 0.9, a: 0.01, d: 0.6, gain: 0.018, send: 0.5, seed: c.seed });
     } },
     glow: { duck: 0.25, play: (v, c) => {
-      [[2, 0], [4, 0.09]].forEach(([s, dt]) => v.struck({ t: c.at + dt, f: degree(v.key, s, 1), partials: GLASS_BRIGHT, d: 0.9, gain: 0.08, pan: 0.15, send: 0.4 }));
+      [[2, 0], [4, 0.09]].forEach(([s, dt]) => v.struck({ t: c.at + dt, f: degree(v.key, s, 1), partials: GLASS, d: 0.9, gain: 0.08, pan: 0.15, send: 0.4 }));
     } },
     lock: { duck: 0.3, play: (v, c) => {
       v.hiss({ t: c.at, f: 3600, q: 2, a: 0.0005, d: 0.006, gain: 0.12, send: 0.08, seed: c.seed });
@@ -615,22 +473,41 @@
     plug: { duck: 0.3, play: (v, c) => {
       v.tone({ t: c.at, f: 110, from: 180, glide: 0.04, a: 0.001, d: 0.1, gain: 0.25, send: 0.05 });
       v.hiss({ t: c.at, f: 3000, q: 1.5, a: 0.0005, d: 0.01, gain: 0.1, send: 0.08, seed: c.seed });
-      synth(v, { t: c.at + 0.01, f: degree(v.key, 4, 1), type: "square", a: 0.002, d: 0.12, gain: 0.04, cut: 6000, cutTo: 1500, cutIn: 0.1, send: 0.25 });
+      v.synth({ t: c.at + 0.01, f: degree(v.key, 4, 1), type: "square", a: 0.002, d: 0.12, gain: 0.04, cut: 6000, cutTo: 1500, cutIn: 0.1, send: 0.25 });
     } },
     toggle: { duck: 0.3, play: (v, c) => {
       v.hiss({ t: c.at, f: 3200, q: 2, a: 0.0005, d: 0.008, gain: 0.09, send: 0.05, seed: c.seed });
-      [2, 3, 4, 5].forEach((s, i) => v.struck({ t: c.at + 0.02 + i * 0.055, f: degree(v.key, s, 1), partials: GLASS_BRIGHT, d: 0.5, gain: 0.06, pan: (i - 1.5) * 0.2, send: 0.35 }));
+      [2, 3, 4, 5].forEach((s, i) => v.struck({ t: c.at + 0.02 + i * 0.055, f: degree(v.key, s, 1), partials: GLASS, d: 0.5, gain: 0.06, pan: (i - 1.5) * 0.2, send: 0.35 }));
     } },
     hit: { duck: 0.6, play: (v, c) => {
       const big = !c.step, swell = 2 * c.beat;
       v.hiss({ t: c.at - swell, f: 600, to: 6000, q: 1.2, a: swell - 0.02, d: 0.05, gain: big ? 0.05 : 0.03, send: 0.35, seed: c.seed });
-      v.tone({ t: c.at, f: 62, from: 200, glide: 0.08, a: 0.001, h: 0.04, d: 0.35, gain: big ? 0.45 : 0.28, send: 0.1 });
-      v.hiss({ t: c.at, f: 2500, type: "lowpass", a: 0.001, d: 0.1, gain: big ? 0.2 : 0.12, send: 0.35, seed: c.seed + 1 });
+      v.tone({ t: c.at, f: 62, from: 200, glide: 0.08, a: 0.001, h: 0.04, d: 0.35, gain: big ? 0.36 : 0.22, send: 0.1 });
+      v.hiss({ t: c.at, f: 2500, type: "lowpass", a: 0.001, d: 0.1, gain: big ? 0.15 : 0.09, send: 0.35, seed: c.seed + 1 });
       v.hiss({ t: c.at, f: 7500, q: 0.6, a: 0.004, d: big ? 0.9 : 0.4, gain: big ? 0.022 : 0.014, pan: 0.1, send: 0.5, seed: c.seed + 2 });
+    } },
+    pop: { duck: 0.08, play: (v, c) => {
+      const f = degree(v.key, c.step, 1), pan = ((c.step % 3) - 1) * 0.3;
+      v.tone({ t: c.at, f, from: f * 0.45, glide: 0.03, a: 0.002, d: 0.08, gain: 0.08, pan, send: 0.2 });
+      v.struck({ t: c.at + 0.015, f: f * 2, partials: GLOCK, d: 0.25, gain: 0.025, pan, send: 0.3 });
+    } },
+    memory: { duck: 0.5, play: (v, c) => {
+      [degree(v.key, 2, 1), degree(v.key, 3, 1), degree(v.key, 0, 2)].forEach((f, i) => {
+        v.struck({ t: c.at + i * c.beat / 2, f, partials: GLOCK, d: i === 2 ? 1.6 : 0.9, gain: 0.13, pan: (i - 1) * 0.25, send: 0.45 });
+        v.struck({ t: c.at + i * c.beat / 2, f: f / 2, partials: EP, d: 0.8, gain: 0.06, pan: (i - 1) * 0.25, send: 0.3 });
+      });
+      v.tone({ t: c.at + c.beat, f: degree(v.key, 0, 2), from: degree(v.key, 0, 1), glide: 0.06, a: 0.003, d: 0.12, gain: 0.04, send: 0.3 });
+    } },
+    echo: { duck: 0.25, play: (v, c) => {
+      [degree(v.key, 3, 1), degree(v.key, 0, 2)].forEach((f, i) => v.struck({ t: c.at + i * c.beat / 2, f, partials: GLOCK, d: 0.9, gain: 0.07, pan: 0.25, send: 0.5 }));
+    } },
+    sting: { duck: 0.4, play: (v, c) => {
+      [0, 1, 2, 3, 4, 5].forEach((s, i) => v.struck({ t: c.at + i * 0.06, f: degree(v.key, s, 1), partials: GLOCK, d: 1.0, gain: 0.07, pan: (i - 2.5) * 0.15, send: 0.45 }));
+      v.tone({ t: c.at + 0.4, f: degree(v.key, 0, 2), from: degree(v.key, 0, 0), glide: 0.12, a: 0.003, d: 0.15, gain: 0.05, send: 0.3 });
     } },
   };
 
-  const BOUNCE_CHORDS = {
+  const CHORDS = {
     F: { root: 41, pad: [57, 60, 65, 69] },
     Bb9: { root: 46, pad: [58, 62, 65, 72] },
     Am: { root: 45, pad: [57, 60, 64, 69] },
@@ -643,7 +520,7 @@
     Am7: { root: 45, pad: [55, 57, 60, 64] },
     C7sus: { root: 48, pad: [58, 60, 65, 67] },
   };
-  const BOUNCE_PROG = {
+  const PROGRESSIONS = {
     intro: ["F", "Bb9"],
     drive: ["F", "Am", "Bb", "C"],
     hold: ["F", "Bb9"],
@@ -653,17 +530,18 @@
     peak: ["F", "D7", "Gm7", "C7"],
     end: ["Bb", "C7"],
   };
-  const BOUNCE_HOOK = hook([
+  const HOOK = hook([
     [0, 84, 1], [2, 81, 1], [3, 84, 1], [6, 86, 2], [8, 84, 1], [10, 81, 2], [12, 77, 2], [14, 79, 1],
     [16, 78, 2], [18, 81, 1], [19, 84, 2], [22, 86, 2], [24, 84, 1], [26, 81, 4],
     [32, 79, 1], [34, 82, 1], [35, 86, 2], [38, 82, 1], [40, 79, 2], [43, 77, 1], [44, 79, 2], [46, 82, 1],
     [48, 84, 2], [51, 82, 1], [52, 79, 2], [54, 76, 2], [56, 79, 1], [58, 82, 1], [60, 84, 4],
   ]);
-  const BOUNCE_HOOK_FROM = { end: 2 };
-  const BOUNCE_KICK = { groove: { 0: 1, 3: 0.5, 8: 0.9, 10: 0.65 }, break: { 0: 0.8, 10: 0.45 } };
-  const BOUNCE_SLAP = { 0: [0, 1], 3: [12, 0.75, true], 6: [0, 0.55], 8: [7, 0.7], 10: [12, 0.85, true], 13: [0, 0.5], 14: [7, 0.45] };
-  const BOUNCE_CHANK = { 2: 1, 6: 0.75, 9: 0.5, 10: 1, 14: 0.75 };
-  const BOUNCE_KEYS = { 0: 1, 6: 0.7 };
+  const HOOK_FROM = { end: 2 };
+  const KICK = { groove: { 0: 1, 3: 0.5, 8: 0.9, 10: 0.65 }, break: { 0: 0.8, 10: 0.45 } };
+  const SNAP = { groove: new Set([4, 12]), break: new Set([8]) };
+  const SLAP = { 0: [0, 1], 3: [12, 0.75, true], 6: [0, 0.55], 8: [7, 0.7], 10: [12, 0.85, true], 13: [0, 0.5], 14: [7, 0.45] };
+  const CHANK = { 2: 1, 6: 0.75, 9: 0.5, 10: 1, 14: 0.75 };
+  const KEYS = { 0: 1, 6: 0.7 };
   const SWING = 0.24;
   const swung = (n) => n.t + (n.step % 2 ? SWING * n.beat / 4 : 0);
 
@@ -671,16 +549,15 @@
     bpm: 108,
     key: { root: 65, scale: [0, 2, 4, 7, 9] },
     room: { seconds: 1.3, damp: 0.4, wet: 0.4 },
-    top: BRIGHT_TOP,
     musicDb: -3,
     sfxDb: 0,
-    glue: { threshold: -22, knee: 8, ratio: 3, attack: 0.004, release: 0.14 },
-    chord: progression(BOUNCE_CHORDS, BOUNCE_PROG),
+    glue: { threshold: -26, knee: 8, ratio: 4, attack: 0.002, release: 0.12 },
+    chord: progression(CHORDS, PROGRESSIONS),
     mixes: {
-      intro: { kick: 0.85, snap: 0.75, jingle: 0.6, bass: 0.9, chank: 0.75 },
+      intro: { kick: 0.8, snap: 0.7, bass: 0.85, chank: 0.6 },
       drive: { kick: 1, snap: 0.9, jingle: 0.85, bass: 1, chank: 0.85, keys: 0.6 },
-      hold: { keys: 0.75, jingle: 0.3 },
-      full: { kick: 1, snap: 1, jingle: 1, bass: 1, chank: 0.85, keys: 0.55, glock: 1, bubbles: 0.8 },
+      hold: {},
+      full: { kick: 1, snap: 1, jingle: 0.9, bass: 1, chank: 0.85, keys: 0.55, glock: 0.85 },
       break: { kick: 0.7, snap: 0.7, jingle: 0.4, bass: 0.75, chank: 0.5, keys: 0.85 },
       build: { kick: 1, snap: 0.9, jingle: 1, bass: 1, chank: 0.8, keys: 0.5, roll: 1 },
       peak: { kick: 1, snap: 1, jingle: 1, bass: 1, chank: 0.9, keys: 0.55, glock: 1, bubbles: 1 },
@@ -688,7 +565,7 @@
     },
     layers: {
       kick(v, n) {
-        const l = (BOUNCE_KICK[n.mix] ?? BOUNCE_KICK.groove)[n.step];
+        const l = (KICK[n.mix] ?? KICK.groove)[n.step];
         if (!l) return;
         const t = swung(n);
         v.tone({ t, f: 95, from: 230, glide: 0.035, a: 0.001, h: 0.01, d: 0.14, gain: 0.36 * l, out: v.out, send: 0 });
@@ -696,7 +573,7 @@
         v.hiss({ t, f: 3000, q: 1.2, a: 0.0005, d: 0.006, gain: 0.07 * l, out: v.out, send: 0, seed: n.seed });
       },
       snap(v, n) {
-        if (n.step !== 4 && n.step !== 12) return;
+        if (!(SNAP[n.mix] ?? SNAP.groove).has(n.step)) return;
         v.hiss({ t: n.t, f: 2700, q: 2.4, a: 0.0008, d: 0.03, gain: 0.24, out: v.out, pan: 0.12, send: 0.3, seed: n.seed });
         v.hiss({ t: n.t + 0.002, f: 6200, q: 1.4, a: 0.0005, d: 0.014, gain: 0.05, out: v.out, pan: 0.12, send: 0.2, seed: n.seed + 1 });
         v.tone({ t: n.t, f: 1500, from: 2300, glide: 0.006, a: 0.0005, d: 0.012, gain: 0.03, out: v.out, pan: 0.12, send: 0.1 });
@@ -706,27 +583,27 @@
         v.hiss({ t: swung(n), f: 8600, q: 2.2, a: 0.001, d: accent === 1 ? 0.07 : 0.032, gain: 0.03 * accent, out: v.out, pan: -0.35, send: 0.08, seed: n.seed });
       },
       bass(v, n) {
-        const h = BOUNCE_SLAP[n.step];
+        const h = SLAP[n.step];
         if (!h) return;
         const [interval, l, slap] = h, t = swung(n), f = hz(n.chord.root + interval);
-        synth(v, { t, f, type: "sawtooth", a: 0.002, h: 0.035, d: 0.13, gain: 0.15 * l, cut: slap ? 3400 : 1900, cutTo: 260, cutIn: 0.08, q: 3, send: 0.02 });
-        synth(v, { t, f, type: "square", a: 0.002, h: 0.035, d: 0.13, gain: 0.06 * l, cut: 800, send: 0 });
+        v.synth({ t, f, type: "sawtooth", a: 0.002, h: 0.035, d: 0.13, gain: 0.15 * l, cut: slap ? 3400 : 1900, cutTo: 260, cutIn: 0.08, q: 3, send: 0.02, out: v.out });
+        v.synth({ t, f, type: "square", a: 0.002, h: 0.035, d: 0.13, gain: 0.06 * l, cut: 800, send: 0, out: v.out });
         if (slap) v.hiss({ t, f: 2600, q: 1.5, a: 0.0005, d: 0.006, gain: 0.07 * l, out: v.out, send: 0, seed: n.seed });
       },
       chank(v, n) {
-        const l = BOUNCE_CHANK[n.step];
+        const l = CHANK[n.step];
         if (!l) return;
         const t = swung(n);
-        n.chord.pad.slice(1).forEach((m, i) => synth(v, { t: t + i * 0.005, f: hz(m + 12), a: 0.001, d: 0.05, gain: 0.032 * l, cut: 3000, cutTo: 900, cutIn: 0.04, q: 1.6, pan: 0.32, send: 0.1 }));
+        n.chord.pad.slice(1).forEach((m, i) => v.synth({ t: t + i * 0.005, f: hz(m + 12), a: 0.001, d: 0.05, gain: 0.032 * l, cut: 3000, cutTo: 900, cutIn: 0.04, q: 1.6, pan: 0.32, send: 0.1, out: v.out }));
         v.hiss({ t, f: 3800, q: 1.2, a: 0.0005, d: 0.008, gain: 0.03 * l, out: v.out, pan: 0.32, send: 0.05, seed: n.seed });
       },
       keys(v, n) {
-        const l = BOUNCE_KEYS[n.step];
+        const l = KEYS[n.step];
         if (!l) return;
         n.chord.pad.forEach((m, i) => v.struck({ t: swung(n) + i * 0.003, f: hz(m), partials: EP, d: 0.5, gain: 0.045 * l, out: v.out, pan: -0.25 + i * 0.05, send: 0.25 }));
       },
       glock(v, n) {
-        const note = hookNote(BOUNCE_HOOK, n, BOUNCE_HOOK_FROM[n.mix]);
+        const note = hookNote(HOOK, n, HOOK_FROM[n.mix]);
         if (note) v.struck({ t: swung(n), f: hz(note.m), partials: GLOCK, d: 0.9, gain: 0.075, out: v.out, pan: 0.15, send: 0.35 });
       },
       bubbles(v, n) {
@@ -742,33 +619,7 @@
         v.hiss({ t: swung(n), f: 2700, q: 2, a: 0.0008, d: 0.02, gain: 0.04 + 0.08 * r, out: v.out, send: 0.2, seed: n.seed });
       },
     },
-    sfx: {
-      ...BRIGHT,
-      pop: { duck: 0.08, play: (v, c) => {
-        const f = degree(v.key, c.step, 1), pan = ((c.step % 3) - 1) * 0.3;
-        v.tone({ t: c.at, f, from: f * 0.45, glide: 0.03, a: 0.002, d: 0.08, gain: 0.08, pan, send: 0.2 });
-        v.struck({ t: c.at + 0.015, f: f * 2, partials: GLOCK, d: 0.25, gain: 0.025, pan, send: 0.3 });
-      } },
-      memory: { duck: 0.5, play: (v, c) => {
-        [degree(v.key, 2, 1), degree(v.key, 3, 1), degree(v.key, 0, 2)].forEach((f, i) => {
-          v.struck({ t: c.at + i * c.beat / 2, f, partials: GLOCK, d: i === 2 ? 1.6 : 0.9, gain: 0.13, pan: (i - 1) * 0.25, send: 0.45 });
-          v.struck({ t: c.at + i * c.beat / 2, f: f / 2, partials: EP, d: 0.8, gain: 0.06, pan: (i - 1) * 0.25, send: 0.3 });
-        });
-        v.tone({ t: c.at + c.beat, f: degree(v.key, 0, 2), from: degree(v.key, 0, 1), glide: 0.06, a: 0.003, d: 0.12, gain: 0.04, send: 0.3 });
-      } },
-      echo: { duck: 0.25, play: (v, c) => {
-        [degree(v.key, 3, 1), degree(v.key, 0, 2)].forEach((f, i) => v.struck({ t: c.at + i * c.beat / 2, f, partials: GLOCK, d: 0.9, gain: 0.07, pan: 0.25, send: 0.5 }));
-      } },
-      sting: { duck: 0.4, play: (v, c) => {
-        [0, 1, 2, 3, 4, 5].forEach((s, i) => v.struck({ t: c.at + i * 0.06, f: degree(v.key, s, 1), partials: GLOCK, d: 1.0, gain: 0.07, pan: (i - 2.5) * 0.15, send: 0.45 }));
-        v.tone({ t: c.at + 0.4, f: degree(v.key, 0, 2), from: degree(v.key, 0, 0), glide: 0.12, a: 0.003, d: 0.15, gain: 0.05, send: 0.3 });
-      } },
-    },
   };
-
-  const MUSIC = { suite: SUITE, bounce: BOUNCE };
-
-  const tempoOf = (score, length) => { const g = grid(score, length, MUSIC[score.music]); return { bpm: g.bpm, bars: g.bars, phase: g.phase }; };
 
   /** Plays a film's rendered score in step with its clock: start from t, restart on seek, stop on pause, loop with the film. */
   function speaker(film) {
@@ -799,5 +650,5 @@
     };
   }
 
-  window.Sound = { renderScore, steps, tempoOf, lufs, peakDb, speaker };
+  window.Sound = { renderScore, steps, lufs, speaker };
 })();

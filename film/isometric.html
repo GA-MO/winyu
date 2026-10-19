@@ -292,10 +292,9 @@ const W6 = makeWarp(W5.E, 24.0, 29.4, [[26.15, 1.0], [28.3, 1.2]], 0.1, 0.4);
 const W7 = makeWarp(W6.E, 29.0, 33.5, [[32.75, 1.2]], 0.1, 0.45);
 const W8 = makeWarp(W7.E, 33.5, 37.5, [[35.3, 0.6]], 0.1, 0);
 const LENGTH = Math.round(W8.E * 30) / 30;
-const MOMENT = {ask: 4.85, sun: 5.0, isan: 7.15, shops: 8.6, dq: 0.2, say1: 0.8, memc: 1.75, day: 4.1, say2: 6.1, why: 8.3, swap: 10.6, fwdPress: 15.1, envArrive: 16.8, bell: 16.85, leaveAsk: 19.95, press: 27.5, approved: 28.85, lock: 27.7, plug: [30.5, 0.4], connected: 31.25, logo: 33.95};
+const MOMENT = {ask: 4.85, sun: 5.0, isan: 7.15, shops: 8.6, dq: 0.2, say1: 0.8, memc: 1.75, memDrop: 3.5, day: 4.1, say2: 6.1, why: 8.3, swap: 10.6, fwdPress: 15.1, envArrive: 16.8, bell: 16.85, leaveAsk: 19.95, press: 27.5, approved: 28.85, lock: 27.7, plug: [30.5, 0.4], connected: 31.25, logo: 33.95};
 const SYS_AT = (i) => 0.6 + i * 0.1;
 const TYPED = {q: [3.5, 0.8], leaveQ: [20.05, 0.55], leave: [24.45, 0.85]};
-const BEAT = 0.76;
 const BREATH = 0.3;
 let RT = 0;
 const UNIT = 72;
@@ -837,12 +836,12 @@ function endCard(t) {
 }
 
 const HLS = [['hl0', -1, W1.r(4.6)], ['hl1', W2.r(5.15), W3.S - 0.3], ['hl2', W3.r(0.15), W3.r(12.0)], ['hlA', WD.r(0.15), WD.r(3.65)], ['hlB', WD.r(4.0), WD.r(8.65)], ['hl3', W4.S + 0.05, W4.r(18.6)], ['hl4', W5.r(19.15), W5.r(30.6)], ['hl5', W6.r(24.15), W6.r(29.0)], ['hl6', W7.r(29.15), W7.r(33.1)]];
+const HL_REIN = W8.r(36.55);
 function headlines(t) {
-  const reIn = W8.r(36.55);
   HLS.forEach(([id, inT, outT]) => {
     const el = $(id);
     let o, y;
-    if (inT < 0 && t > LENGTH / 2) { const re = k(t, reIn, 0.8, EOX); o = re; y = (1 - re) * 36; }
+    if (inT < 0 && t > LENGTH / 2) { const re = k(t, HL_REIN, 0.8, EOX); o = re; y = (1 - re) * 36; }
     else {
       const a = inT < 0 ? 1 : k(t, inT, 0.75, EOX), b = k(t, outT, 0.4, EI3);
       o = a * (1 - b); y = (1 - a) * 36 - b * 24;
@@ -850,7 +849,7 @@ function headlines(t) {
     el.style.opacity = clamp(o).toFixed(3);
     el.style.transform = `translateY(${f1(y)}px)`;
   });
-  const bo = (1 - k(t, W8.r(33.5), 0.4, EI3)) + k(t, reIn, 0.6, EOX);
+  const bo = (1 - k(t, W8.r(33.5), 0.4, EI3)) + k(t, HL_REIN, 0.6, EOX);
   $('bug').style.opacity = clamp(bo).toFixed(3);
 }
 
@@ -962,7 +961,7 @@ function beat3n(acc, t) {
   const [tx, ty] = hubTileCenter();
   const [vx, vy] = P(VAULT[0], VAULT[1], 1.15);
   const mIn = k(t, MOMENT.memc, 0.45, EBK);
-  const drop = k(t, 3.5, 0.6, EIO3);
+  const drop = k(t, MOMENT.memDrop, 0.6, EIO3);
   const memc = $('memc');
   const mw = memc.offsetWidth || 470, mh = memc.offsetHeight || 80;
   const mx = lerp(tx, vx, drop), my = lerp(ty - 120, vy - 10, drop);
@@ -1050,20 +1049,21 @@ function render(t) {
 
 const keysIn = (count, from, to) => Sound.steps(count, from - 0.01, to + 0.01, 0.05).map((at, i) => ({at, sfx: 'key', step: i}));
 const typedKeys = (W, span, G) => keysIn((t) => typedCount(W(t), span, G), W.r(span[0]), W.r(span[0] + span[1]));
+const HITS = [...HLS.filter(([, inT]) => inT >= 0).map(([id, at]) => ({at, step: id === 'hlB' ? 1 : 0})), {at: HL_REIN, step: 0}, {at: W8.r(MOMENT.logo), step: 0}];
 const SOUND = {
-  music: 'suite',
-  tempo: {beat: BEAT, on: W3.r(MOMENT.memc)},
+  tempo: {on: W3.r(MOMENT.memc)},
   sections: [
-    {at: 0, mix: 'open', fade: 1.2},
-    {at: W2.r(MOMENT.sun), mix: 'calm', fade: 1.0},
-    {at: W3.S, mix: 'flow', fade: 0.8},
+    {at: 0, mix: 'intro'},
+    {at: W2.r(MOMENT.sun), mix: 'drive'},
     {at: W3.r(MOMENT.memc) - BREATH, mix: 'hold', fade: 0.2},
-    {at: W3.r(MOMENT.memc + 1.0), mix: 'flow', fade: 0.8},
-    {at: WD.S, mix: 'lift', fade: 0.8},
-    {at: W4.S, mix: 'flow', fade: 0.8},
-    {at: W5.S, mix: 'calm', fade: 0.8},
-    {at: W6.S, mix: 'flow', fade: 0.8},
-    {at: W8.r(MOMENT.logo), mix: 'end', fade: 1.2},
+    {at: W3.r(MOMENT.memDrop), mix: 'drive', fade: 0.3},
+    {at: WD.S, mix: 'full'},
+    {at: W4.S, mix: 'drive'},
+    {at: W5.S, mix: 'break'},
+    {at: W5.r(TYPED.leave[0] + TYPED.leave[1]), mix: 'build'},
+    {at: W6.S, mix: 'full'},
+    {at: W7.S, mix: 'peak'},
+    {at: W8.r(MOMENT.logo), mix: 'end'},
   ],
   cues: [
     ...SYS.map((_, i) => ({at: W1.r(SYS_AT(i)), sfx: 'pop', step: i})),
@@ -1092,6 +1092,7 @@ const SOUND = {
     {at: W7.r(MOMENT.plug[0] + MOMENT.plug[1]), sfx: 'plug'},
     {at: W7.r(MOMENT.connected), sfx: 'toggle'},
     {at: W8.r(MOMENT.logo), sfx: 'sting'},
+    ...HITS.map((hit) => ({...hit, sfx: 'hit'})),
   ],
 };
 let rendered = null;
