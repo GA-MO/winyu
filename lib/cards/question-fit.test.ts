@@ -705,3 +705,14 @@ describe("a year against target draws the running month it counts (AI-304)", () 
     expect(card.body.labels[card.body.labels.length - 1]).toBe("พ.ย. 69");
   });
 });
+
+describe("headcount over the year reads as a level, like a balance (round 12)", () => {
+  const query: MetricQuery = { metric: "headcount", dims: ["month"], filters: {}, range: { from: "2026-01-01", to: AS_OF }, grain: "month", compare: "prev_period", limit: null, period: "ytd" };
+  const rows: MetricRow[] = [4438, 4447, 4455, 4465, 4473, 4482, 4492, 4502, 4511, 4521, 4530].map((value, index) => ({ month: `2026-${String(index + 1).padStart(2, "0")}`, value }));
+  const card = presentCard({ title: "t", query, result: resultOf(query, rows, { value: "4,483 คน", aggregate: "average" }) });
+
+  test("'จำนวนพนักงานรายเดือนปีนี้เปลี่ยนไปยังไง' leads with January to November, not October against September", () => {
+    expect(card.hero).toMatchObject({ label: "พ.ย. 69", value: "4,530 คน", detail: "เทียบ ม.ค. 69", trend: "up" });
+    expect(card.verdict).toBe("ตั้งแต่ ม.ค. 69 เพิ่มขึ้นจาก 4,438 คน เป็น 4,530 คน");
+  });
+});

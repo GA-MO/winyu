@@ -172,6 +172,8 @@ export const RATIO_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([
 
 /** Metrics that are a level on a day (a stock, a balance owed): a period reads its last day, never the sum of its days, so the month still running is as whole as any other. */
 export const SNAPSHOT_METRICS: ReadonlySet<MetricId> = new Set<MetricId>(["stock_on_hand", "days_of_cover", "ar_overdue"]);
+/** Metrics a card reads as a level over time rather than a flow: the balances and headcount, whose series keeps its running month and leads with where it went over the range (R15). */
+export const LEVEL_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([...SNAPSHOT_METRICS, "headcount"]);
 
 /** Metrics the warehouse keeps by month, so a comparison window is read in whole calendar months. */
 export const MONTHLY_METRICS: ReadonlySet<MetricId> = new Set<MetricId>([

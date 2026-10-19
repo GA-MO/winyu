@@ -1,5 +1,5 @@
 import type { Coverage, MetricId, MetricPeriod, MetricQuery, MetricQueryInput, RecentSpan } from "@/lib/contracts";
-import { SNAPSHOT_METRICS } from "@/lib/semantic/metrics";
+import { LEVEL_METRICS } from "@/lib/semantic/metrics";
 import { DATA_AS_OF, DATA_START, addDays, businessToday, daysBetween, formatThaiDate, monthEnd, monthStart } from "@/lib/data/dates";
 import { TH } from "@/lib/i18n/th";
 
@@ -72,10 +72,10 @@ function lastBucketStart(unit: "week" | "month", asOf: string, keepsRunning: boo
   return unit === "week" ? addDays(start, -DAYS_PER_WEEK) : monthStart(asOf, 1);
 }
 
-/** The last `count` days, weeks or months: days end on the last data day; weeks and months are whole ones, ending with the last one the data has finished, or with the running one for a balance (stock, cover, overdue), which a card keeps, so the card draws exactly `count` buckets. */
+/** The last `count` days, weeks or months: days end on the last data day; weeks and months are whole ones, ending with the last one the data has finished, or with the running one for a level (stock, cover, overdue, headcount), which a card keeps, so the card draws exactly `count` buckets. */
 export function recentWindow(span: RecentSpan, metric: MetricId, asOf: string = DATA_AS_OF): Range {
   if (span.unit === "day") return { from: addDays(asOf, 1 - span.count), to: asOf };
-  const start = lastBucketStart(span.unit, asOf, SNAPSHOT_METRICS.has(metric));
+  const start = lastBucketStart(span.unit, asOf, LEVEL_METRICS.has(metric));
   if (span.unit === "week") return { from: addDays(start, -DAYS_PER_WEEK * (span.count - 1)), to: earlier(addDays(start, DAYS_PER_WEEK - 1), asOf) };
   return { from: monthStart(start, span.count - 1), to: earlier(monthEnd(start), asOf) };
 }

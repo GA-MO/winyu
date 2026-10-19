@@ -1,5 +1,5 @@
 import { mainCauses } from "@/lib/engine/gap";
-import { HEADLINE_OWN_ROW, metricDef, SNAPSHOT_METRICS } from "@/lib/semantic/metrics";
+import { HEADLINE_OWN_ROW, LEVEL_METRICS, metricDef, SNAPSHOT_METRICS } from "@/lib/semantic/metrics";
 import { stepOf } from "./step";
 import { withoutSharedLead } from "./words";
 import { WIDGET_KINDS, type Alert, type AlertRow, type Dim, type Forecast, type Grain, type MetricId, type MetricQuery, type MetricResult, type MetricRow, type MonthEndProjection, type NextAction, type UnderLine, type WidgetKind } from "@/lib/contracts";
@@ -210,7 +210,7 @@ function endsOnFullBucket(grain: MetricQuery["grain"], lastDay: string): boolean
 
 /** The bucket still running on the last day the data holds: a range asked to the end of September is still cut on the day the data stops. A balance has none: it is read on its last day, so the month still running is as whole as any other (AI-206). */
 function partialBucketKey(query: MetricQuery, asOf: string): string | null {
-  if (SNAPSHOT_METRICS.has(query.metric)) return null;
+  if (LEVEL_METRICS.has(query.metric)) return null;
   const lastDay = query.range.to < asOf ? query.range.to : asOf;
   if (endsOnFullBucket(query.grain, lastDay)) return null;
   if (query.grain === "month") return monthKeyOfIso(lastDay);
@@ -763,9 +763,9 @@ const MIN_RANGE_BUCKETS = 3;
 
 type RangeMove = { first: string; firstValue: number; latestValue: number; deltaPercent: number; deltaPoints: number };
 
-/** R15: where a balance (overdue money, stock, cover) went over a series of 3 or more buckets with no breakdown, first bucket to latest; null for a flow, a target, a breakdown, a short or flat series. */
+/** R15: where a level (overdue money, stock, cover, headcount) went over a series of 3 or more buckets with no breakdown, first bucket to latest; null for a flow, a target, a breakdown, a short or flat series. */
 function balanceRangeOf(query: MetricQuery, rows: MetricRow[]): RangeMove | null {
-  if (!SNAPSHOT_METRICS.has(query.metric) || query.compare === "target" || !timeDimOf(query) || groupDimsOf(query).length > 0 || rows.length < MIN_RANGE_BUCKETS) return null;
+  if (!LEVEL_METRICS.has(query.metric) || query.compare === "target" || !timeDimOf(query) || groupDimsOf(query).length > 0 || rows.length < MIN_RANGE_BUCKETS) return null;
   const firstValue = numericOf(rows[0], "value");
   const latestValue = numericOf(rows[rows.length - 1], "value");
   if (firstValue === null || latestValue === null || firstValue === 0 || firstValue === latestValue) return null;
