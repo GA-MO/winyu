@@ -103,8 +103,18 @@ svg{display:block}
 .memc .mi svg{width:36px;height:36px}
 #daychip{left:0;top:0}
 #daychip .pill{gap:12px}
-#qchips{left:120px;top:796px;width:640px;height:140px}
-.qc{position:absolute;left:0;top:0;white-space:nowrap;padding:6px 20px;border-radius:999px;background:#fff;border:1.5px solid var(--line);box-shadow:var(--shadow)}
+.t40{font-size:40px;line-height:1.3;font-weight:600}
+.lp{display:inline-flex;align-items:center;gap:8px;padding:6px 18px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--muted);font-size:26px;line-height:1.5;font-weight:600;white-space:nowrap;box-shadow:var(--shadow)}
+.lp svg{width:24px;height:24px;flex:none}
+.lp.mem{color:var(--ink);border-color:transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#4f46e5,#7c3aed 60%,#fb7185) border-box}
+#qtip{left:0;top:0;padding:6px 16px;border-radius:14px;background:#1e1b4b;color:#fff;font-size:26px;line-height:1.5;font-weight:600;white-space:nowrap}
+#qtip:after{content:'';position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-bottom:0;border-top-color:#1e1b4b}
+#qask{left:0;top:0;width:840px;height:104px;display:flex;align-items:center;gap:16px;padding:0 20px 0 32px;border-radius:52px;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#7c3aed,#4f46e5 50%,#22d3ee) border-box;box-shadow:var(--shadow)}
+#qask .field{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#qask .send{width:64px;height:64px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:#e7e9f0;color:#94a3b8}
+#qrow{left:0;top:0;display:flex;gap:12px;justify-content:center;width:840px}
+#mcard{top:260px}
+#msvg{position:absolute;left:30px;top:100px}
 .ask{left:0;top:0;padding:8px 26px;border-radius:26px 26px 26px 8px;color:#fff;background:linear-gradient(135deg,#4f46e5,#7c3aed);white-space:nowrap;box-shadow:0 14px 30px -14px rgba(79,70,229,.6)}
 .gdot{display:inline-block;width:22px;height:22px;border-radius:50%;background:#cac7d5}
 .wl{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#4f46e5,#7c3aed 55%,#fb7185);display:inline-flex;align-items:center;justify-content:center}
@@ -119,7 +129,6 @@ svg{display:block}
 .wr .bar{margin-top:4px}
 .wr.hot .bar i{background:linear-gradient(90deg,#fb7185,#f43f5e)}
 .wr.hot .wrt span{color:var(--coral-ink);font-weight:700}
-#dc2svg{position:absolute;left:30px;top:100px}
 .pp{display:flex;align-items:center;gap:16px;margin-top:12px}
 .pp img{width:60px;height:60px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 0 0 3px #fff,0 0 0 4.5px #ddd6fe}
 .pp .tx{display:flex;flex-direction:column;white-space:nowrap}
@@ -230,16 +239,18 @@ svg{display:block}
     <div id="dl1" class="ui"><span class="pill t32 b"><span class="wl"><svg viewBox="0 0 44 44"><path d="M6 14 L13 31 L20 19 L27 29 L37 9" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="9" r="3.2" fill="#fff"/></svg></span>Winyu</span></div>
     <div id="dWall" class="ui card wc"><i style="width:96%"></i><i style="width:88%"></i><i style="width:100%"></i><i style="width:74%"></i><i style="width:93%"></i><i style="width:85%"></i><i style="width:98%"></i><i style="width:66%"></i><i style="width:90%"></i><i style="width:81%"></i><i style="width:94%"></i><i style="width:70%"></i><i style="width:87%"></i><i style="width:58%"></i></div>
     <div id="dq1" class="ui ask t32">ยอดแต่ละภาค</div>
-    <div id="dq2" class="ui ask t32">แนวโน้มอีสาน</div>
+    <div id="dq2" class="ui ask t32">สต๊อกพอขายกี่วัน</div>
     <div id="dq3" class="ui ask t32">ทีมขายอีสานมีใครบ้าง</div>
     <div id="dc1" class="ui card wc"><div class="wch" id="dc1h"><span class="t32 b">มูลค่าขายเข้า</span><span class="chip soft">ล้านบาท</span></div><div id="dc1rows"></div></div>
-    <div id="dc2" class="ui card wc"><div class="wch" id="dc2h"><span class="t32 b">ปริมาณขาย</span><span class="chip soft" id="f-weeks"></span></div><svg id="dc2svg" width="400" height="380" viewBox="0 0 400 380"></svg><span class="t26 b dl" id="dc2a"></span><span class="t26 b dl" id="dc2b" style="color:var(--coral-ink)"></span></div>
+    <div id="dc2" class="ui card wc"><div class="wch" id="dc2h"><span class="t32 b">สต๊อกพอขาย</span></div><div id="dc2rows"></div></div>
+    <div id="mcard" class="ui card wc"><div class="wch" id="mch"><span class="t32 b">ปริมาณขาย</span><span class="chip soft" id="f-weeks"></span></div><svg id="msvg" width="400" height="380" viewBox="0 0 400 380"></svg><span class="t40 b dl" id="ma"></span><span class="t40 b dl" id="mb" style="color:var(--coral-ink)"></span></div>
     <div id="dc3" class="ui card wc"><div class="wch" id="dc3h"><span class="t32 b">ทีมขายอีสาน</span><span class="chip soft" id="f-team"></span></div><div id="dc3rows"></div><div class="t26 muted more" id="dc3more"></div></div>
     <div id="say1" class="ui say t32">จำไว้ว่าผมดูแลภาคอีสานเป็นพิเศษ</div>
-    <div id="say2" class="ui say t32">ยอดขายเดือนนี้เป็นยังไง</div>
     <div id="memc" class="ui card memc"><span class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg></span><span class="t44">จำไว้แล้ว · สนใจภาคอีสาน</span></div>
     <div id="daychip" class="ui"><span class="pill t44"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>วันถัดมา</span></div>
-    <div id="qchips" class="ui"><span class="qc t32" id="qc0">ยอดขายรายภาค</span><span class="qc t32" id="qc1">ยอดขายอีสาน · คุณเพิ่งถามเรื่องนี้ไป</span></div>
+    <div id="qrow" class="ui"></div>
+    <div id="qtip" class="ui"></div>
+    <div id="qask" class="ui"><div class="field t32"><span id="qtyped"></span><span id="qcaret" style="display:inline-block;width:3px;height:36px;margin-left:2px;vertical-align:-6px;background:#4f46e5;border-radius:2px"></span><span id="qph" class="muted">ถาม Winyu เรื่องยอดขาย สต๊อก แคมเปญ หรือการเงิน…</span></div><div class="send" id="qsend"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div></div>
     <div id="cursor" class="ui"><svg viewBox="0 0 44 56" width="44" height="56"><path d="M4 3 L4 44 L15 34 L23 52 L31 48 L23 31 L38 31 Z" fill="#fff" stroke="#1f1b3a" stroke-width="3" stroke-linejoin="round"/></svg></div>
 
     <div id="end" class="ui">
@@ -276,6 +287,10 @@ const MAX_ROW = Math.max(...FACTS.director.rows.map(r => amount(r.value)));
 const REG_ORDER = ['กรุงเทพฯ และปริมณฑล', 'ภาคกลาง', 'ภาคตะวันออก', 'ภาคใต้', 'ภาคเหนือ', FACTS.spotlight];
 const BAL_ORDER = ['พักร้อน', 'ลากิจ', 'ลาป่วย'];
 const TEAM_SHOWN = 4;
+const ASK_X = 960, ASK_Y = 560;
+const CHIPS = [{ label: `แนวโน้ม${FACTS.spotlight}`, reason: `เพราะคุณสนใจ${FACTS.spotlight}` }, ...FACTS.chips];
+const ICON_SPARK = '<svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg>';
+const ICON_HIST = '<svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>';
 const DATES = `${dayMonth(FACTS.leave.from)} – ${dayMonth(FACTS.leave.to)}`;
 const TH_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 const dayOrder = (d) => { const [day, month, year] = d.split(' '); return Number(year) * 400 + TH_MONTHS.indexOf(month) * 32 + Number(day); };
@@ -307,7 +322,7 @@ const W6 = makeWarp(W5.E, 24.0, 29.4, [[26.15, 1.0], [28.3, 1.2]], 0.1, 0.4);
 const W7 = makeWarp(W6.E, 29.0, 33.5, [[32.75, 1.2]], 0.1, 0.45);
 const W8 = makeWarp(W7.E, 33.5, 37.5, [[35.3, 0.6]], 0.1, 0);
 const LENGTH = Math.round(W8.E * 30) / 30;
-const MOMENT = {ask: 4.85, sun: 5.0, isan: 7.15, shops: 8.6, dq: 0.2, say1: 0.8, memc: 1.75, memDrop: 3.5, day: 4.1, say2: 6.1, why: 8.3, swap: 10.6, fwdPress: 15.1, envArrive: 16.8, bell: 16.85, leaveAsk: 19.95, press: 27.5, approved: 28.85, lock: 27.7, plug: [30.5, 0.4], connected: 31.25, logo: 33.95};
+const MOMENT = {ask: 4.85, sun: 5.0, isan: 7.15, shops: 8.6, dq: 0.2, say1: 0.8, memc: 1.75, memDrop: 3.5, day: 4.1, pills: 6.1, memPill: 7.0, tap: 8.1, askSend: 8.6, answer: 9.1, fwdPress: 15.1, envArrive: 16.8, bell: 16.85, leaveAsk: 19.95, press: 27.5, approved: 28.85, lock: 27.7, plug: [30.5, 0.4], connected: 31.25, logo: 33.95};
 const SYS_AT = (i) => 0.6 + i * 0.1;
 const TYPED = {q: [3.5, 0.8], leaveQ: [20.05, 0.55], leave: [24.45, 0.85]};
 let RT = 0;
@@ -543,7 +558,7 @@ function beat1(acc, t) {
     flowDots(acc, path, t, 1.1 + i * 0.05, 2.9, { n: 2, speed: 0.8, phase: i * 0.13, color: i % 2 ? '#7c3aed' : '#4f46e5' });
     const lo = k(t, SYS_AT(i), 0.5) * (1 - k(t, 2.3, 0.4, EI3));
     const [lx, ly] = P(x, y, h + 0.2);
-    label('sys' + i, `<span class="pill sys t32">${sy.n}</span>`, lx, ly, lo, { s: lerp(0.85, 1, k(t, SYS_AT(i), 0.6, EBK)) });
+    label('sys' + i, `<span class="pill sys t40">${sy.n}</span>`, lx, ly, lo, { s: lerp(0.85, 1, k(t, SYS_AT(i), 0.6, EBK)) });
   });
   const qo = win(t, 3.25, 0.6, MOMENT.ask, 0.4);
   const qs = lerp(0.8, 1, k(t, 3.25, 0.7, EBK));
@@ -592,7 +607,7 @@ function beat2(acc, t) {
       const [ax, ay] = P(x, y, h);
       const lx = ax + 70, ly = ay - 12;
       stem(acc, ax, ay, lx, ly, lo);
-      label('isan', `<div class="numcard"><span class="t32">${SPOT.label}</span><span class="t44 num" style="color:var(--coral-ink)">${fall(SPOT.delta)}</span></div>`, lx, ly, lo, { ax: 0, ay: 0.5, s: lerp(0.9, 1, k(t, 7.15, 0.6, EBK)) });
+      label('isan', `<div class="numcard"><span class="t40">${SPOT.label}</span><span class="t44 num" style="color:var(--coral-ink)">${fall(SPOT.delta)}</span></div>`, lx, ly, lo, { ax: 0, ay: 0.5, s: lerp(0.9, 1, k(t, 7.15, 0.6, EBK)) });
     }
   });
   const shops = [[3.0, -7.4], [3.0, -8.7]];
@@ -607,7 +622,7 @@ function beat2(acc, t) {
   const [ax, ay] = P(3.45, -8.05, 0.5);
   const lx = ax + 90, ly = ay + 20;
   stem(acc, ax, ay, lx, ly, so);
-  label('shops', `<div class="stackL"><div class="numcard"><span class="t32">ตัวแทน ${FACTS.drops.length} ราย หยุดสั่ง</span><span class="t26 muted">ตั้งแต่ ${dayMonth(FIRST_DROP.since)}</span></div><span class="chip warn" style="opacity:${k(t, 9.05, 0.4).toFixed(3)}">${ICON_CARD}น่าจะติดเครดิต</span></div>`, lx, ly, so, { ax: 0, ay: 0.25, s: lerp(0.9, 1, k(t, 8.6, 0.6, EBK)) });
+  label('shops', `<div class="stackL"><div class="numcard"><span class="t40">ตัวแทน ${FACTS.drops.length} ราย หยุดสั่ง</span></div><span class="chip warn t40" style="opacity:${k(t, 9.05, 0.4).toFixed(3)}">${ICON_CARD}น่าจะติดเครดิต</span></div>`, lx, ly, so, { ax: 0, ay: 0.25, s: lerp(0.9, 1, k(t, 8.6, 0.6, EBK)) });
 }
 
 const cardPieces = ['c-head', 'c-big', 'c-r0', 'c-r1', 'c-r2', 'c-foot'];
@@ -647,7 +662,7 @@ function beat4(acc, t) {
   acc.items.push({ d: RX + RY, s: figure(RX, RY, 'violet', clamp(rr * 3) * (1 - rOut), (1 - rr) * 0.4) });
   const [fhx, fhy] = figHead(RX, RY);
   const tagO = k(t, 15.9, 0.5) * (1 - rOut);
-  label('dir', `<span class="pill t26">ผู้อำนวยการฝ่ายขาย</span>`, fhx, fhy - 14, tagO, { s: lerp(0.9, 1, k(t, 15.9, 0.5, EBK)) });
+  label('dir', `<span class="pill t40">ผู้อำนวยการฝ่ายขาย</span>`, fhx, fhy - 14, tagO, { s: lerp(0.9, 1, k(t, 15.9, 0.5, EBK)) });
 
   const fly = clamp((t - 15.8) / 1.0);
   const envOpen = k(t, 17.55, 0.35, EIO3);
@@ -682,7 +697,7 @@ function beat5(acc, t) {
   const exit = k(t, 31.0, 0.45, EI3);
   const pin = k(t, 19.2, 0.8, EOX);
   setUI(phone, pin * (1 - exit), 0, (1 - pin) * 80 - exit * 30, PHONE_S);
-  label('rep5', `<span class="pill t32">พนักงานขาย</span>`, 1148, 250, k(t, 19.6, 0.5) * (1 - exit), { ax: 1, ay: 0.5 });
+  label('rep5', `<span class="pill t40">พนักงานขาย</span>`, 1148, 250, k(t, 19.6, 0.5) * (1 - exit), { ax: 1, ay: 0.5 });
   const scroll = k(t, 23.85, 0.5, EIO3);
   const ph1 = $('ph1');
   ph1.style.transform = `translateY(${f1(-scroll * 440)}px)`;
@@ -733,7 +748,7 @@ function beat5(acc, t) {
   acc.items.push({ d: HX + HY, s: building(HX, HY, 1.4, 1.7 * hr, M.coral, clamp(hr * 3)) });
   const [lx, ly] = P(HX, HY, 1.7 * hr + 0.2);
   const ok = k(t, MOMENT.approved, 0.5, EBK);
-  label('hr5', `<span class="pill t32">HR${ok > 0.01 ? `<span class="chip ok" style="padding:2px 10px;transform:scale(${ok.toFixed(3)})">${ICON_CHECK}</span>` : ''}</span>`, lx, ly, k(t, 19.9, 0.5) * (1 - exit));
+  label('hr5', `<span class="pill t40">HR${ok > 0.01 ? `<span class="chip ok" style="padding:2px 10px;transform:scale(${ok.toFixed(3)})">${ICON_CHECK}</span>` : ''}</span>`, lx, ly, k(t, 19.9, 0.5) * (1 - exit));
   const [hx, hy] = hubTileCenter();
   const path = [[1.4, 0], [HX, 0], [HX, HY + 0.7]];
   acc.under.push(groundPath(path, k(t, 19.9, 0.5) * (1 - exit)));
@@ -770,16 +785,16 @@ function beat6(acc, t) {
 
   const [cx, cy] = figHead(CX, CY);
   const lo1 = k(t, 25.2, 0.6) * (1 - exit);
-  label('ceo', `<div class="stack"><div class="numcard"><span class="t44 num">${FACTS.ceo.total}</span><span class="chip soft">${FACTS.ceo.rows.length} ภาค</span></div><span class="pill t26">CEO</span></div>`, cx, cy - 14, lo1, { s: lerp(0.9, 1, k(t, 25.2, 0.6, EBK)) });
+  label('ceo', `<div class="stack"><div class="numcard"><span class="t44 num">${FACTS.ceo.total}</span><span class="chip soft t40">${FACTS.ceo.rows.length} ภาค</span></div><span class="pill t40">CEO</span></div>`, cx, cy - 14, lo1, { s: lerp(0.9, 1, k(t, 25.2, 0.6, EBK)) });
   const [rx, ry] = figHead(RX, RY);
   const lo2 = k(t, 25.5, 0.6) * (1 - exit);
   const blur = k(t, 27.75, 0.5, EIO3);
-  const chip = blur > 0.5 ? `<span class="chip down">${ICON_LOCK}ซ่อนตามสิทธิ์</span>` : `<span class="chip soft">${FACTS.rep.rows.length} ภาค</span>`;
-  label('rep', `<div class="stack"><div class="numcard"><span class="t44 num" style="filter:blur(${f1(blur * 11)}px);opacity:${(1 - blur * 0.35).toFixed(2)}">${FACTS.rep.total}</span>${chip}</div><span class="pill t26">พนักงานขาย</span></div>`, rx, ry - 14, lo2, { s: lerp(0.9, 1, k(t, 25.5, 0.6, EBK)) * (1 + bump(t, 27.9, 0.35) * 0.04) });
+  const chip = blur > 0.5 ? `<span class="chip down t40">${ICON_LOCK}ซ่อนตามสิทธิ์</span>` : `<span class="chip soft t40">${FACTS.rep.rows.length} ภาค</span>`;
+  label('rep', `<div class="stack"><div class="numcard"><span class="t44 num" style="filter:blur(${f1(blur * 11)}px);opacity:${(1 - blur * 0.35).toFixed(2)}">${FACTS.rep.total}</span>${chip}</div><span class="pill t40">พนักงานขาย</span></div>`, rx, ry - 14, lo2, { s: lerp(0.9, 1, k(t, 25.5, 0.6, EBK)) * (1 + bump(t, 27.9, 0.35) * 0.04) });
   const [ix, iy] = figHead(IX, IY);
   const flip = k(t, 27.25, 0.35, EIO3);
   const track = mixHex('#6366f1', '#d6d3e4', flip);
-  label('it', `<span class="pill t26">ฝ่ายไอที<span class="tg" style="background:${track}"><i style="transform:translateX(${f1((1 - flip) * 38)}px)"></i></span></span>`, ix - 44, iy + 60, itIn, { ax: 1, ay: 0.5, s: lerp(0.9, 1, itIn) * (1 + bump(t, 27.25, 0.35) * 0.05) });
+  label('it', `<span class="pill t40">ฝ่ายไอที<span class="tg" style="background:${track}"><i style="transform:translateX(${f1((1 - flip) * 38)}px)"></i></span></span>`, ix - 44, iy + 60, itIn, { ax: 1, ay: 0.5, s: lerp(0.9, 1, itIn) * (1 + bump(t, 27.25, 0.35) * 0.05) });
   { const [ix2, iy2] = figHead(IX, IY); const [g2x, g2y] = P(GX, GY, 1.2); screenDots(acc, [ix2 + 10, iy2 - 10], [ix2 + 160, g2y + 20], [g2x, g2y], t, 27.25, 28.0, { n: 3, speed: 2.2, color: "#059669" }); }
   const [gx, gy] = P(GX, GY, 1.5);
   const lk = k(t, MOMENT.lock, 0.45, EBK) * (1 - exit);
@@ -794,7 +809,7 @@ function beat7(acc, t) {
   const itIn = k(t, 29.4, 0.7, EOX) * (1 - exit);
   acc.items.push({ d: IX + IY, s: figure(IX, IY, 'mint', clamp(itIn * 3), (1 - itIn) * 0.4) });
   const [ix, iy] = figHead(IX, IY);
-  label('it7', `<span class="pill t26">ฝ่ายไอที</span>`, ix, iy - 14, k(t, 29.8, 0.5) * (1 - exit));
+  label('it7', `<span class="pill t40">ฝ่ายไอที</span>`, ix, iy - 14, k(t, 29.8, 0.5) * (1 - exit));
   { const [bx2, by2] = P(lerp(10, 5.4, k(t, 29.6, 1.0, EOX)), 0, 1.2); screenDots(acc, [ix + 30, iy - 10], [(ix + bx2) / 2, iy - 140], [bx2, by2], t, 29.9, 30.7, { n: 3, speed: 2.0, color: "#059669" }); }
   const slide = k(t, 29.6, 1.0, EOX);
   const AX = lerp(10, 5.4, slide), AY = 0;
@@ -823,7 +838,7 @@ function beat7(acc, t) {
     ? `<span class="chip soft"><span class="spin" style="transform:rotate(${f1(RT * 400)}deg)"></span>กำลังเชื่อม…</span>`
     : `<span class="chip ok" style="transform:scale(${lerp(0.85, 1, connected).toFixed(3)})">${ICON_CHECK}เชื่อมแล้ว</span>`;
   const lo = k(t, 30.2, 0.5) * (1 - exit);
-  label('reg', `<div class="stack"><span class="pill t32">ทะเบียนทรัพย์สิน</span>${status}</div>`, lx, ly, lo, { s: lerp(0.9, 1, k(t, 30.2, 0.5, EBK)) });
+  label('reg', `<div class="stack"><span class="pill t40">ทะเบียนทรัพย์สิน</span>${status}</div>`, lx, ly, lo, { s: lerp(0.9, 1, k(t, 30.2, 0.5, EBK)) });
   const ci = k(t, 31.6, 0.7, EOX);
   setUI(as, ci * (1 - exit), (1 - ci) * 40, 0, 1);
   [['a-head', 31.7], ['a-r0', 31.95], ['a-r1', 32.2]].forEach(([id, a]) => {
@@ -898,19 +913,42 @@ const SLOT = [96, 596, 1096], CW = 460, PW = 690, PANEL = [96, 856], CY = 372;
   FACTS.assets.forEach((a, i) => { $('a-r' + i).querySelector('.nm').textContent = a.label; $('a-r' + i).querySelector('.t44').textContent = String(a.count); });
   const weeks = FACTS.trend.weeks;
   $('f-weeks').textContent = `${weeks.length} สัปดาห์`;
-  $('dc2a').textContent = lead(weeks[0].label);
-  $('dc2b').textContent = weeks[weeks.length - 1].label;
+  $('ma').textContent = weeks[0].label;
+  $('mb').textContent = weeks[weeks.length - 1].label;
   $('f-team').textContent = `${FACTS.team.length} คน`;
   $('dc3more').textContent = `+ อีก ${FACTS.team.length - TEAM_SHOWN} คน`;
+})();
+(function buildMemory() {
+  $('qrow').innerHTML = CHIPS.map((c, i) => `<span class="lp${i ? '' : ' mem'}" id="qp${i}">${i ? ICON_HIST : ICON_SPARK}${c.label}</span>`).join('');
+  $('qtip').innerHTML = CHIPS[0].reason;
+  const maxCover = Math.max(...FACTS.cover.rows.map(r => r.days));
+  $('dc2rows').innerHTML = FACTS.cover.rows.map((r, i) => `<div class="wr" id="cv${i}" style="margin-top:22px"><div class="wrt"><span class="t32">${r.label}</span><span class="t32 b num">${r.value}</span></div><div class="bar"><i style="width:${(r.days / maxCover * 100).toFixed(1)}%"></i></div></div>`).join('');
 })();
 (function buildDyn() {
   $('dc1rows').innerHTML = DROWS.map(([n, v, val], i) => `<div class="wr${i === 1 ? ' hot' : ''}" id="wr${i}"><div class="wrt"><span class="t26">${n}</span><span class="t26 b num">${v}</span></div><div class="bar"><i style="width:${(val / MAX_ROW * 100).toFixed(1)}%"></i></div></div>`).join('');
   $('dc3rows').innerHTML = TEAM.map(([n, ti, ph], i) => `<div class="pp" id="pp${i}"><img src="${ph}" alt=""><div class="tx"><span class="t32 b">${n}</span><span class="t26 muted">${ti}</span></div></div>`).join('');
   const [ax, ay] = trendPt(0), [bx, by] = trendPt(TREND.length - 1);
-  const a = $('dc2a'), b = $('dc2b');
-  a.style.left = (30 + ax - 8) + 'px'; a.style.top = (100 + ay - 50) + 'px';
-  b.style.left = (30 + bx + 20) + 'px'; b.style.top = (100 + by - 20) + 'px';
+  const a = $('ma'), b = $('mb');
+  a.style.left = (30 + ax - 8) + 'px'; a.style.top = (100 + ay - 64) + 'px';
+  b.style.right = '32px'; b.style.top = (100 + by + 24) + 'px';
 })();
+const LAST = TREND.length - 1;
+/** Draws the trend line up to `prog` weeks into the memory answer card. */
+function drawTrend(prog) {
+  const pts2 = [];
+  for (let i = 0; i <= LAST; i++) { if (i <= prog) pts2.push(trendPt(i)); else { const a = trendPt(i - 1), b = trendPt(i), q = prog - (i - 1); if (q > 0) pts2.push([lerp(a[0], b[0], q), lerp(a[1], b[1], q)]); break; } }
+  let svg = `<line x1="${CH.x0}" y1="${CH.base}" x2="${CH.x1}" y2="${CH.base}" stroke="#e6e2f3" stroke-width="2"/>`;
+  for (let i = 0; i <= LAST; i++) { const [px] = trendPt(i); svg += `<line x1="${f1(px)}" y1="${CH.base - 6}" x2="${f1(px)}" y2="${CH.base}" stroke="#d9d4ee" stroke-width="2"/>`; }
+  if (pts2.length > 1) {
+    const last = pts2[pts2.length - 1];
+    svg += `<defs><linearGradient id="gA3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a78bfa" stop-opacity=".35"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0"/></linearGradient><linearGradient id="gB3" x1="0" x2="1"><stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#fb7185"/></linearGradient></defs>`;
+    svg += `<polygon points="${f1(pts2[0][0])},${CH.base} ${pts(pts2)} ${f1(last[0])},${CH.base}" fill="url(#gA3)"/>`;
+    svg += `<polyline points="${pts(pts2)}" fill="none" stroke="url(#gB3)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+  for (let i = 0; i <= LAST; i++) { if (i > prog + 1e-6) break; const [px, py] = trendPt(i); const end = i === 0 || i === LAST; svg += `<circle cx="${f1(px)}" cy="${f1(py)}" r="${end ? 10 : 6}" fill="#fff" stroke="${i === LAST ? '#e11d48' : '#7c3aed'}" stroke-width="4"/>`; }
+  const sv = $('msvg');
+  if (sv._h !== svg) { sv.innerHTML = svg; sv._h = svg; }
+}
 function hubSrc() { const [hx, hy] = hubTileCenter(); return [hx - 30 * cam.z, hy - 10]; }
 function dynDot(acc, t, arrive, tgt, color = '#7c3aed') {
   const fl = clamp((t - (arrive - 0.55)) / 0.55);
@@ -959,23 +997,7 @@ function beatDyn(acc, t) {
   setUI(c2, i2 * (1 - exit), 0, (1 - i2) * 24 - exit * 20, 1);
   setUI(c3, i3 * (1 - exit), 0, (1 - i3) * 24 - exit * 20, 1);
   pop($('dc2h'), T2 + 0.15); dynDot(acc, t, T2 + 0.15, [SLOT[1] + 60, CY + 54]);
-  const prog = clamp((t - (T2 + 0.3)) / 0.7) * 6;
-  const pts2 = [];
-  for (let i = 0; i <= 6; i++) { if (i <= prog) pts2.push(trendPt(i)); else { const a = trendPt(i - 1), b = trendPt(i), q = prog - (i - 1); if (q > 0) pts2.push([lerp(a[0], b[0], q), lerp(a[1], b[1], q)]); break; } }
-  for (let i = 0; i <= 6; i++) { const [px, py] = trendPt(i); dynDot(acc, t, T2 + 0.3 + i * 0.117, [SLOT[1] + 30 + px, CY + 100 + py], i === 6 ? '#fb7185' : '#7c3aed'); }
-  let svg = `<line x1="${CH.x0}" y1="${CH.base}" x2="${CH.x1}" y2="${CH.base}" stroke="#e6e2f3" stroke-width="2"/>`;
-  for (let i = 0; i <= 6; i++) { const [px] = trendPt(i); svg += `<line x1="${f1(px)}" y1="${CH.base - 6}" x2="${f1(px)}" y2="${CH.base}" stroke="#d9d4ee" stroke-width="2"/>`; }
-  if (pts2.length > 1) {
-    const last = pts2[pts2.length - 1];
-    svg += `<defs><linearGradient id="gA3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a78bfa" stop-opacity=".35"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0"/></linearGradient><linearGradient id="gB3" x1="0" x2="1"><stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#fb7185"/></linearGradient></defs>`;
-    svg += `<polygon points="${f1(pts2[0][0])},${CH.base} ${pts(pts2)} ${f1(last[0])},${CH.base}" fill="url(#gA3)"/>`;
-    svg += `<polyline points="${pts(pts2)}" fill="none" stroke="url(#gB3)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
-  }
-  for (let i = 0; i <= 6; i++) { if (i > prog + 1e-6) break; const [px, py] = trendPt(i); const end = i === 0 || i === 6; svg += `<circle cx="${f1(px)}" cy="${f1(py)}" r="${end ? 10 : 6}" fill="#fff" stroke="${i === 6 ? '#e11d48' : '#7c3aed'}" stroke-width="4"/>`; }
-  const sv = $('dc2svg');
-  if (sv._h !== svg) { sv.innerHTML = svg; sv._h = svg; }
-  $('dc2a').style.opacity = k(t, T2 + 0.35, 0.3).toFixed(3);
-  $('dc2b').style.opacity = k(t, T2 + 1.0, 0.3).toFixed(3);
+  FACTS.cover.rows.forEach((_, n) => { const a = T2 + 0.3 + n * 0.12; pop($('cv' + n), a); dynDot(acc, t, a, [SLOT[1] + 40, CY + 130 + n * 92], n === 0 ? '#fb7185' : '#7c3aed'); });
   pop($('dc3h'), T3 + 0.15); dynDot(acc, t, T3 + 0.15, [SLOT[2] + 60, CY + 54]);
   for (let i = 0; i < 4; i++) { const a = T3 + 0.3 + i * 0.12; pop($('pp' + i), a); dynDot(acc, t, a, [SLOT[2] + 62, CY + 120 + i * 97], i === 0 ? '#fb7185' : '#7c3aed'); }
   pop($('dc3more'), T3 + 0.8);
@@ -984,15 +1006,13 @@ function beatDyn(acc, t) {
 
 const F3 = [-1.6, 4.0], VAULT = [3.4, 1.6];
 function beat3n(acc, t) {
-  const ids = ['say1', 'say2', 'memc', 'daychip', 'qchips'];
+  const ids = ['say1', 'memc', 'daychip', 'qrow', 'qtip', 'qask', 'mcard'];
   if (t < -0.3 || t > 12.8) { ids.forEach(id => setUI($(id), 0)); return; }
-  const card = $('card');
   const exit = k(t, 12.0, 0.4, EI3);
   const [fx, fy] = F3;
   const fin = k(t, 0.6, 0.6, EOX) * (1 - exit);
   acc.items.push({ d: fx + fy, s: figure(fx, fy, 'indigo', clamp(fin * 3), (1 - fin) * 0.4) });
   const [hx0, hy0] = figHead(fx, fy);
-  label('f3', `<span class="pill t32">ผู้จัดการขายภาคอีสาน</span>`, hx0, hy0 - 14, k(t, 0.85, 0.4) * (1 - exit), { s: lerp(0.9, 1, k(t, 0.7, 0.4, EBK)) });
   const sayY = hy0 - 80;
   const s1 = k(t, MOMENT.say1, 0.4, EBK) * (1 - k(t, 3.5, 0.35, EI3));
   setUI($('say1'), s1 > 0.01 ? clamp(s1) : 0, 120, sayY - 72, lerp(0.85, 1, clamp(s1)));
@@ -1035,31 +1055,36 @@ function beat3n(acc, t) {
   }
   setUI($('daychip'), dayO, 770, 262, lerp(0.9, 1, k(t, 4.3, 0.4, EBK)));
 
-  const s2 = k(t, MOMENT.say2, 0.4, EBK) * (1 - exit);
-  setUI($('say2'), s2 > 0.01 ? clamp(s2) : 0, 120, sayY - 72, lerp(0.85, 1, clamp(s2)));
-  $('say2').style.transformOrigin = '0 100%';
-
-  const cIn = k(t, 7.4, 0.55, EOX);
-  screenDots(acc, [tx + 56, ty], [920, ty - 120], [card.offsetLeft + 20, card.offsetTop + 160], t, 7.1, 7.8, { n: 4, speed: 1.6, color: '#7c3aed' });
-  setUI(card, cIn * (1 - exit), (1 - cIn) * -60, (1 - cIn) * 20 + exit * -20, lerp(0.92, 1, cIn));
-  card.style.transformOrigin = '0 50%';
-  cardPieces.forEach(id => { const el = $(id); el.style.opacity = '1'; el.style.transform = 'none'; });
-  $('c-btn').style.transform = 'none';
-  const hl = k(t, 8.0, 0.5, EIO3), why = k(t, MOMENT.why, 0.45, EBK);
-  $('c-band').style.opacity = hl.toFixed(3);
-  $('c-why').style.opacity = clamp(why).toFixed(3);
-  $('c-why').style.transform = `scale(${lerp(0.7, 1, clamp(why)).toFixed(3)})`;
-  $('c-why').style.transformOrigin = '0 50%';
-  if (t > 7.95 && t < 8.6) { const [vx2, vy2] = P(VAULT[0], VAULT[1], 1.2); screenDots(acc, [vx2, vy2], [1000, vy2 - 80], [card.offsetLeft + 60, card.offsetTop + 330], t, 7.95, 8.6, { n: 2, speed: 2.0, color: '#fb7185' }); }
-
-  const qIn = k(t, 10.0, 0.45, EOX) * (1 - exit);
-  const swap = k(t, MOMENT.swap, 0.6, EIO3);
-  setUI($('qchips'), qIn, 0, (1 - qIn) * 20, 1);
-  const q0 = $('qc0'), q1 = $('qc1');
-  q0.style.transform = `translateY(${f1(swap * 70)}px)`;
-  q1.style.transform = `translateY(${f1(70 - swap * 70)}px)`;
-  q1.style.borderColor = mixHex('#e4e1f3', '#818cf8', swap);
-  q1.style.color = mixHex('#1f1b3a', '#4338ca', swap);
+  const boxIn = k(t, MOMENT.pills - 0.2, 0.45, EOX) * (1 - k(t, MOMENT.askSend + 0.05, 0.3, EI3));
+  setUI($('qask'), boxIn, ASK_X, ASK_Y + (1 - boxIn) * 16, 1);
+  const rowOut = 1 - k(t, MOMENT.askSend + 0.05, 0.3, EI3);
+  setUI($('qrow'), Math.max(...CHIPS.map((_, n) => k(t, MOMENT.pills + n * 0.15, 0.45, EOX))) * rowOut, ASK_X, ASK_Y - 72, 1);
+  CHIPS.forEach((_, n) => { const p = k(t, MOMENT.pills + n * 0.15, 0.45, EOX); const el = $('qp' + n); el.style.opacity = p.toFixed(3); el.style.transform = `translateY(${f1((1 - p) * 12)}px)`; });
+  const lit = k(t, MOMENT.memPill, 0.5, EIO3), tap = bump(t, MOMENT.tap, 0.25);
+  const mem = $('qp0');
+  mem.style.boxShadow = `0 0 0 ${f1(8 * lit)}px rgba(124,58,237,${(0.16 * lit).toFixed(3)}),0 18px 40px -12px rgba(49,46,129,.22)`;
+  mem.style.transform = `scale(${(1 - 0.05 * tap).toFixed(3)})`;
+  const px = ASK_X + mem.offsetLeft + mem.offsetWidth / 2, py = ASK_Y - 72;
+  const tip = $('qtip'), to = k(t, MOMENT.memPill + 0.1, 0.35, EBK) * (1 - k(t, MOMENT.tap + 0.2, 0.2, LIN));
+  setUI(tip, clamp(to), px - tip.offsetWidth / 2, py - tip.offsetHeight - 16 + (1 - clamp(to)) * 8, lerp(0.9, 1, clamp(to)));
+  if (t > MOMENT.memPill - 0.3 && t < MOMENT.memPill + 0.5) { const [vx2, vy2] = P(VAULT[0], VAULT[1], 1.2); screenDots(acc, [vx2, vy2], [vx2 + 60, py - 160], [px, py - 50], t, MOMENT.memPill - 0.3, MOMENT.memPill + 0.5, { n: 3, speed: 1.8, color: '#7c3aed' }); }
+  const rp = clamp((t - MOMENT.tap) / 0.5);
+  if (rp > 0 && rp < 1) acc.fx.push(`<circle cx="${f1(px)}" cy="${f1(py + 26)}" r="${f1(24 + rp * 50)}" fill="none" stroke="#7c3aed" stroke-width="3" opacity="${(0.6 * (1 - rp)).toFixed(3)}"/>`);
+  const fill = graphemes(CHIPS[0].label), nf = Math.round(k(t, MOMENT.tap + 0.1, 0.3, LIN) * fill.length), sentQ = t >= MOMENT.askSend;
+  const qv = sentQ ? '' : fill.slice(0, nf).join('');
+  const qt = $('qtyped'); if (qt._h !== qv) { qt.textContent = qv; qt._h = qv; }
+  $('qph').style.display = qv || (t > MOMENT.tap && !sentQ) ? 'none' : 'inline';
+  $('qcaret').style.opacity = (qv || Math.floor(RT * 2.4) % 2 === 0) ? '1' : '0';
+  $('qsend').style.background = qv ? '#1f1b3a' : '#e7e9f0';
+  $('qsend').style.color = qv ? '#fff' : '#94a3b8';
+  $('qsend').style.transform = `scale(${(1 - bump(t, MOMENT.askSend - 0.05, 0.25) * 0.1).toFixed(3)})`;
+  const mIn2 = k(t, MOMENT.answer, 0.5, EOX) * (1 - exit);
+  const mc = $('mcard');
+  mc.style.left = '1180px'; mc.style.width = CW + 'px';
+  setUI(mc, mIn2, 0, (1 - mIn2) * 24, 1);
+  if (mIn2 > 0.003) drawTrend(clamp((t - MOMENT.answer - 0.25) / 0.9) * LAST);
+  $('ma').style.opacity = k(t, MOMENT.answer + 0.3, 0.3).toFixed(3);
+  $('mb').style.opacity = k(t, MOMENT.answer + 1.15, 0.3).toFixed(3);
 }
 
 const floorEl = $('floor'), wg = $('wg'), fxg = $('fxg');
@@ -1120,9 +1145,11 @@ const SOUND = {
     {at: W3.r(MOMENT.say1), sfx: 'send'},
     {at: W3.r(MOMENT.memc), sfx: 'memory'},
     {at: W3.r(MOMENT.day), sfx: 'dawn'},
-    {at: W3.r(MOMENT.say2), sfx: 'send'},
-    {at: W3.r(MOMENT.why), sfx: 'memory'},
-    {at: W3.r(MOMENT.swap), sfx: 'echo'},
+    ...CHIPS.map((_, i) => ({at: W3.r(MOMENT.pills + i * 0.15), sfx: 'pop', step: i + 1})),
+    {at: W3.r(MOMENT.memPill), sfx: 'memory'},
+    {at: W3.r(MOMENT.tap), sfx: 'click'},
+    {at: W3.r(MOMENT.askSend), sfx: 'send'},
+    
     {at: WD.r(MOMENT.dq), sfx: 'send'},
     {at: W4.r(MOMENT.fwdPress), sfx: 'click'},
     {at: W4.r(MOMENT.envArrive), sfx: 'whoosh'},
