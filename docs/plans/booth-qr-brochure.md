@@ -33,14 +33,14 @@ One mobile-first page (375 px design width, works up to desktop). It uses the sa
 
 Each section's line is at most 12 Thai words.
 
-The numbers on screen come from the films, which take them from `site/film/facts.json`; the page adds no new numbers.
+The numbers on screen come from the films, which take them from `film/facts.json`; the page adds no new numbers.
 
 ## Assets
 
 - Stills and clips come from the films themselves, not from new mockups.
   - A still is `window.film.render(t)` captured at 2× by headless Chrome.
-  - A clip is a short range rendered with `bun run booth:render`, cut by a new `--from/--to` option, encoded small for mobile (720p, ~2 Mbit/s, under 3 MB each).
-- Add a `scripts/booth/stills.ts` that takes a film and a list of times and writes WebP stills, so the page assets regenerate when the films change.
+  - A clip is a short range rendered with `bun run render` in `film/`, cut by a new `--from/--to` option, encoded small for mobile (720p, ~2 Mbit/s, under 3 MB each).
+- Extend `film/shots.ts`, which already takes a film and a list of times and writes PNG stills, to write WebP at 2×, so the page assets regenerate when the films change.
 - Every asset must stay readable at 375 px width. Prefer the films' zoomed moments, where text is largest.
 
 ## Demo request form
@@ -62,7 +62,7 @@ The numbers on screen come from the films, which take them from `site/film/facts
 ## QR
 
 - **Table tent at the booth:** QR plus one line, "สแกนดู Winyu อีกครั้ง · ขอเดโม". Print at least 3 × 3 cm and test from 1 m.
-- **End card of both films:** add the QR for the last 4 s of `site/film/demo.html` and `site/film/isometric.html`, then re-render. This reverses the earlier no-QR rule for the video, so it needs the user's confirmation first.
+- **End card of both films:** add the QR for the last 4 s of `film/demo.html` and `film/isometric.html`, then re-render. This reverses the earlier no-QR rule for the video, so it needs the user's confirmation first.
 - The URL carries UTM parameters, so table scans and screen scans can be told apart: `?utm_source=booth&utm_medium=qr&utm_content=table|screen`.
 
 ## Hosting
@@ -100,7 +100,7 @@ Add the button only when those exist.
 ## Tasks
 
 - [ ] Get answers to the three decisions above
-- [ ] `scripts/booth/stills.ts` and the `--from/--to` option on `booth:render`
+- [ ] WebP output in `film/shots.ts` and the `--from/--to` option on `film/render.ts`
 - [ ] Generate stills and clips from both films; check every one at 375 px
 - [ ] Build the page (static HTML, same tokens and font as the films)
 - [ ] Form with PDPA consent, honeypot, success and error states; wire to the chosen destination

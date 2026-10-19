@@ -6,7 +6,7 @@ node_modules
 .shots
 .env*
 .claude
-site
+film
 evals
 deploy/.env
 *.tsbuildinfo

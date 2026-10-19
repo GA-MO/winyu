@@ -13,7 +13,7 @@ import { assetsOf } from "../mcp-demo-assets";
 import { EMPLOYEES } from "@/lib/data/entities/people";
 import { GENERATOR_LEAVE } from "@/lib/server/ports/generator-leave";
 
-const OUTPUT = path.join(process.cwd(), "site", "film", "facts.json");
+const OUTPUT = path.join(process.cwd(), "film", "facts.json");
 const ALERTS = path.join(process.cwd(), ".data", "alerts.json");
 const MONTH_START = `${DATA_AS_OF.slice(0, 7)}-01`;
 const SPOTLIGHT_REGION = "northeast";

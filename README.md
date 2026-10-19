@@ -50,7 +50,7 @@ Open `http://localhost:3100/login` and pick a role and a person. No password is 
 | `lib/i18n/th.ts` | Every UI string (Thai) |
 | `scripts/` | Command-line tools behind the `bun run` scripts |
 | `deploy/`, `Dockerfile`, `k8s-deploy.yml`, `.gitlab-ci.yml` | The demo deployment |
-| `site/` | The booth film capture pipeline |
+| `film/` | The booth films and their render pipeline (`film/README.md`) |
 | `docs/` | Plans, guides, and decision records |
 
 ## Documentation

@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "booth:facts": "bun run scripts/booth/facts.ts",
-    "booth:render": "bun run scripts/booth/render.ts",
     "dev": "next dev --port 3100",
     "build": "next build",
     "start": "next start --port 3100",

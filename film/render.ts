@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { waitFor, withHeadlessPage } from "./chrome";
 
@@ -8,10 +8,11 @@ const STAGE = { width: 1920, height: 1080, scale: 1 };
 const JPEG_QUALITY = 92;
 const CHUNK_BYTES = 4 * 1024 * 1024;
 const LOG_EVERY = 150;
-const CAPTURE_ENTRY = path.join(process.cwd(), "site", "film", "capture.ts");
+const FILM_DIR = import.meta.dir;
+const CAPTURE_ENTRY = path.join(FILM_DIR, "capture.ts");
 
-const [filmPath, outPath] = process.argv.slice(2);
-if (!filmPath || !outPath) throw new Error("Usage: bun run booth:render <film.html> <out.mp4>  (a film exposes window.film = { length, render(t), ready })");
+const [filmName, outPath] = process.argv.slice(2);
+if (!filmName || !outPath) throw new Error("Usage: bun run render <film.html> <out.mp4>  (a film exposes window.film = { length, render(t), ready })");
 
 async function encoderBundle(): Promise<string> {
   const built = await Bun.build({ entrypoints: [CAPTURE_ENTRY], target: "browser", format: "esm", minify: true });
@@ -19,20 +20,20 @@ async function encoderBundle(): Promise<string> {
   return built.outputs[0].text();
 }
 
-const film = readFileSync(filmPath, "utf8");
 const encoder = await encoderBundle();
 const server = Bun.serve({
   port: PORT,
-  fetch(request) {
+  async fetch(request) {
     const { pathname } = new URL(request.url);
     if (pathname === "/encoder.js") return new Response(encoder, { headers: { "content-type": "text/javascript" } });
-    return new Response(film, { headers: { "content-type": "text/html; charset=utf-8" } });
+    const file = Bun.file(path.join(FILM_DIR, path.normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\])+/, "")));
+    return (await file.exists()) ? new Response(file) : new Response("Not found", { status: 404 });
   },
 });
 
 try {
   await withHeadlessPage(STAGE, async ({ send, evaluate }) => {
-    await send("Page.navigate", { url: `http://localhost:${PORT}/?capture` });
+    await send("Page.navigate", { url: `http://localhost:${PORT}/${filmName}?capture` });
     await waitFor("the film", async () => ((await evaluate("Boolean(window.film && window.film.ready)")) ? true : null));
     await evaluate("document.fonts.ready.then(() => true)");
     await evaluate(`new Promise((resolve, reject) => { const s = document.createElement('script'); s.type = 'module'; s.src = '/encoder.js'; s.onload = resolve; s.onerror = reject; document.head.appendChild(s); })`);
@@ -40,7 +41,7 @@ try {
 
     const length = Number(await evaluate("window.film.length"));
     const frames = Math.round(length * FPS);
-    console.log(`Rendering ${frames} frames (${length.toFixed(2)} s at ${FPS} fps) from ${filmPath}`);
+    console.log(`Rendering ${frames} frames (${length.toFixed(2)} s at ${FPS} fps) from ${filmName}`);
     await evaluate("window.__encoder.startEncoder()");
     const startedAt = Date.now();
     for (let frame = 0; frame < frames; frame += 1) {
