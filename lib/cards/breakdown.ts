@@ -157,6 +157,7 @@ function aboveLineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const rows: ReadRow[] = scored.map((entry, index) => ({
     label: labelOf(query, entry.row),
     sub: null,
+    second: null,
     measure: entry.measure,
     fill: entry.measure === null ? 0 : Math.min(1, Math.max(0, entry.measure / peak)),
     text: valueTextOf(query, entry.row),
@@ -212,6 +213,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
     return {
       label: labelOf(query, entry.row),
       sub: overTime && overTarget ? targetSubOf(query, entry.row) : null,
+      second: null,
       measure: entry.measure,
       fill: entry.measure === null ? 0 : Math.min(1, Math.max(0, entry.measure / (ofTarget ? PERCENT : peak))),
       text: textOf(entry),
@@ -248,7 +250,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   return {
     form: "line",
     baseline: at,
-    overall: overTime ? null : month ? { label: input.scope, sub: joinedText([TH.read.ofMonthTarget, monthDetail]), measure: percentIn(month.attainment), fill: 0, text: month.attainment, change: null, tone: overallTone, exception: true, valued: true } : { label: input.scope, sub: ofTarget ? goalUnit : null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
+    overall: overTime ? null : month ? { label: input.scope, sub: joinedText([TH.read.ofMonthTarget, monthDetail]), second: null, measure: percentIn(month.attainment), fill: 0, text: month.attainment, change: null, tone: overallTone, exception: true, valued: true } : { label: input.scope, sub: ofTarget ? goalUnit : null, second: null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
     rows,
     verdict: lineVerdict({
       line: line.line,
@@ -313,6 +315,7 @@ function changeReading(input: BreakdownInput): Breakdown {
     return {
       label: labelOf(query, entry.row),
       sub: levelAndBase(query, entry.row),
+      second: null,
       measure: entry.measure,
       fill: entry.measure === null ? 0 : Math.min(1, Math.abs(entry.measure) / (inPoints ? peak : PERCENT)),
       text: changeTextOf(query.metric, entry.row) ?? "—",
@@ -329,7 +332,7 @@ function changeReading(input: BreakdownInput): Breakdown {
   return {
     form: "line",
     baseline: 0,
-    overall: { label: input.scope, sub: input.baseTotal ?? result.headline.compareLabel, measure: overallMeasure, fill: 0, text: overall.delta ?? "—", change: null, tone: overall.tone, exception: true, valued: true },
+    overall: { label: input.scope, sub: input.baseTotal ?? result.headline.compareLabel, second: null, measure: overallMeasure, fill: 0, text: overall.delta ?? "—", change: null, tone: overall.tone, exception: true, valued: true },
     rows,
     verdict: changeVerdict({
       unit: input.unit,
@@ -360,6 +363,7 @@ function boardReading(input: BreakdownInput): Breakdown {
   const rows: ReadRow[] = input.rows.map((row, index) => ({
     label: labelOf(query, row),
     sub: null,
+    second: null,
     measure: values[index],
     fill: peak === 0 ? 0 : Math.abs(values[index] ?? 0) / peak,
     text: valueTextOf(query, row),
@@ -373,7 +377,7 @@ function boardReading(input: BreakdownInput): Breakdown {
   return {
     form: "board",
     baseline: 0,
-    overall: { label: input.scope, sub: overall.delta ? result.headline.compareLabel : null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
+    overall: { label: input.scope, sub: overall.delta ? result.headline.compareLabel : null, second: null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
     rows,
     verdict: boardVerdict({ unit: input.unit, labels: rows.map((row) => row.label), changes, notable, format, slice: input.capped ? TH.read.shown(rows.length, input.unit) : someOf(input) }),
     hero: { label: input.scope, value: result.headline.value, unit: null, ...overall, detail: result.headline.compareLabel },
@@ -404,6 +408,7 @@ function referenceReading(input: BreakdownInput): Breakdown {
     return {
       label: labelOf(query, row),
       sub: null,
+      second: null,
       measure: value,
       fill: peak === 0 || value === null ? 0 : Math.abs(value) / peak,
       text: valueTextOf(query, row),
@@ -418,7 +423,7 @@ function referenceReading(input: BreakdownInput): Breakdown {
   return {
     form: "line",
     baseline,
-    overall: { label: input.scope, sub: overall.delta ? result.headline.compareLabel : null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
+    overall: { label: input.scope, sub: overall.delta ? result.headline.compareLabel : null, second: null, measure: null, fill: 0, text: result.headline.value, change: overall.delta, tone: overall.tone, exception: true, valued: true },
     rows,
     verdict: referenceVerdict({ unit: input.unit, labels: rows.map((row) => row.label), values, texts: rows.map((row) => row.text), outliers }),
     hero: { label: input.scope, value: result.headline.value, unit: null, ...overall, detail: result.headline.compareLabel },
@@ -434,6 +439,7 @@ export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHer
   const rows: ReadRow[] = gaps.map((gap, index) => ({
     label: gap.label,
     sub: null,
+    second: null,
     measure: gap.ratio,
     fill: Math.min(1, Math.max(0, gap.ratio / PERCENT)),
     text: percentText(gap.ratio),
@@ -446,7 +452,7 @@ export function parityReading(input: { gaps: readonly ParityGap[]; hero: CardHer
   return {
     form: "line",
     baseline: PERCENT,
-    overall: { label: TH.read.allOf(input.unit), sub: hero.label, measure: overallMeasure, fill: 0, text: hero.value, change: null, tone: hero.tone, exception: true, valued: true },
+    overall: { label: TH.read.allOf(input.unit), sub: hero.label, second: null, measure: overallMeasure, fill: 0, text: hero.value, change: null, tone: hero.tone, exception: true, valued: true },
     rows,
     verdict: input.verdict,
     hero,

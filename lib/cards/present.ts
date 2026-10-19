@@ -1339,35 +1339,35 @@ function baselineText(source: Source, change: string | null): string | null {
   return change === null ? null : `${change} ${label}`;
 }
 
-/** A breakdown card with a second line under each row it names (`subs`, by row label) and an extra fact beside its hero. */
-function withSecondLine(card: CardParts, subs: ReadonlyMap<string, string | null>, heroExtra: string | null): CardParts {
-  const subOf = (row: ReadRow): ReadRow => ({ ...row, sub: subs.get(row.label) ?? row.sub });
+/** A breakdown card with a paired reading on each row it names (`seconds`, by row label) and an extra fact beside its hero and on its overall row. */
+function withSecondLine(card: CardParts, seconds: ReadonlyMap<string, string | null>, heroExtra: string | null): CardParts {
+  const pairedOf = (row: ReadRow): ReadRow => ({ ...row, second: seconds.get(row.label) ?? row.second });
   const hero = card.hero && heroExtra ? { ...card.hero, detail: joined([card.hero.detail, heroExtra]) } : card.hero;
-  const overallOf = (row: ReadRow | null): ReadRow | null => (row && heroExtra ? { ...row, sub: joined([row.sub, heroExtra]) } : row);
-  const strip = (current: Strip): Strip => ({ ...current, overall: overallOf(current.overall), rows: current.rows.map(subOf) });
+  const overallOf = (row: ReadRow | null): ReadRow | null => (row && heroExtra ? { ...row, second: heroExtra } : row);
+  const strip = (current: Strip): Strip => ({ ...current, overall: overallOf(current.overall), rows: current.rows.map(pairedOf) });
   const body = card.body;
   if (body.kind === "strip") return { ...card, hero, body: { ...body, strip: strip(body.strip) } };
-  if (body.kind === "exceptions") return { ...card, hero, body: { ...body, strip: strip(body.strip), fold: body.fold ? { ...body.fold, rows: body.fold.rows.map(subOf) } : null } };
+  if (body.kind === "exceptions") return { ...card, hero, body: { ...body, strip: strip(body.strip), fold: body.fold ? { ...body.fold, rows: body.fold.rows.map(pairedOf) } : null } };
   return { ...card, hero };
 }
 
 /** One metric asked against two baselines draws one card: the first answer's card, the second comparison beside the hero and under each row it names. */
 function withBaseline(card: CardParts, second: Source): CardParts {
   const { query, result } = second;
-  const subs = new Map(result.rows.map((row) => [labelOf(query, row), baselineText(second, changeTextOf(query.metric, row))]));
-  return withSecondLine(card, subs, baselineText(second, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null)));
+  const seconds = new Map(result.rows.map((row) => [labelOf(query, row), baselineText(second, changeTextOf(query.metric, row))]));
+  return withSecondLine(card, seconds, baselineText(second, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null)));
 }
 
-/** Two metrics of a few groups (too few points for a scatter to say anything) read as the first metric's breakdown with the second metric's value and change under every row, and its overall figure with its change beside the hero, so both numbers the reply relies on are on the card (AI-124); what that change is against goes to the footer like every row's, so the overall line is never clamped mid-phrase (AI-188). */
+/** Two metrics of a few groups (too few points for a scatter to say anything) read as the first metric's breakdown with the second metric's value and change under every row (its name only in the title and on the overall row), and its overall figure with its change beside the hero, so both numbers the reply relies on are on the card (AI-124); what that change is against goes to the footer like every row's, so the overall line is never clamped mid-phrase (AI-188). */
 function withSecondMetric(card: CardParts, pairing: Pairing): CardParts {
   const [, second] = pairing.sources;
   const { query, result } = second;
   const label = shortMetricLabel(second);
-  const subs = new Map(result.rows.map((row) => [labelOf(query, row), joinedBySpace([valueTextOf(query, row), label, changeTextOf(query.metric, row)])]));
+  const seconds = new Map(result.rows.map((row) => [labelOf(query, row), joined([valueTextOf(query, row), changeTextOf(query.metric, row)])]));
   const overall = joinedBySpace([label, result.headline.value, formatChange(query.metric, result.headline.deltaPercent, result.headline.deltaPoints ?? null)]);
   const versus = result.headline.compareLabel ? joinedBySpace([label, result.headline.compareLabel]) : null;
   const footer = card.footer && versus ? { ...card.footer, details: joined([card.footer.details, versus]) } : card.footer;
-  return { ...withSecondLine(card, subs, overall), title: pairedTitleOf(pairing), footer };
+  return { ...withSecondLine(card, seconds, overall), title: pairedTitleOf(pairing), footer };
 }
 
 function joinedBySpace(parts: readonly (string | null)[]): string {
@@ -1624,7 +1624,7 @@ const GAP_RULES: readonly GapRule[] = [
 ];
 
 function gapRow(label: string, text: string, sub: string | null, share: number | null, tone: Tone): ReadRow {
-  return { label, sub, measure: share, fill: share === null ? 1 : Math.min(1, Math.max(0, share / PERCENT)), text, change: null, tone, exception: true, valued: true };
+  return { label, sub, second: null, measure: share, fill: share === null ? 1 : Math.min(1, Math.max(0, share / PERCENT)), text, change: null, tone, exception: true, valued: true };
 }
 
 /** A gap card's title: the metric and the split its parts are by ("มูลค่าขายเข้า · รายภาค"), the card and every message about it alike (AI-267). */
@@ -1654,8 +1654,8 @@ export function presentGap(input: PresentGapInput): CardParts {
     ...drawn.map((part) => gapRow(part.label, unsignedLabel(part.gap_label), ofGapText(part), gapShareOf(part), tone)),
   ];
   const folded = [
-    ...smaller.map((part): ReadRow => ({ label: part.label, sub: ofGapText(part), measure: null, fill: 0, text: unsignedLabel(part.gap_label), change: null, tone: "neutral", exception: false, valued: true })),
-    ...answer.offsetting.map((part): ReadRow => ({ label: part.label, sub: null, measure: null, fill: 0, text: part.gap_label, change: null, tone: "neutral", exception: false, valued: true })),
+    ...smaller.map((part): ReadRow => ({ label: part.label, sub: ofGapText(part), second: null, measure: null, fill: 0, text: unsignedLabel(part.gap_label), change: null, tone: "neutral", exception: false, valued: true })),
+    ...answer.offsetting.map((part): ReadRow => ({ label: part.label, sub: null, second: null, measure: null, fill: 0, text: part.gap_label, change: null, tone: "neutral", exception: false, valued: true })),
   ];
   const smallerShare = smaller.reduce((sum, part) => sum + (gapShareOf(part) ?? 0), 0);
   const foldLine = joined([smaller.length > 0 ? TH.cards.gap.smallerFold(smaller.length, percentText(smallerShare)) : null, answer.offsetting.length > 0 ? TH.cards.gap.offsetFold(answer.offsetting.length) : null]);

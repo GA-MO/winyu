@@ -36,6 +36,7 @@ function OverallLabel({ row }: { row: ReadRow }) {
     <div className="flex min-w-0 flex-col text-[12px] leading-snug text-muted-foreground">
       <span className="truncate">{row.label}</span>
       {row.sub ? <span className="line-clamp-4 break-words text-[11px]">{row.sub}</span> : null}
+      {row.second ? <span className="break-words text-[11px]">{row.second}</span> : null}
     </div>
   );
 }
@@ -64,7 +65,8 @@ function DecidingLine({ strip, gridRow }: { strip: Strip; gridRow: string }) {
 
 function LineStrip({ strip }: { strip: Strip }) {
   const overall = strip.overall;
-  const headRows = overall ? (overall.sub ? 3 : 2) : 0;
+  const overallLines = overall ? [overall.sub, overall.second].filter((line): line is string => line !== null) : [];
+  const headRows = overall ? (overallLines.length > 0 ? 3 : 2) : 0;
   const rowsLine = `${overall ? headRows : 1} / span ${strip.rows.length + (overall ? 1 : 0)}`;
   return (
     <div className="relative grid grid-cols-[minmax(0,7.5rem)_minmax(0,1fr)_max-content] items-center gap-x-2.5 gap-y-1.5">
@@ -84,10 +86,12 @@ function LineStrip({ strip }: { strip: Strip }) {
             <span className={cn("text-[22px] font-semibold leading-none tracking-tight tabular-nums", overall.change ? "text-foreground" : TONE_TEXT[overall.tone])}>{overall.text}</span>
             {overall.change ? <ChangeChip text={overall.change} tone={overall.tone} /> : null}
           </div>
-          {overall.sub ? (
-            <p className="text-[11px] leading-snug text-muted-foreground tabular-nums" style={{ gridColumn: "1 / -1", gridRow: 2 }}>
-              {overall.sub}
-            </p>
+          {overallLines.length > 0 ? (
+            <div className="flex flex-col text-[11px] leading-snug text-muted-foreground tabular-nums" style={{ gridColumn: "1 / -1", gridRow: 2 }}>
+              {overallLines.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </div>
           ) : null}
           <div aria-hidden className="h-px bg-border/70" style={{ gridColumn: "1 / -1", gridRow: headRows }} />
         </>
@@ -99,6 +103,7 @@ function LineStrip({ strip }: { strip: Strip }) {
             <div className="flex min-w-0 flex-col" style={{ gridColumn: 1, gridRow }}>
               <span title={detailOf(row)} className={cn("line-clamp-2 break-words text-[13px] leading-snug text-foreground", row.exception ? "font-semibold" : "font-medium")}>{nameOf(row.label)}</span>
               {placeOf(row.label) ? <span className="truncate text-[11px] leading-snug text-muted-foreground">{placeOf(row.label)}</span> : null}
+              <RowSecond row={row} />
               {row.exception && row.sub ? <span className="truncate text-[11px] leading-snug text-muted-foreground tabular-nums">{row.sub}</span> : null}
             </div>
             <div className="relative h-4" style={{ gridColumn: 2, gridRow }}>
@@ -114,9 +119,14 @@ function LineStrip({ strip }: { strip: Strip }) {
   );
 }
 
-/** A row's second line (the base it was compared with, a second comparison), small and muted under its name. */
+/** A row's detail line (the base it was compared with), small and muted under its name. */
 function RowSub({ row }: { row: ReadRow }) {
   return row.sub ? <span className="line-clamp-2 break-words text-[11px] leading-snug text-muted-foreground tabular-nums">{row.sub}</span> : null;
+}
+
+/** A row's paired reading (a second metric, a second baseline), muted under its name on every row and never cut. */
+function RowSecond({ row }: { row: ReadRow }) {
+  return row.second ? <span className="break-words text-[11px] leading-snug text-muted-foreground tabular-nums">{row.second}</span> : null;
 }
 
 function BoardRow({ row }: { row: ReadRow }) {
@@ -129,6 +139,7 @@ function BoardRow({ row }: { row: ReadRow }) {
         <span className="shrink-0 text-[13px] font-medium tabular-nums text-foreground">{row.text}</span>
         {row.change ? <ChangeChip text={row.change} tone={row.exception ? row.tone : "neutral"} /> : null}
       </div>
+      <RowSecond row={row} />
       <RowSub row={row} />
       <div className="h-1.5 w-full">
         <div className={cn("h-full rounded-full", row.exception ? "bg-foreground/55" : "bg-muted-foreground/30")} style={{ width: `${Math.max(row.fill * FULL, MIN_BAR_PCT)}%` }} />
@@ -174,6 +185,7 @@ function ExceptionRow({ row, board }: { row: ReadRow; board: boolean }) {
         </span>
         <span className={cn("shrink-0 text-[15px] font-semibold tabular-nums", TONE_TEXT[row.tone])}>{row.text}</span>
       </div>
+      <RowSecond row={row} />
       <RowSub row={row} />
       <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div className={cn("absolute inset-y-0 left-0 rounded-full", TONE_BAR[row.tone])} style={{ width: `${Math.max(row.fill * FULL, MIN_BAR_PCT)}%` }} />
@@ -189,7 +201,8 @@ function PlainRow({ row }: { row: ReadRow }) {
         <span title={row.label} className="truncate text-muted-foreground">
           {row.label}
         </span>
-        <RowSub row={row} />
+        <RowSecond row={row} />
+      <RowSub row={row} />
       </span>
       <span className="shrink-0 tabular-nums text-muted-foreground">
         {row.text}

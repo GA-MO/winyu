@@ -5,7 +5,7 @@ const SEGMENTER = new Intl.Segmenter("th", { granularity: "word" });
 function bodyTexts(body: CardBody): string[] {
   if (body.kind === "strip") {
     const overall = body.strip.overall;
-    return overall ? [overall.label, overall.sub ?? "", overall.text, overall.change ?? ""] : [];
+    return overall ? [overall.label, overall.sub ?? "", overall.second ?? "", overall.text, overall.change ?? ""] : [];
   }
   if (body.kind === "exceptions") return [body.fold?.line ?? ""];
   if (body.kind === "share") return [body.centerValue];

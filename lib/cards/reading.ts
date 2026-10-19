@@ -10,10 +10,11 @@ const MIN_OUTLIER_ROWS = 3;
 const THAI_THEN_LATIN = /([\u0E01-\u0E5B])([A-Za-z0-9])/g;
 const LATIN_THEN_THAI = /([A-Za-z0-9%])([\u0E01-\u0E30\u0E32\u0E33\u0E3F-\u0E46\u0E4F-\u0E5B])/g;
 
-/** One row of a breakdown as styles B and A draw it: where it sits on the shared scale (and how full style A's own bar is), the text beside it, the change pill a leaderboard row carries, a second line under the name, and whether it is an exception the verdict is about. */
+/** One row of a breakdown as styles B and A draw it: where it sits on the shared scale (and how full style A's own bar is), the text beside it, the change pill a leaderboard row carries, the detail under the name (shown on exceptions), a paired reading (a second metric or baseline, shown on every row), and whether it is an exception the verdict is about. */
 export type ReadRow = {
   label: string;
   sub: string | null;
+  second: string | null;
   measure: number | null;
   fill: number;
   text: string;

@@ -12,14 +12,14 @@ function render(body: CardBody): string {
 
 describe("strip rows named along two splits", () => {
   test("show the first part as the name and the second on its own line, so a phone never cuts the province off (AI-103)", () => {
-    const row = { label: "อุบลศรีสุข เทรดดิ้ง · อุบลราชธานี", sub: null, measure: 60.5, fill: 0.6, text: "60.5%", change: null, tone: "bad" as const, exception: true, valued: true };
+    const row = { label: "อุบลศรีสุข เทรดดิ้ง · อุบลราชธานี", sub: null, second: null, measure: 60.5, fill: 0.6, text: "60.5%", change: null, tone: "bad" as const, exception: true, valued: true };
     const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 50, high: 110, overall: null, rows: [row] } });
     expect(html).toContain(">อุบลศรีสุข เทรดดิ้ง</span>");
     expect(html).toContain(">อุบลราชธานี</span>");
   });
 
   test("a long name wraps onto a second line instead of being cut with an ellipsis, so กรุงเทพฯ และปริมณฑล reads whole on a phone (AI-254)", () => {
-    const row = { label: "กรุงเทพฯ และปริมณฑล", sub: null, measure: 86.5, fill: 0.86, text: "86.5%", change: null, tone: "bad" as const, exception: true, valued: true };
+    const row = { label: "กรุงเทพฯ และปริมณฑล", sub: null, second: null, measure: 86.5, fill: 0.86, text: "86.5%", change: null, tone: "bad" as const, exception: true, valued: true };
     const html = render({ kind: "strip", strip: { form: "line", baseline: 86.7, low: 70, high: 90, overall: null, rows: [row] } });
     const name = html.match(/<span title="กรุงเทพฯ และปริมณฑล" class="([^"]*)">/)?.[1] ?? "";
     expect(name).toContain("line-clamp-2");
@@ -98,7 +98,7 @@ describe("scatter", () => {
 });
 
 
-const ROW = { sub: null, fill: 0.5, change: null, valued: true } as const;
+const ROW = { sub: null, second: null, fill: 0.5, change: null, valued: true } as const;
 
 describe("strip (style B)", () => {
   test("a leaderboard shows every row's value and colours only the pill whose change stands out", () => {
@@ -203,4 +203,21 @@ test("scatter x ticks keep both ends and drop a middle label that would touch th
   const tick = (value: number, at: number, anchor: "start" | "middle" | "end") => ({ value, at, text: `${value} ล้าน`, anchor });
   const kept = spacedTicks([tick(0, 40, "start"), tick(20, 110, "middle"), tick(40, 180, "middle"), tick(60, 250, "middle"), tick(80, 280, "end")]);
   expect(kept.map((entry) => entry.value)).toEqual([0, 20, 40, 80]);
+});
+
+test("a paired reading shows under every row of a line strip, not only the exceptions, and is never cut", () => {
+  const rows = [
+    { ...ROW, label: "ภาคอีสาน", second: "28.2% · +1.8 จุด", measure: 77, text: "77.3%", tone: "bad" as const, exception: true },
+    { ...ROW, label: "ภาคกลาง", second: "26.7% · -0.4 จุด", measure: 86, text: "86.0%", tone: "neutral" as const, exception: false },
+  ];
+  const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 70, high: 100, overall: null, rows } });
+  expect(html).toContain(">28.2% · +1.8 จุด</span>");
+  expect(html).toContain(">26.7% · -0.4 จุด</span>");
+  expect(html.match(/<span class="([^"]*)">26\.7%/)?.[1]).not.toContain("truncate");
+});
+
+test("a line strip's overall detail sits on its own full-width line instead of under the overall name", () => {
+  const overall = { ...ROW, label: "ทั้งประเทศ", sub: "ของเป้าทั้งเดือน · ถึงวันนี้ควรได้ 86.7%", measure: 83.9, text: "83.9%", tone: "bad" as const, exception: true };
+  const html = render({ kind: "strip", strip: { form: "line", baseline: 100, low: 70, high: 100, overall, rows: [] } });
+  expect(html).toMatch(/grid-column:1 \/ -1;grid-row:2"><p>ของเป้าทั้งเดือน/);
 });

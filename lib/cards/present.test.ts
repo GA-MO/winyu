@@ -302,7 +302,7 @@ describe("two metrics on one card", () => {
     const card = presentCard({ title: "t", query: first.query, result: first.result, others: [second] });
     const rows = stripOf(card.body).rows;
     expect(rows.length).toBeGreaterThan(1);
-    rows.forEach((row) => expect(row.sub).toMatch(/^.+บาท ยอดค้างชำระเกินกำหนด( [+−-][\d.,]+%)?$/));
+    rows.forEach((row) => expect(row.second).toMatch(/^.+บาท( · [+−-][\d.,]+%)?$/));
     expect(card.title).toContain("ยอดค้างชำระเกินกำหนด");
   });
 
@@ -313,7 +313,7 @@ describe("two metrics on one card", () => {
     expect(pairedIndexes(overdue, [cover])).toEqual([]);
     const card = presentCard({ title: "t", query: cover.query, result: cover.result, others: [overdue] });
     expect(card.title).toBe("t");
-    stripOf(card.body).rows.forEach((row) => expect(row.sub ?? "").not.toContain(metricLabel("ar_overdue")));
+    stripOf(card.body).rows.forEach((row) => expect(row.second).toBeNull());
   });
 
   test("the second metric keeps its change: margin against last year under each region and beside the overall row (AI-124)", () => {
@@ -322,9 +322,9 @@ describe("two metrics on one card", () => {
     if (!margin.result.ok) throw new Error(margin.result.error);
     const card = presentCard({ title: "t", query: sales.query, result: sales.result, others: [margin] });
     const strip = stripOf(card.body);
-    strip.rows.forEach((row) => expect(row.sub).toMatch(/^[\d.]+% อัตรากำไรขั้นต้น [+−-]?[\d.]+ จุด$/));
+    strip.rows.forEach((row) => expect(row.second).toMatch(/^[\d.]+% · [+−-]?[\d.]+ จุด$/));
     const overall = `อัตรากำไรขั้นต้น ${margin.result.headline.value} ${formatChange("gross_margin", margin.result.headline.deltaPercent, margin.result.headline.deltaPoints ?? null)}`;
-    expect(strip.overall?.sub).toContain(overall);
+    expect(strip.overall?.second).toContain(overall);
     expect(card.footer?.details).toContain(`อัตรากำไรขั้นต้น ${margin.result.headline.compareLabel}`);
   });
 
@@ -342,10 +342,10 @@ describe("two metrics on one card", () => {
     expect(pairedIndexes(target, [previous])).toEqual([0]);
     const card = presentCard({ title: "t", query: target.query, result: target.result, others: [previous] });
     expect(card.hero?.detail).toContain(TH.dash.compare.prev_period);
-    expect(stripOf(card.body).overall?.sub).toContain(TH.dash.compare.prev_period);
+    expect(stripOf(card.body).overall?.second).toContain(TH.dash.compare.prev_period);
     const strip = stripOf(card.body);
     expect(strip.rows.length).toBeGreaterThan(1);
-    strip.rows.forEach((row) => expect(row.sub).toEndWith(TH.dash.compare.prev_period));
+    strip.rows.forEach((row) => expect(row.second).toEndWith(TH.dash.compare.prev_period));
   });
 });
 

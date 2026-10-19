@@ -91,7 +91,7 @@ describe("the board summary card (AI-188)", () => {
   });
 
   test("the overall line keeps the margin it was asked for whole, without a comparison word the rows do not repeat", () => {
-    const overall = stripOf(card.body).overall?.sub ?? "";
+    const overall = stripOf(card.body).overall?.second ?? "";
     expect(overall).toContain("อัตรากำไรขั้นต้น 27.3% +0.8 จุด");
     expect(overall).not.toContain("เทียบช่วงก่อนหน้า");
   });
