@@ -1316,12 +1316,28 @@ function actionsOf(actions: readonly NextAction[]): { primary: NextAction | null
   return { primary, more };
 }
 
-/** Two series overlaid draw without their running week or month the way one trend does (a series against target keeps it, AI-304), and say so once; the hero and tiles still read the whole span, like one trend's hero. */
-function drawnPairing(pairing: Pairing): { pairing: Pairing; note: string | null } {
-  if (pairing.view !== "overlay") return { pairing, note: null };
-  const drawn = pairing.sources.map((source) => ({ source, trimmed: drawnBuckets(source.query, "line", source.result.rows, source.result.provenance.asOf) }));
-  const sources = drawn.map(({ source, trimmed }) => ({ ...source, result: { ...source.result, rows: trimmed.rows } }));
-  return { pairing: { ...pairing, sources }, note: drawn.find(({ trimmed }) => trimmed.note !== null)?.trimmed.note ?? null };
+/** A trend whose range starts inside a week or month drops that short first bucket and says how many days it held, for pictures where a dashed copy of every series would crowd the legend. */
+function withoutLeadingPartial(query: MetricQuery, rows: MetricRow[]): { rows: MetricRow[]; note: string | null } {
+  const days = leadingPartialDays(query);
+  const dim = timeDimOf(query);
+  if (days === null || !dim) return { rows, note: null };
+  const key = query.grain === "month" ? monthKeyOfIso(query.range.from) : weekKeyOfIso(query.range.from);
+  const kept = rows.filter((row) => String(row[dim]) !== key);
+  if (kept.length === rows.length || kept.length < 2) return { rows, note: null };
+  return { rows: kept, note: query.grain === "month" ? TH.dash.partialFirstMonth(days) : TH.dash.partialFirstWeek(days) };
+}
+
+/** Two series overlaid draw without their running week or month the way one trend does (a series against target keeps it, AI-304), and without a short first bucket; each is said once in the footer, and the hero and tiles still read the whole span, like one trend's hero. */
+function drawnPairing(pairing: Pairing): { pairing: Pairing; notes: (string | null)[] } {
+  if (pairing.view !== "overlay") return { pairing, notes: [] };
+  const drawn = pairing.sources.map((source) => {
+    const running = drawnBuckets(source.query, "line", source.result.rows, source.result.provenance.asOf);
+    const leading = withoutLeadingPartial(source.query, running.rows);
+    return { source, rows: leading.rows, notes: [leading.note, running.note] };
+  });
+  const sources = drawn.map(({ source, rows }) => ({ ...source, result: { ...source.result, rows } }));
+  const noteAt = (index: number) => drawn.find(({ notes }) => notes[index] !== null)?.notes[index] ?? null;
+  return { pairing: { ...pairing, sources }, notes: [noteAt(0), noteAt(1)] };
 }
 
 function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
@@ -1338,7 +1354,7 @@ function pairedCard(input: PresentInput, pairing: Pairing): CardParts {
     tiles: lead.tiles,
     body,
     ...actionsOf(input.actions ?? NO_ACTIONS),
-    footer: footerOf(first.query, first.result, [drawn.note, indexed ? TH.dash.indexedNote : null]),
+    footer: footerOf(first.query, first.result, [...drawn.notes, indexed ? TH.dash.indexedNote : null]),
     denied: null,
   };
 }

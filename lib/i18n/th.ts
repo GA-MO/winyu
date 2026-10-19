@@ -756,6 +756,8 @@ export const TH = {
     maskedAll: (unit: string | null) => `ตัวเลขชุดนี้ถูกซ่อนสำหรับบทบาทของคุณ${unit ? ` เห็นได้แค่รายชื่อ${unit}` : ""}`,
     partialWeek: "สัปดาห์ปัจจุบันยังไม่ครบ",
     partialMonth: "เดือนปัจจุบันยังไม่ครบ",
+    partialFirstWeek: (days: number) => `สัปดาห์แรกไม่ครบ (${days} วัน) ไม่ได้แสดง`,
+    partialFirstMonth: (days: number) => `เดือนแรกไม่ครบ (${days} วัน) ไม่ได้แสดง`,
     partialSeries: (label: string, days: number) => `${label} มีข้อมูล ${days} วัน`,
     versusBucket: (bucket: string) => `เทียบ ${bucket}`,
     others: "อื่น ๆ",

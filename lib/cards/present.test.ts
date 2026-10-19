@@ -938,20 +938,35 @@ describe("a change ranking's verdict", () => {
 });
 
 describe("two series overlaid", () => {
-  test("drop the running week like one trend does and say so, so neither line falls off a cliff at its end", () => {
-    const range = { from: addDays(DATA_AS_OF, -83), to: DATA_AS_OF };
+  const overlayOf = (from: string) => {
+    const range = { from, to: DATA_AS_OF };
     const sellIn: MetricQuery = { metric: "net_sales_volume", dims: ["week"], filters: {}, range, grain: "week", compare: "none", limit: null };
     const sellOut: MetricQuery = { ...sellIn, metric: "sell_out_volume" };
     const first = { query: sellIn, result: runMetric(sellIn, CEO) };
     const second = { query: sellOut, result: runMetric(sellOut, CEO) };
     if (!first.result.ok) throw new Error(first.result.error);
-    const running = periodLabelTh(weekKeyOfIso(DATA_AS_OF));
     const card = presentCard({ title: "t", query: sellIn, result: first.result, others: [second] });
+    return { card, rows: first.result.rows.length };
+  };
+  const weekStartOf = (day: string) => addDays(day, -((new Date(`${day}T00:00:00Z`).getUTCDay() + 6) % 7));
+  const midWeek = addDays(weekStartOf(addDays(DATA_AS_OF, -83)), 3);
+
+  test("drop the running week like one trend does and say so, so neither line falls off a cliff at its end", () => {
+    const { card, rows } = overlayOf(weekStartOf(addDays(DATA_AS_OF, -83)));
     const body = expectKind(card.body, "line");
     expect(body.series.length).toBeGreaterThanOrEqual(2);
-    expect(body.labels).not.toContain(running);
-    expect(body.labels).toHaveLength(first.result.rows.length - 1);
+    expect(body.labels).not.toContain(periodLabelTh(weekKeyOfIso(DATA_AS_OF)));
+    expect(body.labels).toHaveLength(rows - 1);
     expect(JSON.stringify(card.footer)).toContain(TH.dash.partialWeek);
+    expect(JSON.stringify(card.footer)).not.toContain(TH.dash.partialFirstWeek(4));
+  });
+
+  test("drop a short first week too and say how many days it held, so neither line starts with a fake jump", () => {
+    const { card, rows } = overlayOf(midWeek);
+    const body = expectKind(card.body, "line");
+    expect(body.labels).not.toContain(periodLabelTh(weekKeyOfIso(midWeek)));
+    expect(body.labels).toHaveLength(rows - 2);
+    body.series.forEach((series) => expect(series.style).not.toBe("dashed"));
+    expect(JSON.stringify(card.footer)).toContain(TH.dash.partialFirstWeek(4));
   });
 });
-
