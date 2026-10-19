@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=block" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="sound.js"></script>
 <style>
 :root{
   --bg:#faf7f2; --ink:#1f1b3a; --muted:#6b6785; --violet:#7c3aed;
@@ -162,6 +163,7 @@ svg{display:block}
 #transport button{width:40px;height:40px;border-radius:50%;border:0;background:#1f1b3a;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
 #transport input{flex:1;accent-color:#4f46e5}
 #transport .tm{min-width:110px;text-align:right;font-variant-numeric:tabular-nums}
+#transport #snd[aria-pressed="false"]{opacity:.45}
 </style>
 </head>
 <body>
@@ -259,7 +261,7 @@ svg{display:block}
   </div>
   <div id="bug"><div class="tile"><svg viewBox="0 0 44 44"><path d="M6 14 L13 31 L20 19 L27 29 L37 9" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="37" cy="9" r="3.2" fill="#fff"/></svg></div><span class="t32 b">Winyu</span></div>
 </div></div></div>
-<div id="transport"><button id="pp" aria-label="play/pause"><svg width="16" height="16" viewBox="0 0 16 16" id="ppi"></svg></button><input id="scrub" type="range" min="0" step="0.01"><span class="tm" id="tm"></span></div>
+<div id="transport"><button id="pp" aria-label="play/pause"><svg width="16" height="16" viewBox="0 0 16 16" id="ppi"></svg></button><button id="snd" aria-label="sound" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 6h3l4-3.5v11L5 10H2z" fill="#fff"/><path d="M11.5 5.2a4 4 0 0 1 0 5.6M13.3 3.5a6.5 6.5 0 0 1 0 9" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></button><input id="scrub" type="range" min="0" step="0.01"><span class="tm" id="tm"></span></div>
 
 <script>
 (() => {
@@ -290,6 +292,11 @@ const W6 = makeWarp(W5.E, 24.0, 29.4, [[26.15, 1.0], [28.3, 1.2]], 0.1, 0.4);
 const W7 = makeWarp(W6.E, 29.0, 33.5, [[32.75, 1.2]], 0.1, 0.45);
 const W8 = makeWarp(W7.E, 33.5, 37.5, [[35.3, 0.6]], 0.1, 0);
 const LENGTH = Math.round(W8.E * 100) / 100;
+const MOMENT = {ask: 4.85, sun: 5.0, isan: 7.15, shops: 8.6, dq: 0.2, say1: 0.8, memc: 1.75, day: 4.1, say2: 6.1, why: 8.3, swap: 10.6, fwdPress: 15.1, envArrive: 16.8, bell: 16.85, leaveAsk: 19.95, press: 27.5, approved: 28.85, lock: 27.7, plug: [30.5, 0.4], connected: 31.25, logo: 33.95};
+const SYS_AT = (i) => 0.6 + i * 0.1;
+const TYPED = {q: [3.5, 0.8], leaveQ: [20.05, 0.55], leave: [24.45, 0.85]};
+const BEAT = 0.76;
+const BREATH = 0.3;
 let RT = 0;
 const UNIT = 72;
 const FIG = 1.35;
@@ -300,6 +307,7 @@ const EOX = pe('expo.out'), EO3 = pe('power3.out'), EI3 = pe('power3.in'), EIO3 
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, k) => a + (b - a) * k;
 const k = (t, a, d, e = EO3) => e(clamp((t - a) / d));
+const typedCount = (t, [a, d], G) => Math.round(k(t, a, d, LIN) * G.length);
 const win = (t, a, d, b, d2, ei = EOX, eo = EI3) => k(t, a, d, ei) * (1 - k(t, b, d2, eo));
 const bump = (t, a, d) => { const p = clamp((t - a) / d); return Math.sin(p * Math.PI); };
 const f1 = v => v.toFixed(1);
@@ -520,14 +528,14 @@ function beat1(acc, t) {
     const path = [[x, y], [x, 0], [0, 0]];
     acc.under.push(groundPath(path, clamp(rise * 2) * (1 - clamp(out * 2)) * 0.9));
     flowDots(acc, path, t, 1.1 + i * 0.05, 2.9, { n: 2, speed: 0.8, phase: i * 0.13, color: i % 2 ? '#7c3aed' : '#4f46e5' });
-    const lo = k(t, 0.6 + i * 0.1, 0.5) * (1 - k(t, 2.3, 0.4, EI3));
+    const lo = k(t, SYS_AT(i), 0.5) * (1 - k(t, 2.3, 0.4, EI3));
     const [lx, ly] = P(x, y, h + 0.2);
-    label('sys' + i, `<span class="pill sys t32">${sy.n}</span>`, lx, ly, lo, { s: lerp(0.85, 1, k(t, 0.6 + i * 0.1, 0.6, EBK)) });
+    label('sys' + i, `<span class="pill sys t32">${sy.n}</span>`, lx, ly, lo, { s: lerp(0.85, 1, k(t, SYS_AT(i), 0.6, EBK)) });
   });
-  const qo = win(t, 3.25, 0.6, 4.85, 0.4);
+  const qo = win(t, 3.25, 0.6, MOMENT.ask, 0.4);
   const qs = lerp(0.8, 1, k(t, 3.25, 0.7, EBK));
   const qb = $('qbox');
-  const n = Math.round(k(t, 3.5, 0.8, LIN) * Q.length);
+  const n = typedCount(t, TYPED.q, Q);
   const caret = (t < 4.3 || Math.floor(RT * 2.4) % 2 === 0) ? '<i class="caret"></i>' : '<i class="caret" style="opacity:0"></i>';
   const qh = Q.slice(0, n).join('') + caret;
   if (qb._h !== qh) { $('qtext').innerHTML = qh; qb._h = qh; }
@@ -546,7 +554,7 @@ const BAR_X = 1.2, BAR_Y0 = -2.3, BAR_STEP = 1.2, BAR_W = 0.86;
 function beat2(acc, t) {
   if (t < 4.8 || t > 10.7) return;
   const exit = k(t, 9.6, 0.45, EIO3);
-  const sunK = k(t, 5.0, 1.6, EO3) * (1 - exit);
+  const sunK = k(t, MOMENT.sun, 1.6, EO3) * (1 - exit);
   if (sunK > 0.01) {
     const sx = cam.cx - 170, sy = lerp(cam.cy - 120, cam.cy - 330, sunK);
     acc.under.unshift(`<circle cx="${sx}" cy="${f1(sy)}" r="150" fill="url(#gSun)" opacity="${(0.85 * sunK).toFixed(3)}"/><circle cx="${sx}" cy="${f1(sy)}" r="54" fill="#fde68a" opacity="${(0.9 * sunK).toFixed(3)}"/>`);
@@ -568,7 +576,7 @@ function beat2(acc, t) {
     if (i === 5) {
       const ring = (RT % 1.2) / 1.2;
       if (t > 7.2 && t < 9.7) acc.under.push(isoEllipse(x, y, 0.02, 0.6 + ring * 0.9, 'none', `stroke="#fb7185" stroke-width="3" opacity="${(0.6 * (1 - ring) * (1 - exit)).toFixed(3)}"`));
-      const lo = k(t, 7.15, 0.6) * (1 - exit);
+      const lo = k(t, MOMENT.isan, 0.6) * (1 - exit);
       const [ax, ay] = P(x, y, h);
       const lx = ax + 70, ly = ay - 12;
       stem(acc, ax, ay, lx, ly, lo);
@@ -583,7 +591,7 @@ function beat2(acc, t) {
     const po = k(t, 8.5 + j * 0.1, 0.4) * (1 - exit);
     if (po > 0.01) acc.fx.push(`<g opacity="${po.toFixed(3)}"><circle cx="${f1(px)}" cy="${f1(py)}" r="20" fill="#fff" stroke="#fda4af" stroke-width="2"/><rect x="${f1(px - 7)}" y="${f1(py - 8)}" width="5" height="16" rx="1.5" fill="#e11d48"/><rect x="${f1(px + 2)}" y="${f1(py - 8)}" width="5" height="16" rx="1.5" fill="#e11d48"/></g>`);
   });
-  const so = k(t, 8.6, 0.6) * (1 - exit);
+  const so = k(t, MOMENT.shops, 0.6) * (1 - exit);
   const [ax, ay] = P(3.45, -8.05, 0.5);
   const lx = ax + 90, ly = ay + 20;
   stem(acc, ax, ay, lx, ly, so);
@@ -602,7 +610,7 @@ function beat4(acc, t) {
   const dv = k(t, 14.5, 0.4, EOX);
   const collapse = k(t, 15.35, 0.5, EIO3);
   const cardO = dv * (1 - k(t, 15.65, 0.2, LIN));
-  const btnPress = bump(t, 15.1, 0.25);
+  const btnPress = bump(t, MOMENT.fwdPress, 0.25);
   const pieceO = (1 - collapse * 1.6).toFixed(3);
   cardPieces.forEach(id => { const el = $(id); el.style.opacity = pieceO; el.style.transform = 'translateX(0.0px)'; });
   $('c-band').style.opacity = '1'; $('c-why').style.opacity = '1'; $('c-why').style.transform = 'none';
@@ -642,10 +650,10 @@ function beat4(acc, t) {
       acc.fx.push(`<circle cx="${f1(tx2)}" cy="${f1(ty2)}" r="${f1(6 - i * 0.6)}" fill="#a78bfa" opacity="${(0.5 - i * 0.07).toFixed(3)}"/>`);
     }
   }
-  setUI($('env'), envO, exx - 75, eyy - 52, lerp(0.5, 1, k(t, 15.7, 0.4, EBK)) * (1 + bump(t, 16.8, 0.3) * 0.08), ` rotate(${f1(Math.sin(fly * Math.PI) * -8)}deg)`);
+  setUI($('env'), envO, exx - 75, eyy - 52, lerp(0.5, 1, k(t, 15.7, 0.4, EBK)) * (1 + bump(t, MOMENT.envArrive, 0.3) * 0.08), ` rotate(${f1(Math.sin(fly * Math.PI) * -8)}deg)`);
   $('envflap').setAttribute('d', `M6 8 L75 ${f1(lerp(58, -36, envOpen))} L144 8`);
 
-  const bo = k(t, 16.85, 0.45, EBK) * (1 - rOut);
+  const bo = k(t, MOMENT.bell, 0.45, EBK) * (1 - rOut);
   setUI($('bell'), bo > 0.01 ? clamp(bo) : 0, fhx + 168, fhy - 80, bo, ` rotate(${f1(Math.sin((t - 16.85) * 18) * 12 * (1 - k(t, 16.85, 0.9, LIN)))}deg)`);
   $('badge').style.transform = `scale(${k(t, 17.05, 0.4, EBK).toFixed(3)})`;
   const mi = k(t, 17.75, 0.6, EOX) * (1 - rOut);
@@ -667,11 +675,11 @@ function beat5(acc, t) {
   const ph1 = $('ph1');
   ph1.style.transform = `translateY(${f1(-scroll * 440)}px)`;
   ph1.style.opacity = (1 - scroll).toFixed(3);
-  const b1 = $('bub1'), bo1 = k(t, 19.95, 0.35, EBK);
+  const b1 = $('bub1'), bo1 = k(t, MOMENT.leaveAsk, 0.35, EBK);
   b1.style.opacity = clamp(bo1).toFixed(3);
   b1.style.transform = `scale(${lerp(0.7, 1, bo1).toFixed(3)})`;
   b1.style.transformOrigin = '100% 100%';
-  const n1 = Math.round(k(t, 20.05, 0.55, LIN) * LEAVE_Q.length);
+  const n1 = typedCount(t, TYPED.leaveQ, LEAVE_Q);
   const h1 = LEAVE_Q.slice(0, n1).join('') + (n1 < LEAVE_Q.length ? '<i class="caret" style="height:36px;background:#fff"></i>' : '');
   if (b1._h !== h1) { b1.innerHTML = h1; b1._h = h1; }
   const ba = k(t, 21.35, 0.45, EOX), bal = $('bal');
@@ -687,14 +695,14 @@ function beat5(acc, t) {
   bub.style.opacity = clamp(bo).toFixed(3);
   bub.style.transform = `scale(${lerp(0.7, 1, bo).toFixed(3)})`;
   bub.style.transformOrigin = '100% 100%';
-  const n = Math.round(k(t, 24.45, 0.85, LIN) * LEAVE.length);
+  const n = typedCount(t, TYPED.leave, LEAVE);
   const bh = LEAVE.slice(0, n).join('') + (n < LEAVE.length ? '<i class="caret" style="height:36px;background:#fff"></i>' : '');
   if (bub._h !== bh) { bub.innerHTML = bh; bub._h = bh; }
   const co = k(t, 25.45, 0.5, EOX);
   const conf = $('conf');
   conf.style.opacity = clamp(co).toFixed(3);
   conf.style.transform = `translateY(${f1((1 - co) * 30)}px)`;
-  const press = bump(t, 27.5, 0.3);
+  const press = bump(t, MOMENT.press, 0.3);
   $('conf-btn').style.transform = `scale(${(1 - press * 0.06).toFixed(3)})`;
   const rp = clamp((t - 27.5) / 0.6);
   const rip = $('ripple');
@@ -712,7 +720,7 @@ function beat5(acc, t) {
   const hr = k(t, 19.5, 0.9, EOX) * (1 - exit);
   acc.items.push({ d: HX + HY, s: building(HX, HY, 1.4, 1.7 * hr, M.coral, clamp(hr * 3)) });
   const [lx, ly] = P(HX, HY, 1.7 * hr + 0.2);
-  const ok = k(t, 28.85, 0.5, EBK);
+  const ok = k(t, MOMENT.approved, 0.5, EBK);
   label('hr5', `<span class="pill t32">HR${ok > 0.01 ? `<span class="chip ok" style="padding:2px 10px;transform:scale(${ok.toFixed(3)})">${ICON_CHECK}</span>` : ''}</span>`, lx, ly, k(t, 19.9, 0.5) * (1 - exit));
   const [hx, hy] = hubTileCenter();
   const path = [[1.4, 0], [HX, 0], [HX, HY + 0.7]];
@@ -762,7 +770,7 @@ function beat6(acc, t) {
   label('it', `<span class="pill t26">ฝ่ายไอที<span class="tg" style="background:${track}"><i style="transform:translateX(${f1((1 - flip) * 38)}px)"></i></span></span>`, ix - 44, iy + 60, itIn, { ax: 1, ay: 0.5, s: lerp(0.9, 1, itIn) * (1 + bump(t, 27.25, 0.35) * 0.05) });
   { const [ix2, iy2] = figHead(IX, IY); const [g2x, g2y] = P(GX, GY, 1.2); screenDots(acc, [ix2 + 10, iy2 - 10], [ix2 + 160, g2y + 20], [g2x, g2y], t, 27.25, 28.0, { n: 3, speed: 2.2, color: "#059669" }); }
   const [gx, gy] = P(GX, GY, 1.5);
-  const lk = k(t, 27.7, 0.45, EBK) * (1 - exit);
+  const lk = k(t, MOMENT.lock, 0.45, EBK) * (1 - exit);
   label('lock', `<div class="lockb">${ICON_LOCK_C}</div>`, gx, gy - 8, lk, { s: lk });
 }
 
@@ -779,7 +787,7 @@ function beat7(acc, t) {
   const slide = k(t, 29.6, 1.0, EOX);
   const AX = lerp(10, 5.4, slide), AY = 0;
   const ao = clamp(slide * 2.5) * (1 - exit);
-  const plug = k(t, 30.5, 0.4, EIO3);
+  const plug = k(t, ...MOMENT.plug, EIO3);
   let s = shadow(AX, AY, 1.5, 1.5, ao) + boxC(AX, AY, 0, 1.5, 1.5, 1.15, M.mint, ao);
   if (ao > 0.01) {
     for (let r = 0; r < 3; r++) {
@@ -798,8 +806,8 @@ function beat7(acc, t) {
   }
   flowDots(acc, cable, t, 30.9, 33.1, { n: 3, speed: 1.0, color: '#059669', z: 0.3 });
   const [lx, ly] = P(AX, AY, 2.0);
-  const connected = k(t, 31.25, 0.45, EBK);
-  const status = t < 31.25
+  const connected = k(t, MOMENT.connected, 0.45, EBK);
+  const status = t < MOMENT.connected
     ? `<span class="chip soft"><span class="spin" style="transform:rotate(${f1(RT * 400)}deg)"></span>กำลังเชื่อม…</span>`
     : `<span class="chip ok" style="transform:scale(${lerp(0.85, 1, connected).toFixed(3)})">${ICON_CHECK}เชื่อมแล้ว</span>`;
   const lo = k(t, 30.2, 0.5) * (1 - exit);
@@ -817,9 +825,9 @@ function beat7(acc, t) {
 
 function endCard(t) {
   const end = $('end');
-  const o = k(t, 33.95, 0.6, EOX) * (1 - k(t, 36.3, 0.4, EI3));
+  const o = k(t, MOMENT.logo, 0.6, EOX) * (1 - k(t, 36.3, 0.4, EI3));
   setUI(end, o, 0, 0, 1);
-  const lg = k(t, 33.95, 0.8, EBK), wm = k(t, 34.25, 0.7, EOX), tg = k(t, 34.55, 0.7, EOX);
+  const lg = k(t, MOMENT.logo, 0.8, EBK), wm = k(t, 34.25, 0.7, EOX), tg = k(t, 34.55, 0.7, EOX);
   $('end-logo').style.transform = `scale(${lerp(0.6, 1, lg).toFixed(3)})`;
   $('end-logo').style.opacity = clamp(lg).toFixed(3);
   $('end-wm').style.opacity = wm.toFixed(3);
@@ -874,7 +882,7 @@ function beatDyn(acc, t) {
   if (t < -0.1 || t > 9.45) { DYN_IDS.forEach(id => setUI($(id), 0)); return; }
   const exit = k(t, 8.75, 0.4, EI3);
   const p1out = k(t, 3.6, 0.45, EI3);
-  placeAsk($('dq'), k(t, 0.2, 0.4, EBK) * (1 - p1out), (PANEL[0] + PANEL[1] + PW) / 2, 216, lerp(0.85, 1, k(t, 0.2, 0.4, EBK)));
+  placeAsk($('dq'), k(t, MOMENT.dq, 0.4, EBK) * (1 - p1out), (PANEL[0] + PANEL[1] + PW) / 2, 216, lerp(0.85, 1, k(t, MOMENT.dq, 0.4, EBK)));
   const lo = k(t, 0.5, 0.4, EOX) * (1 - p1out);
   setUI($('dl0'), lo, PANEL[0], 300, 1);
   setUI($('dl1'), lo, PANEL[1], 300, 1);
@@ -943,7 +951,7 @@ function beat3n(acc, t) {
   const [hx0, hy0] = figHead(fx, fy);
   label('f3', `<span class="pill t32">ผู้จัดการขายภาคอีสาน</span>`, hx0, hy0 - 14, k(t, 0.85, 0.4) * (1 - exit), { s: lerp(0.9, 1, k(t, 0.7, 0.4, EBK)) });
   const sayY = hy0 - 80;
-  const s1 = k(t, 0.8, 0.4, EBK) * (1 - k(t, 3.5, 0.35, EI3));
+  const s1 = k(t, MOMENT.say1, 0.4, EBK) * (1 - k(t, 3.5, 0.35, EI3));
   setUI($('say1'), s1 > 0.01 ? clamp(s1) : 0, 120, sayY - 72, lerp(0.85, 1, clamp(s1)));
   $('say1').style.transformOrigin = '0 100%';
   const askPath = [[fx + 0.5, fy], [0, fy], [0, 1.4]];
@@ -953,7 +961,7 @@ function beat3n(acc, t) {
 
   const [tx, ty] = hubTileCenter();
   const [vx, vy] = P(VAULT[0], VAULT[1], 1.15);
-  const mIn = k(t, 1.75, 0.45, EBK);
+  const mIn = k(t, MOMENT.memc, 0.45, EBK);
   const drop = k(t, 3.5, 0.6, EIO3);
   const memc = $('memc');
   const mw = memc.offsetWidth || 470, mh = memc.offsetHeight || 80;
@@ -975,7 +983,7 @@ function beat3n(acc, t) {
   flowDots(acc, vaultPath, t, 6.9, 7.5, { n: 2, speed: 1.6, color: '#7c3aed', r: 7 });
 
   const day = k(t, 4.2, 0.6, EIO3);
-  const dayO = k(t, 4.1, 0.3, LIN) * (1 - k(t, 6.0, 0.35, EI3));
+  const dayO = k(t, MOMENT.day, 0.3, LIN) * (1 - k(t, 6.0, 0.35, EI3));
   if (dayO > 0.01) {
     const cx = 700, cy = 300, sx = Math.abs(Math.cos(Math.PI * day));
     const sun = day > 0.5;
@@ -984,7 +992,7 @@ function beat3n(acc, t) {
   }
   setUI($('daychip'), dayO, 770, 262, lerp(0.9, 1, k(t, 4.3, 0.4, EBK)));
 
-  const s2 = k(t, 6.1, 0.4, EBK) * (1 - exit);
+  const s2 = k(t, MOMENT.say2, 0.4, EBK) * (1 - exit);
   setUI($('say2'), s2 > 0.01 ? clamp(s2) : 0, 120, sayY - 72, lerp(0.85, 1, clamp(s2)));
   $('say2').style.transformOrigin = '0 100%';
 
@@ -994,7 +1002,7 @@ function beat3n(acc, t) {
   card.style.transformOrigin = '0 50%';
   cardPieces.forEach(id => { const el = $(id); el.style.opacity = '1'; el.style.transform = 'none'; });
   $('c-btn').style.transform = 'none';
-  const hl = k(t, 8.0, 0.5, EIO3), why = k(t, 8.3, 0.45, EBK);
+  const hl = k(t, 8.0, 0.5, EIO3), why = k(t, MOMENT.why, 0.45, EBK);
   $('c-band').style.opacity = hl.toFixed(3);
   $('c-why').style.opacity = clamp(why).toFixed(3);
   $('c-why').style.transform = `scale(${lerp(0.7, 1, clamp(why)).toFixed(3)})`;
@@ -1002,7 +1010,7 @@ function beat3n(acc, t) {
   if (t > 7.95 && t < 8.6) { const [vx2, vy2] = P(VAULT[0], VAULT[1], 1.2); screenDots(acc, [vx2, vy2], [1000, vy2 - 80], [card.offsetLeft + 60, card.offsetTop + 330], t, 7.95, 8.6, { n: 2, speed: 2.0, color: '#fb7185' }); }
 
   const qIn = k(t, 10.0, 0.45, EOX) * (1 - exit);
-  const swap = k(t, 10.6, 0.6, EIO3);
+  const swap = k(t, MOMENT.swap, 0.6, EIO3);
   setUI($('qchips'), qIn, 0, (1 - qIn) * 20, 1);
   const q0 = $('qc0'), q1 = $('qc1');
   q0.style.transform = `translateY(${f1(swap * 70)}px)`;
@@ -1040,7 +1048,54 @@ function render(t) {
   for (const [id, el] of pool) if (!used.has(id)) el.style.display = 'none';
 }
 
-window.film = { length: LENGTH, render };
+const keysIn = (count, from, to) => Sound.steps(count, from - 0.01, to + 0.01, 0.05).map((at, i) => ({at, sfx: 'key', step: i}));
+const typedKeys = (W, span, G) => keysIn((t) => typedCount(W(t), span, G), W.r(span[0]), W.r(span[0] + span[1]));
+const SOUND = {
+  music: 'suite',
+  tempo: {beat: BEAT, on: W3.r(MOMENT.memc)},
+  sections: [
+    {at: 0, mix: 'open', fade: 1.2},
+    {at: W2.r(MOMENT.sun), mix: 'calm', fade: 1.0},
+    {at: W3.S, mix: 'flow', fade: 0.8},
+    {at: W3.r(MOMENT.memc) - BREATH, mix: 'hold', fade: 0.2},
+    {at: W3.r(MOMENT.memc + 1.0), mix: 'flow', fade: 0.8},
+    {at: WD.S, mix: 'lift', fade: 0.8},
+    {at: W4.S, mix: 'flow', fade: 0.8},
+    {at: W5.S, mix: 'calm', fade: 0.8},
+    {at: W6.S, mix: 'flow', fade: 0.8},
+    {at: W8.r(MOMENT.logo), mix: 'end', fade: 1.2},
+  ],
+  cues: [
+    ...SYS.map((_, i) => ({at: W1.r(SYS_AT(i)), sfx: 'pop', step: i})),
+    ...typedKeys(W1, TYPED.q, Q),
+    {at: W1.r(MOMENT.ask), sfx: 'send'},
+    ...PULSES.filter((at) => Math.abs(at - W3.r(MOMENT.memc)) > 0.2).map((at, i) => ({at, sfx: 'glow', step: i})),
+    {at: W2.r(MOMENT.sun), sfx: 'air'},
+    {at: W2.r(MOMENT.isan), sfx: 'notify'},
+    {at: W3.r(MOMENT.say1), sfx: 'send'},
+    {at: W3.r(MOMENT.memc), sfx: 'memory'},
+    {at: W3.r(MOMENT.day), sfx: 'dawn'},
+    {at: W3.r(MOMENT.say2), sfx: 'send'},
+    {at: W3.r(MOMENT.why), sfx: 'memory'},
+    {at: W3.r(MOMENT.swap), sfx: 'echo'},
+    {at: WD.r(MOMENT.dq), sfx: 'send'},
+    {at: W4.r(MOMENT.fwdPress), sfx: 'click'},
+    {at: W4.r(MOMENT.envArrive), sfx: 'whoosh'},
+    {at: W4.r(MOMENT.bell), sfx: 'bell'},
+    ...typedKeys(W5, TYPED.leaveQ, LEAVE_Q),
+    {at: W5.r(TYPED.leaveQ[0] + TYPED.leaveQ[1]), sfx: 'send'},
+    ...typedKeys(W5, TYPED.leave, LEAVE),
+    {at: W5.r(TYPED.leave[0] + TYPED.leave[1]), sfx: 'send'},
+    {at: W5.r(MOMENT.press), sfx: 'click'},
+    {at: W5.r(MOMENT.approved), sfx: 'glow', step: 1},
+    {at: W6.r(MOMENT.lock), sfx: 'lock'},
+    {at: W7.r(MOMENT.plug[0] + MOMENT.plug[1]), sfx: 'plug'},
+    {at: W7.r(MOMENT.connected), sfx: 'toggle'},
+    {at: W8.r(MOMENT.logo), sfx: 'sting'},
+  ],
+};
+let rendered = null;
+window.film = { length: LENGTH, render, audio: () => (rendered ??= Sound.renderScore(SOUND, LENGTH)) };
 
 const stage = $('stage'), frame = $('frame');
 const capture = /capture/.test(location.search);
@@ -1058,12 +1113,14 @@ fit();
 const scrub = $('scrub'), tm = $('tm'), ppi = $('ppi');
 scrub.max = LENGTH;
 let playing = !capture, cur = 0, last = null;
+const speaker = capture ? null : Sound.speaker(window.film);
 const drawPP = () => { ppi.innerHTML = playing ? '<rect x="3" y="2" width="3.5" height="12" fill="#fff"/><rect x="9.5" y="2" width="3.5" height="12" fill="#fff"/>' : '<path d="M4 2 L14 8 L4 14 Z" fill="#fff"/>'; };
 const show = () => { render(cur); scrub.value = cur; tm.textContent = cur.toFixed(1) + ' / ' + LENGTH.toFixed(1) + ' s'; };
-$('pp').onclick = () => { playing = !playing; last = null; drawPP(); };
-scrub.oninput = () => { cur = parseFloat(scrub.value); show(); };
+$('pp').onclick = () => { playing = !playing; last = null; drawPP(); speaker?.sync(cur, playing); };
+scrub.oninput = () => { cur = parseFloat(scrub.value); show(); speaker?.sync(cur, playing); };
+$('snd').onclick = async () => { const on = await speaker.toggle(); $('snd').setAttribute('aria-pressed', String(on)); speaker.sync(cur, playing); };
 function loop(ts) {
-  if (playing) { if (last !== null) cur = (cur + (ts - last) / 1000) % LENGTH; last = ts; show(); } else last = null;
+  if (playing) { const heard = speaker?.clock(); if (heard != null) cur = heard; else if (last !== null) cur = (cur + (ts - last) / 1000) % LENGTH; last = ts; show(); } else last = null;
   requestAnimationFrame(loop);
 }
 const fontsReady = Promise.all([
