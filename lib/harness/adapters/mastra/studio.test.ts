@@ -1,8 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import { MASTRA_RESOURCE_ID_KEY, RequestContext } from "@mastra/core/request-context";
+import { USER_ID_KEY, studioResourceOf, winyuMastra } from "./agent";
 import { studioApi } from "./studio";
 
 const STUDIO_ORIGIN = "http://localhost:3213";
-const EXECUTE = "http://studio.test/api/agents/winyu/tools/query_metric/execute";
+const AGENT = "http://studio.test/api/agents/winyu";
+const EXECUTE = `${AGENT}/tools/query_metric/execute`;
 const SALES_BY_REGION = { metric: "net_sales_volume", dims: ["region"], filters: {}, range: { from: "2026-09-01", to: "2026-09-30" }, grain: "month", compare: "none", limit: 10 };
 
 type ToolAnswer = { ok?: boolean; query?: { scopeApplied?: { region?: string[] } }; error?: unknown };
@@ -30,5 +33,17 @@ describe("the Studio API", () => {
   test("grants nothing to an unknown persona", async () => {
     const { status } = await execute({ userId: "u_nobody" });
     expect(status).toBeGreaterThanOrEqual(400);
+  });
+
+  test("the agent refuses a memory resource that is not the persona's own", async () => {
+    const instructionsWith = async (resource: string) => {
+      const requestContext = new RequestContext();
+      requestContext.set(USER_ID_KEY, "u_krit");
+      requestContext.set(MASTRA_RESOURCE_ID_KEY, resource);
+      return winyuMastra().getAgent("winyu").getInstructions({ requestContext });
+    };
+    await expect(instructionsWith(studioResourceOf("u_krit"))).resolves.toBeDefined();
+    await expect(instructionsWith("u_krit")).resolves.toBeDefined();
+    await expect(instructionsWith(studioResourceOf("u_thana"))).rejects.toThrow("does not belong to u_krit");
   });
 });

@@ -1,7 +1,7 @@
 import path from "node:path";
 import { Agent, type AgentExecutionOptions, type ToolsInput } from "@mastra/core/agent";
 import { Mastra } from "@mastra/core";
-import type { RequestContext } from "@mastra/core/request-context";
+import { MASTRA_RESOURCE_ID_KEY, type RequestContext } from "@mastra/core/request-context";
 import type { CoreSystemMessage } from "@mastra/core/llm";
 import { LibSQLStore } from "@mastra/libsql";
 import { Memory } from "@mastra/memory";
@@ -34,6 +34,7 @@ export const AGENT_ID = "winyu";
 export const USER_ID_KEY = "userId";
 
 const STORAGE_FILE = "mastra.db";
+const STUDIO_RESOURCE_PREFIX = "studio:";
 const REMEMBERED_MESSAGES = 20;
 const PROMPT_SEPARATOR = "\n\n";
 const NO_MODEL = "OPENROUTER_API_KEY is not set: the chat agent has no model";
@@ -58,14 +59,21 @@ export function chatTimeBudget(): ChatTimeBudget {
   return { firstChunkMs, stepMs, totalMs };
 }
 
-type UserContext = { [USER_ID_KEY]: string };
+type UserContext = { [USER_ID_KEY]: string; [MASTRA_RESOURCE_ID_KEY]?: string };
 
 type PrepareStep = NonNullable<AgentExecutionOptions["prepareStep"]>;
+
+/** The memory resource a persona's Studio threads live under, apart from its threads in the app (keyed by its user id). */
+export function studioResourceOf(userId: string): string {
+  return `${STUDIO_RESOURCE_PREFIX}${userId}`;
+}
 
 function accessOf(requestContext: RequestContext<UserContext>): AccessContext {
   const userId = requestContext.get(USER_ID_KEY);
   const user = typeof userId === "string" ? findUser(userId) : null;
   if (!user) throw new Error(`no user ${String(userId)} in the request context`);
+  const resource = requestContext.get(MASTRA_RESOURCE_ID_KEY);
+  if (resource !== undefined && resource !== user.id && resource !== studioResourceOf(user.id)) throw new Error(`memory resource ${String(resource)} does not belong to ${user.id}`);
   return liveAccessFor(user);
 }
 
