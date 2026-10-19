@@ -4517,3 +4517,86 @@ agent 4 ตัวเล่นซ้ำเฉพาะ turn ที่มีปั
 - run 9cefeff6-1f3e-434e-bc2b-77e4627fb5ef: list_metrics แล้ว query_metric 66 แถว `verification.passed` (rows_in_scope, masked_fields_hidden, rows_capped); /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/chat14-regions.png
 - คำตอบพูดว่าเดือน พ.ย. ส่วนใหญ่ใกล้หรือเกิน 100% และภาคอีสานยังตามหลัง ตรงกับเส้นบนการ์ด (AI-343 ยังเปิด เพราะ summary ยังนำด้วยช่องต่ำสุดของทั้ง grid)
 - สิ่งที่เปลี่ยน ($0): `3f1a226` เพดาน `MAX_SERIES_ROWS` = 120 สำหรับเวลา × กลุ่มเดียว; `a6a6808` เส้นของอัตราวาดได้ 6 ชุด (`MAX_LINES` ใน `lib/cards/chart-bodies.ts`, `LineChart` วาดเท่าจำนวนสี, token `chart-6`) กลุ่มที่เกิน 6 ยังเป็น heatmap ส่วน stacked ยังรวมที่ 5 ชุด
+
+## รอบทดสอบที่ 15 (2026-10-19) ความจำข้าม thread (recall_memory)
+
+คำถามของรอบ: โมเดลเรียก `recall_memory` บ่อยแค่ไหนเมื่อควรเรียก และการเรียกเมื่อต้องการ (on-demand) ดีกว่าการฉีดบทสนทนาเก่าเข้า system prompt ทุกเทิร์นหรือไม่ (`docs/memory.md` "Semantic recall")
+
+วิธี: ถามในแชตจริงที่กว้าง 1100px (baton, Chrome) dev server `:3100` `WINYU_SCHEDULER=off` ที่ commit `4ee2b27` ถามครั้งเดียวต่อข้อ ทุกข้อเป็นบทสนทนาใหม่ เป็น u_thana (CEO เห็นอัตราการลาออก จึงไม่ต้องใช้ persona HR) ยกเว้น P8 เป็น u_krit (sales rep ภาคอีสาน) ก่อนถาม probe ตรวจว่า vector ของ S1 และ S2 อยู่ใน index `winyu_recall` ของ `.data/mastra.db` แล้ว (2 vectors ต่อเทิร์น พร้อม query ที่เก็บไว้) query ที่โมเดลส่งให้ `recall_memory` อ่านจาก span `model_chunk` tool-call ใน `mastra_ai_spans` เพราะ span ของ tool และ audit ปิด `query` ไว้ (`redact`) ตัวเลขบนการ์ดตรวจกับ `bun run call-tool … --full` ตรงทุกข้อ index ของ u_thana มีบทสนทนาเก่าในเรื่องเดียวกันอยู่ก่อนแล้ว ("ยอดขายกับหนี้ค้างของแต่ละจังหวัดไปด้วยกันไหม" 2 threads, "จำนวนพนักงานรายเดือนปีนี้เปลี่ยนไปยังไง" 2 threads) จึงเป็นการแข่งขันที่สมจริง และ probe แต่ละข้อถูก index ต่อจากข้อก่อน (เช่น P3 เห็น thread ของ P2)
+
+ค่าโมเดลจาก `.data/model-calls.json` แถวที่ 274 เป็นต้นไป: 10 เทิร์น 57 calls (แชต 30 รวม embedding ของ query 6, งานเบื้องหลังของความจำ 27) estimated $0.4138 billed $0.0774 เกินงบ estimated $0.30 ที่ตั้งไว้ $0.11 เพราะไม่ได้หยุดตรวจยอดระหว่างข้อ (P4 ข้อเดียว $0.0876) embedding ทุก call มี estimated $0
+
+| ข้อ | คำถาม | เรียก recall? (query) | thread ที่ถูกอยู่อันดับ | ตัวเลข | เวลา | ผล |
+|---|---|---|---|---|---|---|
+| S1 | "พนักงานลาออกแผนกไหนเยอะสุด" | ไม่ | – | query `attrition_rate` × department | 35.2 s | seed |
+| S2 | "หนี้ค้างชำระภาคใต้ตอนนี้เป็นยังไง" | ไม่ | – | query `ar_overdue` × agent ภาคใต้ `prev_period` | 30.4 s | seed |
+| P1 | "เมื่อกี้ที่คุยเรื่องพนักงานลาออก แผนกไหนน่าห่วงที่สุด" | ใช่ ("พนักงานลาออก") | 1 (0.875) | ดึงใหม่ (`attrition_rate` `prev_period`) | 24.9 s | ถูก |
+| P2 | "จำได้ไหมว่าเราคุยอะไรกันเรื่องหนี้ค้าง" | ใช่ ("หนี้ค้าง") | 1 (0.860) | ไม่มีตัวเลข สรุปสองเรื่องที่เคยคุยและเสนอดึงตัวเลขใหม่ | 15.9 s | ถูก แต่ไม่มีการ์ดความจำ (AI-344) |
+| P3 | "เรื่องหนี้ค้างที่ถามไปตะกี้ ตอนนี้เป็นไงบ้าง" | ใช่ ("หนี้ค้าง") | 2 (0.860) อันดับ 1 เป็น thread ของ P2 (0.873) ที่ไม่มี query | ดึงใหม่ด้วย query เดียวกับ S2 | 29.4 s | ถูก (AI-345) |
+| P4 | "แล้วแผนกนั้นควรทำอะไรต่อ" | ใช่ 2 ครั้ง ("แผนก", "แผนกที่น่าห่วงที่สุด") | 1 (0.833) | ดึงใหม่ (`attrition_rate`) และ `get_alerts` ทั้งบริษัท | 47.0 s | เดาว่าเป็นการตลาดและ HR โดยไม่บอกว่าเดา (AI-346) |
+| P5 | "ฝ่ายไหนพนักงานออกเยอะ" | ไม่ | – | ดึงใหม่ (ครั้งแรกลืม `metric` แล้วแก้เอง) | 21.3 s | ถูก คำถามครบในตัวจึงไม่ต้อง recall |
+| P6 | "สวัสดีครับ" | ไม่ | – | – | 3.9 s | ถูก |
+| P7 | "ยอดขายเดือนนี้แยกภาค" | ไม่ | – | ดึงใหม่ (กรุงเทพฯ 380.7 ล้านบาท สูงสุด) | 26.8 s | ถูก |
+| P8 | u_krit "เมื่อกี้ที่คุยเรื่องหนี้ค้างภาคใต้ สรุปว่าไง" | ใช่ ("หนี้ค้างภาคใต้") | ได้ 0 threads 0 facts | – | 33.6 s | ถูก ไม่เห็นของ u_thana และบอกว่าภาคใต้อยู่นอกขอบเขต |
+
+สรุป: ข้อที่อ้างถึงบทสนทนาเก่า (P1–P4) เรียก `recall_memory` ครบ 4 ใน 4 และ thread ที่ถูกอยู่ใน 3 อันดับแรกทุกข้อ (อันดับ 1 ใน P1 P2 P4 อันดับ 2 ใน P3) ทุกข้อที่ให้ตัวเลขดึงใหม่ผ่าน gateway ไม่มีข้อไหนพูดตัวเลขเก่า P5 ไม่เรียก ซึ่งถูก เพราะคำถามครบในตัวและคำตอบเหมือนกัน ตัวควบคุมลบ (P6 P7) ไม่เรียกทั้งคู่ การแยกผู้ใช้ (P8) ผ่าน
+
+ถ้าเป็นการฉีดทุกเทิร์น ($0, `searchConversations` กับคำถามเต็มของผู้ใช้ ไม่นับ thread ของ probe เอง; `recall-scores.ts` ใน scratchpad):
+
+| ข้อ | อ้างถึงของเก่า? | อันดับ 1 | อันดับ 2–3 |
+|---|---|---|---|
+| P1 | ใช่ | 0.898 S1 | 0.821 จำนวนพนักงาน ×2 |
+| P2 | ใช่ | 0.849 หนี้ค้างรายจังหวัด (thread เก่า) | 0.849 thread เก่าซ้ำ, 0.848 S2 |
+| P3 | ใช่ | 0.891 S2 | 0.858 หนี้ค้างรายจังหวัด ×2 |
+| P4 | ใช่ | 0.832 S1 | 0.809 S2, 0.804 การบรรลุเป้ารายภาค |
+| P5 | ไม่ (ถามใหม่ เรื่องเดิม) | 0.886 S1 | 0.823 เอเย่นต์อีสาน ×2 |
+| P6 | ไม่ | 0.798 ยอดขายรายวันแยกแบรนด์ | 0.798, 0.796 |
+| P7 | ไม่ | 0.902 "ยอดขายเดือนนี้แยกภาคกับแบรนด์" | 0.902, 0.864 |
+
+เกณฑ์ราว 0.81 แยกคำทักทาย (P6 สูงสุด 0.798) ออกจากข้อที่อ้างถึงของเก่า (ต่ำสุด P4 0.832) ได้ในชุดนี้ แต่ห่างกันแค่ 0.03 และไม่มีเกณฑ์ไหนแยก P7 (ไม่ได้อ้างถึงอะไร 0.902) ออกจาก P4 (อ้างถึง 0.832) ได้ การฉีดทุกเทิร์นจึงใส่ thread เก่าพร้อมตัวเลขเก่าเข้า P5 และ P7 และใน P2 thread ที่ถูกตกไปอันดับ 3 ขณะที่ query สั้นที่โมเดลเขียนเอง ("หนี้ค้าง") ได้อันดับ 1 ผลนี้ยืนยันการเลือก on-demand ใน `docs/memory.md`
+
+ข้อสังเกตที่ไม่เปิดเป็นข้อใหม่:
+- index ของ u_krit มี 7 threads แต่ 6 threads ไม่อยู่ใน `.data/threads.json` แล้ว (vector ค้าง) `searchConversations` กรองออกด้วย `ownedTitle` จึงไม่รั่ว แต่ vector ค้างกินที่ใน `SEARCH_TOP_K` = 12 ถ้ามีมากพอ thread จริงจะหลุดจากผล
+- การ์ดความจำใน P1 P3 P4 ถูกซ่อนเพราะมีการ์ดตัวเลขตอบแล้ว (`plumbingLookups` ใน `components/chat/tool-view.ts`) ตามที่ออกแบบ ผู้ใช้จึงไม่เห็นว่า Winyu หยิบบทสนทนาไหนมา นอกจากคำตอบจะบอกเอง
+- P1 เรียก `recall_memory` พร้อม `query_metric` ในขั้นเดียวกัน โมเดลเดา query จากคำถามได้ก่อนเห็นผล recall
+
+### AI-344. 'จำได้ไหมว่าเราคุยอะไรกันเรื่องหนี้ค้าง': recall found three conversations and no facts, and the reply drew no memory card
+
+- **สถานะ:** เปิด
+- **ระดับ:** กลาง · **หมวด:** `ui` · **บทบาท:** u_thana (CEO)
+- **อาการ:** `recall_memory` returned `data: []` and 3 conversations (S2 first). The reply summarised them in words, and the chat drew no card, so the person cannot see or open the threads the answer came from. P8 (`data: []`, no conversations) also drew nothing, which hides the 'nothing remembered' card.
+- **ที่ควรเป็น:** A recall that found conversations draws the memory card with links to them (`docs/memory.md`: "the memory card shows it to them").
+- **หลักฐาน:**
+	- run b611a56d-7d2a-40f2-9e9f-1c0401594a17; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/recall-P2.png
+	- `drawsNoCard({ok:true,summary:"x",data:[],conversations:[{threadId:"t"}]})` returns `true` (`recall-emptycheck.ts` in the scratchpad)
+- **สาเหตุ:** verified: `isEmptyAnswer` in `components/chat/tool-view.ts` treats a result as empty when every list in `ANSWER_LISTS` (`rows`, `weeks`, `data`) is empty, and recall's conversations are not in that list. Proposed fix: the recall result sets `drawsWhenEmpty: true`, or `conversations` joins `ANSWER_LISTS`; a test in `tool-view.test.ts` with facts empty and one conversation.
+
+### AI-345. A turn that only recalled is indexed as a conversation and outranks the thread it recalled
+
+- **สถานะ:** เปิด
+- **ระดับ:** ต่ำ · **หมวด:** `memory` · **บทบาท:** u_thana (CEO)
+- **อาการ:** In P3 the first hit (0.873) was P2's thread "จำได้ไหมว่าเราคุยอะไรกันเรื่องหนี้ค้าง", which holds no metric query. S2, whose query the answer needed, came second (0.860). The model still re-ran S2's query, but each memory question adds one more thread without queries that competes with the source.
+- **ที่ควรเป็น:** The thread that holds the data ranks first. A recall-only turn either is not indexed or carries the queries of the threads it recalled.
+- **หลักฐาน:**
+	- run 808c5891-102e-4803-b24d-0defaad665ea; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/recall-P3.png
+- **สาเหตุ:** verified: `learnFromTurn` (`lib/harness/adapters/mastra/learn.ts`) calls `indexTurn` for every finished turn with `turn.queries`, which is empty when the turn ran only `recall_memory`. Proposed fix: skip `indexTurn` when the turn's tools were only `recall_memory`.
+
+### AI-346. 'แล้วแผนกนั้นควรทำอะไรต่อ' in a new thread: the reply picks marketing and HR from recall without saying it assumed, and adds an unrelated card of 10 company-wide alerts
+
+- **สถานะ:** เปิด
+- **ระดับ:** กลาง · **หมวด:** `reply-fit` · **บทบาท:** u_thana (CEO)
+- **อาการ:** The model called `recall_memory` twice ("แผนก", then "แผนกที่น่าห่วงที่สุด", which breaks "call it once per reply"), took S1 and P1, re-ran `attrition_rate` and advised exit interviews for marketing and HR. The department names come from the recalled threads and the fresh rows agree (marketing 1.2% +0.1 pt, HR 1.0% +0.2 pt, call-tool), but the reply never says which earlier conversation 'แผนกนั้น' was taken to mean. It also ran `get_alerts {status: open}` and drew a card of 10 anomalies (stock cover in Lamphun, sell-in in Isan) that has nothing to do with staff turnover. 47.0 s, $0.0876, the most expensive turn of the round.
+- **ที่ควรเป็น:** A reply that resolves a pronoun from recall names the conversation it used ("จากที่คุยเรื่องอัตราการลาออกเมื่อสักครู่ …") or asks which department when the recall is not clear. It draws only cards that answer the question.
+- **หลักฐาน:**
+	- run 754e42c8-71e3-485e-8431-9e177a35faab; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/recall-P4.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/recall-P4-b.png
+- **สาเหตุ:** guess: the `recall_memory` description says how to treat numbers but not how to say what was recalled, and `get_alerts` without a metric reads as "what to do next". A prompt or tool-description change makes eval recordings stale (`--stale`), so it needs a re-recorded `memory-recall-thread` case plus one for the pronoun question.
+
+### AI-347. `recall_memory` took 1.1 to 17.3 s per call; the slowest calls were the query embedding
+
+- **สถานะ:** เปิด
+- **ระดับ:** ต่ำ · **หมวด:** `harness` · **บทบาท:** u_thana, u_krit
+- **อาการ:** `tool_call` span durations for `recall_memory`: P1 1.1 s, P2 1.7 s, P3 1.6 s, P4 3.0 s and 7.7 s, P8 17.3 s. `docs/memory.md` says one embedding call takes about 1.2 to 2.3 s. P8's reply took 33.6 s for one recall and a sentence.
+- **ที่ควรเป็น:** A recall answers within a few seconds or gives up and says so.
+- **หลักฐาน:**
+	- `mastra_ai_spans` traces f89cb26a, 46146572, ee53dcf6, 1e599357, 8c3e894e (`startedAt`/`endedAt` of `tool: 'recall_memory'`); run fcdaec21-4804-4479-88e2-c2861bf4a1cd
+- **สาเหตุ:** guess: OpenRouter's embedding route (the vector query itself ran on few vectors, and the dev log has no error or retry). Not verified: the ledger stores no duration. Proposed: record the embedding latency in the model ledger, then bound the query embedding (for example 4 s) with the trigram matcher as fallback.
