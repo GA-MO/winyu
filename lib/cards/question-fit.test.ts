@@ -768,10 +768,10 @@ describe("a question for the total of one region answered against target leads w
   const headline = { value: "380.7 ล้านบาท", deltaPercent: -0.4, compareLabel: "เทียบเป้าตามเวลา", projection: BKK_PROJECTION };
   const rows: MetricRow[] = [{ region: "กรุงเทพฯ และปริมณฑล", value: 380700000, value_label: "380.7 ล้านบาท", compare_value: 382200000, delta_pct: -0.4 }];
 
-  test("round 16's 'ยอดรวมเท่าไหร่' draws 380.7 ล้านบาท as the hero, the 86.5% done so far first beside it, and the pace in the verdict", () => {
+  test("round 16's 'ยอดรวมเท่าไหร่' draws 380.7 ล้านบาท as the hero, the 86.5% done so far and the month end beside it in one row, and the pace in the verdict", () => {
     const card = presentCard({ title: "t", query: BKK_QUERY, result: resultOf(BKK_QUERY, rows, { ...headline, asksAmount: true }, ["กรุงเทพฯ และปริมณฑล"]) });
     expect(card.hero).toMatchObject({ label: "กรุงเทพฯ และปริมณฑล", value: "380.7 ล้านบาท", unit: null });
-    expect(card.tiles.map((tile) => `${tile.label} ${tile.value}`)).toEqual([`${TH.read.doneSoFar} 86.5%`, `${TH.read.leftToDate} 59.5 ล้านบาท`, `${TH.read.monthEnd} 99.6%`]);
+    expect(card.tiles.map((tile) => `${tile.label} ${tile.value}`)).toEqual([`${TH.read.doneSoFar} 86.5%`, `${TH.read.monthEnd} 99.6%`]);
     expect(card.verdict).toBe(TH.read.monthPace("กรุงเทพฯ และปริมณฑล", true, false));
   });
 

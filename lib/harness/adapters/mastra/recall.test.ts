@@ -127,7 +127,7 @@ describe("conversation recall", () => {
     expect((await recallableThreads(USER)).map((thread) => [thread.threadId, thread.turns])).toEqual([["t_turns", 1]]);
   });
 
-  test("of two conversations that match almost equally the newer comes first, and a wider band lets a newer one a little further down lead (เมื่อกี้)", async () => {
+  test("of conversations that match almost equally the newer comes first, and one further down keeps its place", async () => {
     useEmbedder(scoredEmbedder({ "ลาออกเมื่อวาน": 0.9, "ลาออกวันนี้": 0.885, "ลาออกเมื่อเช้า": 0.87, "ลาออกบ่าย": 0.8 }));
     try {
       await indexTurn(turn(USER, "t_yesterday", "ลาออกเมื่อวาน", "-"));
@@ -135,7 +135,6 @@ describe("conversation recall", () => {
       await indexTurn(turn(USER, "t_today", "ลาออกวันนี้", "-"));
       await indexTurn(turn(USER, "t_afternoon", "ลาออกบ่าย", "-"));
       expect((await searchConversations(USER, "ลาออก", { limit: 4 })).map((found) => found.threadId)).toEqual(["t_today", "t_yesterday", "t_morning", "t_afternoon"]);
-      expect((await searchConversations(USER, "ลาออก", { limit: 4, sameMatchBand: 0.04 })).map((found) => found.threadId)).toEqual(["t_today", "t_morning", "t_yesterday", "t_afternoon"]);
     } finally {
       await forgetConversations(USER);
       useEmbedder(TRIGRAM_EMBEDDER);

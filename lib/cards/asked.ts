@@ -6,6 +6,8 @@ const SPACES = /\s+/g;
 const MONTH_CLOSE = /จะปิด|ปิดเดือน|ปิดที่|จะถึงเป้า|ทันเป้า/;
 const AMOUNT = /(ยอด|รวม|ขายได้|ทำได้)\S{0,8}(เท่าไหร่|เท่าไร|กี่บาท|กี่ล้าน)/;
 const SHARE_OF_TARGET = /เป้า|เปอร์เซ็นต์|%/;
+const LOWEST = /ต่ำสุด|ต่ำที่สุด|น้อยสุด|น้อยที่สุด/;
+const CHANGE = /เติบโต|โตน้อย|เพิ่มขึ้น|ลดลง|ลดมาก/;
 
 function squeezed(text: string): string {
   return text.replace(SPACES, "");
@@ -71,4 +73,11 @@ export function asksAmount(question: string | null): boolean {
   if (question === null) return false;
   const text = squeezed(question);
   return AMOUNT.test(text) && !SHARE_OF_TARGET.test(text);
+}
+
+/** Whether a question asks which row is lowest ("จังหวัดที่ต่ำสุด", "ภาคไหนน้อยที่สุด") rather than which grew or fell least. */
+export function asksLowest(question: string | null): boolean {
+  if (question === null) return false;
+  const text = squeezed(question);
+  return LOWEST.test(text) && !CHANGE.test(text);
 }

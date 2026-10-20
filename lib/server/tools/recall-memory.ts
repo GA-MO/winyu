@@ -15,8 +15,6 @@ const NO_MEMORY = "ยังไม่มีข้อมูลที่จำไ�
 const DEFAULT_MEMORY_LIMIT = 8;
 const RECALL_MIN_SIMILARITY = 0.25;
 const TURNS_KEPT = 64;
-const ASKS_LATEST = /เมื่อกี้|เมื่อกี๊|ตะกี้|ตะกี๊|เมื่อสักครู่|ล่าสุด/;
-const LATEST_MATCH_BAND = 0.04;
 
 type RecalledFact = MemoryFact & { status: MemoryStatus };
 
@@ -36,15 +34,9 @@ function rememberedFacts(userId: string, query: string): RecalledFact[] {
     .map(({ fact }) => ({ ...fact, status: memoryStatus(fact) }));
 }
 
-/** How close two conversations' scores must be for the newer to come first: wider when the person asks for the one just had ("เมื่อกี้", "ล่าสุด"), in their question or the model's search. */
-function sameMatchBandFor(query: string, question: string): number | undefined {
-  return ASKS_LATEST.test(`${question} ${query}`) ? LATEST_MATCH_BAND : undefined;
-}
-
 async function pastConversations(userId: string, query: string): Promise<RecalledConversation[]> {
-  const turn = currentTurn();
   try {
-    return await searchConversations(userId, query, { excludeThreadId: turn.threadId, sameMatchBand: sameMatchBandFor(query, turn.question ?? "") });
+    return await searchConversations(userId, query, { excludeThreadId: currentTurn().threadId });
   } catch (error) {
     console.error("conversation recall failed", error);
     return [];

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { MetricQuery } from "@/lib/contracts";
-import { asksAmount, asksMonthEnd, rowsNamedIn } from "./asked";
+import { asksAmount, asksLowest, asksMonthEnd, rowsNamedIn } from "./asked";
 
 const BY_UNIT = { metric: "gross_margin", dims: ["business_unit"], filters: {}, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "none", limit: null } as MetricQuery;
 const UNITS = [{ business_unit: "กลุ่มนอนแอลกอฮอล์" }, { business_unit: "กลุ่มเบียร์" }, { business_unit: "กลุ่มนำเข้า" }];
@@ -49,5 +49,15 @@ describe("asksAmount (AI-349)", () => {
     expect(asksAmount("เดือนนี้ผมทำยอดได้ตามเป้าไหม ยังขาดอีกเท่าไหร่")).toBe(false);
     expect(asksAmount("ยอดขายเดือนนี้แยกภาค")).toBe(false);
     expect(asksAmount(null)).toBe(false);
+  });
+});
+
+describe("asksLowest (AI-351)", () => {
+  test("a question for the lowest row asks for it, one about the least growth does not", () => {
+    expect(asksLowest("จังหวัดที่ต่ำสุดเทียบเดือนก่อนเป็นไง")).toBe(true);
+    expect(asksLowest("ภาคไหนน้อยที่สุด")).toBe(true);
+    expect(asksLowest("จังหวัดไหนเติบโตน้อยสุด")).toBe(false);
+    expect(asksLowest("ภาคไหนยอดลดมากที่สุด")).toBe(false);
+    expect(asksLowest(null)).toBe(false);
   });
 });

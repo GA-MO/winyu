@@ -418,3 +418,20 @@ test("two months against target name the worse month apart from the verdict's wo
   const card = presentCard({ title: "t", query: result.query, result });
   expect(card.verdict).toContain("หนักสุด ต.ค. 69");
 });
+
+describe("a question for the lowest row sent without an order reads lowest first (AI-351)", () => {
+  const SOUTH_BY_PROVINCE = { metric: "net_sales_value", dims: ["province"], filters: { region: ["south"] }, grain: "month", compare: "prev_period", limit: null, period: "this_month" };
+
+  test("round 17's 'จังหวัดที่ต่ำสุดเทียบเดือนก่อนเป็นไง' leads the summary and the card with นครศรีธรรมราช", async () => {
+    const result = await askedAsCeo("จังหวัดที่ต่ำสุดเทียบเดือนก่อนเป็นไง", SOUTH_BY_PROVINCE);
+    expect(result.query.sort).toBe("value_asc");
+    expect(result.summary).toContain("ต่ำสุด: นครศรีธรรมราช");
+    expect(presentCard({ title: "t", query: result.query, result }).verdict).toStartWith("นครศรีธรรมราชน้อยสุด");
+  });
+
+  test("an order the model sent, or a question about the smallest growth, is left as asked", async () => {
+    expect((await askedAsCeo("จังหวัดที่ต่ำสุดเป็นไง", { ...SOUTH_BY_PROVINCE, sort: "value_desc" })).query.sort).toBe("value_desc");
+    expect((await askedAsCeo("จังหวัดไหนเติบโตน้อยสุด", SOUTH_BY_PROVINCE)).query.sort ?? null).toBeNull();
+    expect((await askedAsCeo("แยกจังหวัดให้หน่อย", SOUTH_BY_PROVINCE)).query.sort ?? null).toBeNull();
+  });
+});

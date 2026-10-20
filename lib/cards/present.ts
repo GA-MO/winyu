@@ -155,7 +155,6 @@ const WORST_WHEN_LOW: ReadonlySet<MetricId> = new Set(["target_attainment", "day
 const WORST_WHEN_HIGH: ReadonlySet<MetricId> = new Set(["ar_overdue", "forecast_mape"]);
 const MAX_RANK_ROWS = 8;
 const MAX_ALERTS = 4;
-const MAX_SCORECARD_TILES = 3;
 const MAX_HISTORY_POINTS = 12;
 const LEADING_PERCENT = /^[+−-]?[\d,]+(?:\.\d+)?%/;
 const MASKED = "***";
@@ -744,12 +743,13 @@ function targetLead(facts: Facts, name: string, attainment: number, overTarget: 
   };
 }
 
-/** A target lead turned to answer a question for the amount: the amount leads, the share of target the lead was going to show stands first beside it, and the verdict still says the pace (AI-349). */
+/** A target lead turned to answer a question for the amount: the amount leads, the share of target the lead was going to show stands beside it with the lead's last tile (where the month ends), so hero and tiles stay one row, and the verdict still says the pace (AI-349). */
 function amountFirst(lead: Lead, amount: string): Lead {
   const share = tileOf(TH.read.doneSoFar, lead.hero.value, lead.hero.unit);
+  const last = lead.tiles.filter((tile) => tile.label !== TH.read.actual).at(-1);
   return {
     hero: { label: lead.hero.label, value: amount, unit: null, delta: null, trend: "neutral", tone: "neutral", detail: null },
-    tiles: [share, ...lead.tiles.filter((tile) => tile.label !== TH.read.actual)].slice(0, MAX_SCORECARD_TILES),
+    tiles: last ? [share, last] : [share],
     verdict: lead.verdict,
   };
 }

@@ -177,11 +177,11 @@ export async function indexTurn(turn: RecallTurn): Promise<void> {
   });
 }
 
-/** The person's past conversations closest to a question, best first and the newer first among scores within `sameMatchBand` of each other (0.02 unless the caller widens it): one per thread, only threads that still exist and are theirs, in their own words (what a model reads of them is masked by `recall_memory`'s model view). */
-export async function searchConversations(userId: string, query: string, options: { excludeThreadId?: string | null; limit?: number; sameMatchBand?: number } = {}): Promise<RecalledConversation[]> {
+/** The person's past conversations closest to a question, best first and the newer first among scores within 0.02 of each other: one per thread, only threads that still exist and are theirs, in their own words (what a model reads of them is masked by `recall_memory`'s model view). */
+export async function searchConversations(userId: string, query: string, options: { excludeThreadId?: string | null; limit?: number } = {}): Promise<RecalledConversation[]> {
   const queryVector = await currentEmbedder().query(query);
   const results = await (await vectorStore()).query({ indexName: INDEX_NAME, queryVector, topK: SEARCH_TOP_K, filter: { resource_id: userId } });
-  return newerWhenClose(bestPerThread(hitsOf(results)), options.sameMatchBand ?? SAME_MATCH_BAND)
+  return newerWhenClose(bestPerThread(hitsOf(results)), SAME_MATCH_BAND)
     .filter((hit) => hit.metadata.thread_id !== options.excludeThreadId)
     .flatMap((hit) => {
       const title = ownedTitle(hit.metadata.thread_id, userId);

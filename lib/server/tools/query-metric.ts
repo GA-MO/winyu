@@ -15,8 +15,8 @@ import { runMetric } from "@/lib/server/metrics";
 import { askedQuery } from "@/lib/semantic/resolved";
 import { excludedIn, filtersWithout } from "@/lib/semantic/exclusion";
 import { namesOf } from "@/lib/semantic/dictionary";
-import { asksAmount, asksMonthEnd, rowsNamedIn } from "@/lib/cards/asked";
-import { changeTextOf, deltaPercentOf, groupDimsOf, labelAlong, timeDimOf } from "@/lib/cards/rows";
+import { asksAmount, asksLowest, asksMonthEnd, rowsNamedIn } from "@/lib/cards/asked";
+import { changeTextOf, deltaPercentOf, groupDimsOf, isTimeDim, labelAlong, timeDimOf } from "@/lib/cards/rows";
 import { actionsForMetric, actionsForRefusal, followUpsForMetric } from "@/lib/server/next-actions";
 import { currentAccess, currentTurn, recordQuery } from "@/lib/server/request-context";
 import { defineTool } from "./define";
@@ -150,11 +150,17 @@ function withoutSetAside(input: MetricQueryInput, access: AccessContext, questio
   return { input: { ...input, filters }, places: Object.values(namesOf(dictionary, excluded)).flat().join(", ") };
 }
 
-/** What query_metric runs for a question: a rep's own book, then the places the question sets aside, with what each changed for the summary. A matter stores the read this way when it is sent, so re-running it never needs the sender's question. */
+/** A breakdown sent without an order for a question that asks which row is lowest reads lowest first, so the card, its verdict and the summary lead with the row asked about (AI-351). */
+function lowestFirst(input: MetricQueryInput, question: string | null): MetricQueryInput {
+  if (input.sort || !input.dims.some((dim) => !isTimeDim(dim)) || !asksLowest(question)) return input;
+  return { ...input, sort: "value_asc" };
+}
+
+/** What query_metric runs for a question: a rep's own book, then the places the question sets aside, with what each changed for the summary, read lowest first when the question asks for the lowest. A matter stores the read this way when it is sent, so re-running it never needs the sender's question. */
 export function narrowedForQuestion(asked: MetricQueryInput, access: AccessContext, question: string | null, dictionary: Dictionary): { input: MetricQueryInput; ownAgents: number | null; setAside: string | null } {
   const own = ownBookQuery(asked, access, question, dictionary);
   const setAside = withoutSetAside(own?.input ?? asked, access, question, dictionary);
-  return { input: setAside?.input ?? own?.input ?? asked, ownAgents: own?.agents ?? null, setAside: setAside?.places ?? null };
+  return { input: lowestFirst(setAside?.input ?? own?.input ?? asked, question), ownAgents: own?.agents ?? null, setAside: setAside?.places ?? null };
 }
 
 /** The question a read answers: none when the turn re-runs a matter's stored reads, which were narrowed for the sender's question when it was sent. */
