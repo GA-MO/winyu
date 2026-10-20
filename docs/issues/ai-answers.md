@@ -4646,7 +4646,7 @@ input tokens ต่อ call ของ B5 (`HistoryTrim`): call แรกขอ�
 
 ### AI-349. 'กลับไปที่ภาคแรกที่ดูเมื่อกี้ ยอดรวมเท่าไหร่': the card shows Bangkok's pace against target and never the total that was asked
 
-- **สถานะ:** แก้แล้ว ยังไม่ได้ยืนยันในแชตจริง · `query_metric` ตั้ง `asksAmount` เมื่อคำถามขอยอด ("ยอดรวมเท่าไหร่", "ขายได้กี่ล้าน" ที่ไม่มีคำว่าเป้าหรือเปอร์เซ็นต์; `asksAmount` ใน `lib/cards/asked.ts`) และ query เทียบเป้า การ์ดหนึ่งขอบเขตจึงขึ้นยอดเป็น hero ส่วนที่เคยเป็น hero (86.5% ของเป้าทั้งเดือน) เป็น tile แรก "ทำได้แล้ว" ตามด้วยยังขาดและคาดสิ้นเดือน คำตัดสินยังบอก pace (`amountFirst` ใน `lib/cards/present.ts`) รันผ่าน tool จริงด้วยคำถามของ B5-5: hero 'กรุงเทพฯ และปริมณฑล 380.7 ล้านบาท' tiles 'ทำได้แล้ว 86.5% · ถึงวันนี้ยังขาด 59.5 ล้านบาท · คาดสิ้นเดือน 99.6%' ส่วน 'กรุงเทพฯ เดือนนี้ถึงเป้าแค่ไหน' ยังขึ้น 86.5% ทดสอบใน `asked.test.ts` และ `question-fit.test.ts` (ไม่ผ่านถ้าไม่มีการแก้) การ์ดแยกกลุ่มที่ถามยอดรวมยังไม่เปลี่ยน ไม่แตะ prompt หรือคำอธิบาย tool
+- **สถานะ:** แก้แล้ว ยืนยันในแชตจริงรอบ 17 การ์ดขอบเขตเดียว (A2) · รูปแยกกลุ่มแก้ `d63d705` หลังรอบ 17 B2 (การ์ดแยกภาคเทียบเป้าที่ถามยอดรวมมี 'ยอดจริง 1,549.4 ล้านบาท' ใต้แถวทั้งประเทศ ตรวจโดยเปิด thread เดิมใหม่ ยังไม่ได้ถามใหม่) · (A2: 'แล้วยอดรวมเท่าไหร่' พา `compare: target` มา การ์ดขึ้น 1,549.4 ล้านบาท ข้าง ๆ เป็นทำได้แล้ว 83.9% และคาดสิ้นเดือน 96.3%) `a2d2bf9` · รอบ 17 เจอว่า hero กับ 3 tiles ขึ้นสองแถวที่ 1100px จึงเหลือ 2 tiles คือทำได้แล้วกับ tile สุดท้ายของ lead (คาดสิ้นเดือน) ส่วนยังขาดอยู่ในข้อความตอบ · `query_metric` ตั้ง `asksAmount` เมื่อคำถามขอยอด ("ยอดรวมเท่าไหร่", "ขายได้กี่ล้าน" ที่ไม่มีคำว่าเป้าหรือเปอร์เซ็นต์; `asksAmount` ใน `lib/cards/asked.ts`) และ query เทียบเป้า การ์ดหนึ่งขอบเขตจึงขึ้นยอดเป็น hero ส่วนที่เคยเป็น hero (86.5% ของเป้าทั้งเดือน) เป็น tile แรก "ทำได้แล้ว" ตามด้วยยังขาดและคาดสิ้นเดือน คำตัดสินยังบอก pace (`amountFirst` ใน `lib/cards/present.ts`) รันผ่าน tool จริงด้วยคำถามของ B5-5: hero 'กรุงเทพฯ และปริมณฑล 380.7 ล้านบาท' tiles 'ทำได้แล้ว 86.5% · ถึงวันนี้ยังขาด 59.5 ล้านบาท · คาดสิ้นเดือน 99.6%' ส่วน 'กรุงเทพฯ เดือนนี้ถึงเป้าแค่ไหน' ยังขึ้น 86.5% ทดสอบใน `asked.test.ts` และ `question-fit.test.ts` (ไม่ผ่านถ้าไม่มีการแก้) การ์ดแยกกลุ่มที่ถามยอดรวมยังไม่เปลี่ยน ไม่แตะ prompt หรือคำอธิบาย tool
 - **ระดับ:** ต่ำ · **หมวด:** `card` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The model called `query_metric` `net_sales_value` × region, `filters: {region: [bkk]}`, `compare: target` (carried from turn 1). The card's verdict is 'กรุงเทพฯ และปริมณฑลช้ากว่าเป้าตามเวลา คาดปิดเดือนไม่ถึงเป้า' with tiles 86.5% of target, 59.5 ล้านบาท short, 99.6% forecast. The asked figure, 380.7 ล้านบาท, is only in the reply text.
 - **ที่ควรเป็น:** A question for a total gets a card whose hero is the total; the target pace can sit beside it.
@@ -4657,7 +4657,7 @@ input tokens ต่อ call ของ B5 (`HistoryTrim`): call แรกขอ�
 
 ### AI-350. `recall_memory` hands the model each conversation's time in UTC, so a thread from after midnight in Bangkok reads as the day before
 
-- **สถานะ:** แก้แล้ว ยังไม่ได้ยืนยันในแชตจริง · model view ของ `recall_memory` ส่ง `at` เป็นวันที่ไทยในเวลากรุงเทพฯ แบบเดียวกับการ์ด (`bangkokDayOf` ใน `lib/server/tools/recall-memory.ts`) การ์ดยังได้เวลาเดิม `recall_memory {query: พนักงานลาออก}` ของ u_thana ผ่าน model view: B1 (`2026-10-19T17:37:49.257Z`) อ่านเป็น '20 ต.ค. 2569' ทดสอบใน `recall-memory.test.ts`
+- **สถานะ:** แก้แล้ว ยืนยันในแชตจริงรอบ 17 (R1: คำตอบเขียน 'เมื่อวันที่ 20 ต.ค. 2569' ตรงกับบรรทัดที่มาใต้การ์ด) `a2d2bf9` · model view ของ `recall_memory` ส่ง `at` เป็นวันที่ไทยในเวลากรุงเทพฯ แบบเดียวกับการ์ด (`bangkokDayOf` ใน `lib/server/tools/recall-memory.ts`) การ์ดยังได้เวลาเดิม `recall_memory {query: พนักงานลาออก}` ของ u_thana ผ่าน model view: B1 (`2026-10-19T17:37:49.257Z`) อ่านเป็น '20 ต.ค. 2569' ทดสอบใน `recall-memory.test.ts`
 - **ระดับ:** ต่ำ · **หมวด:** `memory` · **บทบาท:** u_thana (CEO)
 - **อาการ:** B1 was asked at 00:37 on 20 ต.ค. in Bangkok; its vector stores `at: 2026-10-19T17:37:49.257Z`. The memory card formats it in the browser as 20 ต.ค. 2569, but `recallForModel` passes `at` through unchanged, so the model reads 19 ต.ค. The new description asks the model to name a conversation by its date, so the reply and the card can disagree. B2's reply said 'เมื่อวันที่ 19 ต.ค. 2569'; two of its three threads were from 19 ต.ค., so this round does not prove the reply used B1's date.
 - **ที่ควรเป็น:** The model reads the same Bangkok date the card shows.
@@ -4666,3 +4666,65 @@ input tokens ต่อ call ของ B5 (`HistoryTrim`): call แรกขอ�
 - **สาเหตุ:** verified in code: `maskedConversation` in `lib/server/tools/recall-memory.ts` masks title, question and reply and leaves `at` as the stored ISO time. Proposed fix: the model view carries the date as a Thai date in `Asia/Bangkok` (`lib/data/dates.ts` has the business time zone).
 
 ภาพหน้าจอ: /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r16-B1.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r16-B2.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r16-B3.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r16-B3-b.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r16-B3-line.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r16-B4.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r16-B5-1.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r16-B5-2.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r16-B5-3.png, /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/474dc05d-39dc-4517-83a1-d4539c1e19ff/scratchpad/r16-B5-5.png (B2 เป็นต้นไปมีภาพเลื่อนลงล่างสุดชื่อ `-b` ด้วย)
+
+## รอบทดสอบที่ 17 (2026-10-20) thread 6 เทิร์นที่จบด้วยคำขอสรุป, AI-349 ถามซ้ำ, recall ที่ถามว่า 'เมื่อกี้'
+
+คำถามของรอบ: เมื่อประวัติของ thread ถูก `HistoryTrim` ตัดผลของ tool เก่าเป็น stub แล้ว 'สรุปทั้งหมดให้หน่อย' ยังสรุปครบและตัวเลขตรงไหม การ์ดที่ถามยอดของคำถามที่พาเป้ามาด้วยขึ้นยอดเป็น hero ไหม (AI-349) และ recall ที่ถามว่า 'เมื่อกี้' ชี้ไปที่ thread ล่าสุดพร้อมวันที่ไทยตรงกับการ์ดไหม (AI-350 และลำดับความใหม่ของ phase 4)
+
+วิธี: ถามในแชตจริงผ่าน baton (Chrome) เป็น u_thana (CEO) dev server `:3100` `WINYU_SCHEDULER=off` ที่ commit `2f2be5c` ส่วนแรก (T1–A2) ที่ความกว้างหน้าต่างราว 1280px เพราะ baton ยกเลิก `emulate` เมื่อแต่ละ script จบ ส่วนต่อ (L1–B2) ตั้ง 1100px ในทุก script ถามครั้งเดียวต่อข้อ T1–T6 เป็น thread เดียว R1 และ A1–A2 เปิดบทสนทนาใหม่ args อ่านจาก `.data/audit.json` ตัวเลขตรวจกับ `bun run call-tool … --full` ตรวจยอดจาก `.data/model-calls.json` (แถวที่ 372 เป็นต้นไป) ก่อนถามทุกข้อ งบ estimated $0.40 T1 ไม่ได้เทียบเป้า (`compare: none`) ต่างจาก B5-1 ของรอบ 16 เทิร์น 'แบรนด์ไหนฉุด' จึงถูกแทนด้วย 'แล้วเทียบเป้าล่ะ' เพื่อให้ thread มีเป้าก่อนถามยอด
+
+ค่าโมเดล: 9 เทิร์น 40 calls (แชต 19, งานเบื้องหลัง 21) estimated $0.3503 billed $0.0787 อยู่ในงบ หยุดหลัง A2 เพราะงบที่เหลือไม่พออีกเทิร์น
+
+| ข้อ | คำถาม | tool (args) | run | เวลา | ผล |
+|---|---|---|---|---|---|
+| T1 | "ยอดขายเดือนนี้แยกภาค" | `query_metric` `net_sales_value` × region `compare: none` | 041e957b | 30.1 s | รวม 1,549.4 ล้านบาท กรุงเทพฯ 380.7 ล้านบาทมากสุด ตรงกับ call-tool |
+| T2 | "แล้วเทียบเป้าล่ะ" | × region `compare: target` | 2280d236 | 20.6 s | 83.9% ของเป้าทั้งเดือน อีสาน 77.3% หนักสุด คาดปิด 96.3% ขาด 68.8 ล้านบาท ตรงกับ call-tool |
+| T3 | "แล้วภาคใต้ล่ะ แยกจังหวัด" | × province `filters: {region: [south]}` `compare: target` | d6b0247c | 23.5 s | ภาคใต้ 85.5% ภูเก็ตหนักสุด คาดปิด 98.4% ขาด 3.79 ล้านบาท |
+| T4 | "จังหวัดที่ต่ำสุดเทียบเดือนก่อนเป็นไง" | × province south `prev_period` ไม่มี `sort` | 6ac24d1c | 26.0 s | ตัวเลขตรง ข้อความตอบนครศรีธรรมราช +35.2% แต่การ์ดเรียงจากมากและคำตัดสินว่า 'สงขลามากสุด' (AI-351) |
+| T5 | "กลับไปที่ภาคแรกที่ดูเมื่อกี้ ยอดรวมเท่าไหร่" | × region `compare: none` (ซ้ำ T1) | 9e21c941 | 25.6 s | การ์ดรวม 1,549.4 ล้านบาท แถวแรกกรุงเทพฯ 380.7 ล้านบาท ข้อความตอบทั้งสองความหมาย ไม่ผ่านโค้ดของ AI-349 เพราะไม่ได้เทียบเป้า |
+| T6 | "สรุปทั้งหมดให้หน่อย" | ไม่เรียก tool (1 call, input 18,752 tokens) | c9459869 | 17.6 s | สรุปจาก stub: 83.9% คาดปิด 96.3% กรุงเทพฯ สูงสุด ภาคใต้ 85.5% โตกว่า 35% ทุกจังหวัด อีสานช้าที่สุด ทุกตัวเลขตรงกับการ์ดก่อนหน้า |
+| R1 | "เมื่อกี้ที่คุยเรื่องยอดขายภาคใต้ จังหวัดไหนต่ำสุด" (thread ใหม่) | `recall_memory` แล้ว `query_metric` × province south `prev_period` `value_asc` | 60fafad4 | 30.4 s | อันดับ 1 คือ T4 ของรอบนี้ (0.8630, 05:44Z) อันดับ 2 คือ B5-3 ของรอบ 16 ที่ชื่อและคำถามเหมือนกัน (0.8621, 00:44 ของ 20 ต.ค. ในกรุงเทพฯ) บรรทัดที่มาลิงก์ไป thread ของรอบนี้ ข้อความตอบเขียน '20 ต.ค. 2569' ตรงกับการ์ด การ์ด 'นครศรีธรรมราชน้อยสุด' |
+| A1 | "กรุงเทพฯ เดือนนี้เทียบเป้าตามเวลาเป็นไง" (thread ใหม่) | × region `filters: {region: [bkk]}` `compare: target` | 12f6aa31 | 25.2 s | 86.5% ของเป้าทั้งเดือน คาดปิด 99.6% เหมือนเดิม (ไม่ได้ถามยอด) |
+| A2 | "แล้วยอดรวมเท่าไหร่" | × month `compare: target` (ทั้งบริษัท) | 54d1b896 | 28.8 s | hero 1,549.4 ล้านบาท tiles ทำได้แล้ว 83.9% ยังขาด 297.1 ล้านบาท คาดสิ้นเดือน 96.3% ตรงกับ call-tool (AI-349 ผ่าน) แต่ 4 กล่องขึ้นสองแถว จึงแก้เหลือ 2 tiles |
+
+input tokens ต่อ call แรกของ T1–T6: 16,302 → 16,756 → 17,308 → 17,882 → 18,345 → 18,752 โตราว 490 tokens ต่อเทิร์นเหมือนรอบ 16
+
+สถานะ: สรุปจาก stub ใช้ได้ ไม่ต้องให้เทิร์นสรุปเห็นผลเก่าทั้งก้อน (ตัวเลขทุกตัวตรง ครอบคลุม T1–T4 ส่วน T5 ซ้ำ T1 จึงไม่มีอะไรใหม่ ไม่ได้บอกยอด 1,549.4 ล้านบาทหรือคาดปิดภาคใต้ 98.4%) · AI-349 ยืนยัน (A2) · AI-350 ยืนยัน (R1) · ลำดับความใหม่: ผลถูก แต่ยังพิสูจน์ไม่ได้ว่าเป็นเพราะกฎใหม่ เพราะ thread ใหม่ได้คะแนนสูงกว่าอยู่แล้ว (ทั้งคู่อยู่ใน band 0.04 เดียวกันและเรียงใหม่ก่อนเหมือนกัน) · เปิด AI-351
+
+สิ่งที่เปลี่ยน ($0): `amountFirst` เหลือ tile ทำได้แล้วกับ tile สุดท้ายของ lead ให้ hero กับ tiles อยู่แถวเดียว (`lib/cards/present.ts`, `question-fit.test.ts`, `docs/plans/card-fit.md`) ตรวจโดยเปิด thread ของ A2 ใหม่ หลังแก้การ์ดเดิมแสดง 3 กล่องแถวเดียว (/private/tmp/claude-501/-Users-sbpdigital-Development-winyu/713c1db1-3439-4776-b143-1bbb8b3ff887/scratchpad/r17-A2-fixed.png)
+
+ข้อสังเกตที่ไม่เปิดเป็นข้อใหม่:
+- thread ของรอบ 16 กับรอบนี้ชื่อเหมือนกัน ('ยอดขายเดือนนี้แยกภาค') และอยู่วันเดียวกันในเวลากรุงเทพฯ คำตอบที่บอก 'จากบทสนทนา «ยอดขายเดือนนี้แยกภาค» เมื่อวันที่ 20 ต.ค. 2569' จึงแยกไม่ออกว่าหมายถึงอันไหน ลิงก์ใต้การ์ดแยกได้
+- hero ของ A2 มีป้าย 'พ.ย. 69' เพราะ query เป็น dims month ของทั้งบริษัท ป้ายนี้เป็นพฤติกรรมเดิมของการ์ดหนึ่งเดือนที่เทียบเป้า
+- A2 ตีความ 'ยอดรวม' เป็นทั้งบริษัท ไม่ใช่กรุงเทพฯ ของเทิร์นก่อน ข้อความตอบบอกทั้งสองยอด
+
+### AI-351. 'จังหวัดที่ต่ำสุดเทียบเดือนก่อนเป็นไง' without a sort: the card leads with the highest province
+
+- **สถานะ:** แก้แล้ว `3472a88` · `query_metric` อ่านแถวจากต่ำสุดเมื่อคำถามถามแถวต่ำสุด ('ต่ำสุด', 'น้อยที่สุด' โดยไม่ใช่คำถามเรื่องเติบโตหรือลดลง; `asksLowest` ใน `lib/cards/asked.ts`) และโมเดลไม่ได้ส่ง `sort` (`lowestFirst` ใน `narrowedForQuestion`) summary การ์ด และคำตัดสินจึงขึ้นนครศรีธรรมราช ทดสอบใน `query-metric.test.ts` (ไม่ผ่านถ้าไม่มีการแก้) และ `asked.test.ts` รอบ 17 L2 ถามซ้ำแล้วการ์ดถูก แต่ครั้งนี้โมเดลส่ง `value_asc` เอง จึงยังไม่เห็นโค้ดใหม่ตัดสินในแชตจริง
+- **ระดับ:** ต่ำ · **หมวด:** `card` · **บทบาท:** u_thana (CEO)
+- **อาการ:** In round 17 T4 the model called `query_metric` × province, south, `prev_period`, with no `sort` (round 16's B5-3 sent `value_asc`). The card drew the provinces highest first and its verdict said 'สงขลามากสุด ทุกจังหวัดเพิ่มขึ้นใกล้กัน'. The reply text answered นครศรีธรรมราช +35.2%, so the card and the reply lead with different provinces.
+- **ที่ควรเป็น:** A question for the lowest row draws the card lowest first, as `value_asc` does ('นครศรีธรรมราชน้อยสุด').
+- **หลักฐาน:**
+	- run 6ac24d1c-875e-4deb-b697-ee679a2af248; /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/713c1db1-3439-4776-b143-1bbb8b3ff887/scratchpad/r17-T4.png
+	- the same call through call-tool without sort: 'สูงสุด: สงขลา 73.7 ล้านบาท · สุราษฎร์ธานี 54.9 ล้านบาท · ภูเก็ต 48.5 ล้านบาท'
+- **สาเหตุ:** verified: the card reads only `query.sort`, and the model left it out. Proposed $0 fix in the pattern of `asksMonthEnd` and `asksAmount`: `query_metric` marks a question that asks for the lowest ('ต่ำสุด', 'น้อยสุด', 'แย่สุด') when no sort was sent, and the card orders and names rows as for `value_asc`.
+
+ภาพหน้าจอ: /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/713c1db1-3439-4776-b143-1bbb8b3ff887/scratchpad/r17-T1.png ถึง r17-T6.png, r17-R1.png, r17-A1.png, r17-A2.png, r17-A2-fixed.png (โฟลเดอร์เดียวกัน)
+
+### รอบ 17 ส่วนต่อ (งบเพิ่มจากผู้ใช้ เพดานรวม estimated $0.60)
+
+ก่อนถาม: `3472a88` แก้ AI-351 และเลิกขยาย band ของ recall เป็น 0.04 เมื่อคำถามมี 'เมื่อกี้' เพราะ probe ด้วย embedding (ไม่เรียกโมเดลแชต) บน index จริงพบว่า «ภาคใต้เทียบเป้า» ที่ band 0.04 ดัน thread กรุงเทพฯ เทียบเป้า (0.8206 อยู่ในช่วงคะแนนของเรื่องไม่เกี่ยว) ขึ้นเหนือ thread ที่ตรง (0.8591) ส่วน band 0.02 เรียงถูกทุกคำค้นที่ลอง
+
+| ข้อ | คำถาม | tool (args ที่โมเดลส่ง) | run | เวลา | ผล |
+|---|---|---|---|---|---|
+| L1 | "ยอดขายภาคใต้เดือนนี้แยกจังหวัด" | × province south `compare: none` | c7e98c49 | 36.3 s | สงขลามากสุด รวม 201.4 ล้านบาท |
+| L2 | "จังหวัดที่ต่ำสุดเทียบเดือนก่อนเป็นไง" | × province south `prev_period` `value_asc` (โมเดลส่งเอง) | 03f345e5 | 18.0 s | 'นครศรีธรรมราชน้อยสุด ทุกจังหวัดเพิ่มขึ้นใกล้กัน' การ์ดกับข้อความตรงกัน |
+| R2 | "เมื่อกี้ที่ดูยอดขายเทียบเป้าแยกภาค ภาคอีสานได้กี่เปอร์เซ็นต์" (thread ใหม่) | `recall_memory {query: ยอดขายเทียบเป้าแยกภาค}` แล้ว × region `compare: target` | (thread 9c51be6d) | 31.0 s | recall คืน 3 threads ชื่อ 'ยอดขายเดือนนี้แยกภาค' คะแนน 0.8832 เท่ากัน เรียงใหม่สุดก่อน thread เรื่องเป้ากับกำไรของเมื่อวาน (f008c82b, 0.8993 สูงกว่าแต่ห่างไม่ถึง 0.02) หลุดจาก 3 อันดับ บรรทัดที่มาลิงก์ไป 534e49c2 ของรอบนี้ซึ่งมีเทิร์นเทียบเป้าแยกภาค การ์ดอีสาน 77.3% (กฎความใหม่ตัดสินจริง) |
+| B1 | "ยอดขายเดือนนี้เทียบเป้าแยกภาค" (thread ใหม่) | × region `compare: target` | ceba637f | — | 83.9% อีสาน 77.3% คาดปิด 96.3% |
+| B2 | "กลับไปที่ภาคแรกที่ดูเมื่อกี้ ยอดรวมเท่าไหร่" | × region `compare: target` (ซ้ำ B1) | 9a3d9d2a | 20.9 s | การ์ดแยกภาคนำด้วย 83.9% ไม่มียอดที่ถาม ข้อความตอบกรุงเทพฯ 380.7 ล้านบาท (AI-349 ในรูปแยกกลุ่ม แก้ที่ `d63d705`) |
+
+ค่าโมเดลทั้งรอบ 17: estimated $0.5593 billed $0.1243 (แถวที่ 372 เป็นต้นไปของ `.data/model-calls.json` รวม probe embedding)
+
+สถานะส่วนต่อ: ลำดับความใหม่ยืนยัน (R2) · AI-351 แก้แล้ว ถามซ้ำผ่านแต่โมเดลส่ง sort เอง · AI-349 รูปแยกกลุ่ม: 'ยอดจริง 1,549.4 ล้านบาท' ใต้แถวทั้งประเทศ ตรวจโดยเปิด thread ของ B2 ใหม่ที่ 1100px (/private/tmp/claude-501/-Users-sbpdigital-Development-winyu/713c1db1-3439-4776-b143-1bbb8b3ff887/scratchpad/r17-B2-fixed.png) ยังไม่ได้ถามใหม่
+
+ภาพหน้าจอส่วนต่อ: /private/tmp/claude-501/-Users-sbpdigital-Development-winyu/713c1db1-3439-4776-b143-1bbb8b3ff887/scratchpad/r17-L1.png, r17-L2.png, r17-R2.png, r17-B1.png, r17-B2.png, r17-B2-fixed.png (โฟลเดอร์เดียวกัน)
