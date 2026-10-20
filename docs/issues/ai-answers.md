@@ -4646,7 +4646,7 @@ input tokens ต่อ call ของ B5 (`HistoryTrim`): call แรกขอ�
 
 ### AI-349. 'กลับไปที่ภาคแรกที่ดูเมื่อกี้ ยอดรวมเท่าไหร่': the card shows Bangkok's pace against target and never the total that was asked
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว ยังไม่ได้ยืนยันในแชตจริง · `query_metric` ตั้ง `asksAmount` เมื่อคำถามขอยอด ("ยอดรวมเท่าไหร่", "ขายได้กี่ล้าน" ที่ไม่มีคำว่าเป้าหรือเปอร์เซ็นต์; `asksAmount` ใน `lib/cards/asked.ts`) และ query เทียบเป้า การ์ดหนึ่งขอบเขตจึงขึ้นยอดเป็น hero ส่วนที่เคยเป็น hero (86.5% ของเป้าทั้งเดือน) เป็น tile แรก "ทำได้แล้ว" ตามด้วยยังขาดและคาดสิ้นเดือน คำตัดสินยังบอก pace (`amountFirst` ใน `lib/cards/present.ts`) รันผ่าน tool จริงด้วยคำถามของ B5-5: hero 'กรุงเทพฯ และปริมณฑล 380.7 ล้านบาท' tiles 'ทำได้แล้ว 86.5% · ถึงวันนี้ยังขาด 59.5 ล้านบาท · คาดสิ้นเดือน 99.6%' ส่วน 'กรุงเทพฯ เดือนนี้ถึงเป้าแค่ไหน' ยังขึ้น 86.5% ทดสอบใน `asked.test.ts` และ `question-fit.test.ts` (ไม่ผ่านถ้าไม่มีการแก้) การ์ดแยกกลุ่มที่ถามยอดรวมยังไม่เปลี่ยน ไม่แตะ prompt หรือคำอธิบาย tool
 - **ระดับ:** ต่ำ · **หมวด:** `card` · **บทบาท:** u_thana (CEO)
 - **อาการ:** The model called `query_metric` `net_sales_value` × region, `filters: {region: [bkk]}`, `compare: target` (carried from turn 1). The card's verdict is 'กรุงเทพฯ และปริมณฑลช้ากว่าเป้าตามเวลา คาดปิดเดือนไม่ถึงเป้า' with tiles 86.5% of target, 59.5 ล้านบาท short, 99.6% forecast. The asked figure, 380.7 ล้านบาท, is only in the reply text.
 - **ที่ควรเป็น:** A question for a total gets a card whose hero is the total; the target pace can sit beside it.
@@ -4657,7 +4657,7 @@ input tokens ต่อ call ของ B5 (`HistoryTrim`): call แรกขอ�
 
 ### AI-350. `recall_memory` hands the model each conversation's time in UTC, so a thread from after midnight in Bangkok reads as the day before
 
-- **สถานะ:** เปิด
+- **สถานะ:** แก้แล้ว ยังไม่ได้ยืนยันในแชตจริง · model view ของ `recall_memory` ส่ง `at` เป็นวันที่ไทยในเวลากรุงเทพฯ แบบเดียวกับการ์ด (`bangkokDayOf` ใน `lib/server/tools/recall-memory.ts`) การ์ดยังได้เวลาเดิม `recall_memory {query: พนักงานลาออก}` ของ u_thana ผ่าน model view: B1 (`2026-10-19T17:37:49.257Z`) อ่านเป็น '20 ต.ค. 2569' ทดสอบใน `recall-memory.test.ts`
 - **ระดับ:** ต่ำ · **หมวด:** `memory` · **บทบาท:** u_thana (CEO)
 - **อาการ:** B1 was asked at 00:37 on 20 ต.ค. in Bangkok; its vector stores `at: 2026-10-19T17:37:49.257Z`. The memory card formats it in the browser as 20 ต.ค. 2569, but `recallForModel` passes `at` through unchanged, so the model reads 19 ต.ค. The new description asks the model to name a conversation by its date, so the reply and the card can disagree. B2's reply said 'เมื่อวันที่ 19 ต.ค. 2569'; two of its three threads were from 19 ต.ค., so this round does not prove the reply used B1's date.
 - **ที่ควรเป็น:** The model reads the same Bangkok date the card shows.
