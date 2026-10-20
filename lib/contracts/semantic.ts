@@ -30,9 +30,9 @@ export type MonthEndProjection = { recentDays: number; projected: string; monthT
 export type UnderLine = { line: number; count: number; of: number };
 /** How a series split by a group fitted the row cap with every bucket kept: the groups drawn on their own, out of how many, picked by `rule` (largest total, largest weight, or lowest rate), the rest folded per bucket into one "อื่น ๆ" group. */
 export type SeriesFold = { kept: number; of: number; rule: "total" | "weight" | "lowest" };
-/** What a metric card leads with; `asked` are the rows the question named, `asksMonthEnd` that it asked where the running month closes. */
+/** What a metric card leads with; `asked` are the rows the question named, `asksMonthEnd` that it asked where the running month closes, `asksAmount` that it asked for the amount rather than its share of target. */
 export type MetricHeadline = { aggregate: "sum" | "average"; value: string; periodLabel: string; rowCount: number;
-  deltaPercent: number | null; deltaPoints?: number | null; compareLabel: string | null; compareNote: string | null; top: { label: string; value: string }[]; projection?: MonthEndProjection | null; underLine?: UnderLine | null; asked?: string[] | null; asksMonthEnd?: boolean | null; folded?: SeriesFold | null };
+  deltaPercent: number | null; deltaPoints?: number | null; compareLabel: string | null; compareNote: string | null; top: { label: string; value: string }[]; projection?: MonthEndProjection | null; underLine?: UnderLine | null; asked?: string[] | null; asksMonthEnd?: boolean | null; asksAmount?: boolean | null; folded?: SeriesFold | null };
 /** A metric answer; `parityBase` is the sell-in read of the same slice a sell-out breakdown asked against sell-in carries, so its card draws the parity reading the model answers from (AI-332). */
 export type MetricAnswer = { ok: true; rows: MetricRow[]; summary: string; headline: MetricHeadline; provenance: Provenance; query: ResolvedQuery; parityBase?: MetricAnswer };
 export type MetricResult = MetricAnswer | { ok: false; error: string; code: "PERMISSION_DENIED" | "UNKNOWN_METRIC" | "BAD_QUERY" | "CONNECTOR_UNAVAILABLE" };

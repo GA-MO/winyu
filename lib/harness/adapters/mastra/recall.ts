@@ -13,6 +13,7 @@ const VECTOR_STORE_ID = "winyu-recall";
 const INDEX_NAME = "winyu_recall";
 const SEARCH_TOP_K = 12;
 const DEFAULT_LIMIT = 3;
+const SAME_MATCH_BAND = 0.02;
 const LISTING_TOP_K = 5000;
 const QUESTION_SUFFIX = ":q";
 const REPLY_SUFFIX = ":a";
@@ -34,6 +35,9 @@ type TurnMetadata = z.infer<typeof turnMetadataSchema>;
 type Role = TurnMetadata["role"];
 
 type Hit = { score: number; metadata: TurnMetadata };
+
+/** One turn in the recall index: whose it is, its thread, and the question it was asked with. */
+export type IndexedTurn = { userId: string; threadId: string; turnId: string; question: string };
 
 /** A conversation the person can see is findable, and take out of recall. */
 export type RecallableThread = { threadId: string; title: string; turns: number; lastAt: string };
@@ -136,6 +140,17 @@ function bestPerThread(hits: readonly Hit[]): Hit[] {
   return [...best.values()].sort((left, right) => right.score - left.score);
 }
 
+/** Hits best first, except that within a band of near-equal scores the newer conversation comes first: scores that close do not say which thread is meant, and the latest is the likelier one. */
+function newerWhenClose(hits: readonly Hit[], band: number): Hit[] {
+  const bands: Hit[][] = [];
+  for (const hit of hits) {
+    const current = bands.at(-1);
+    if (current && current[0].score - hit.score <= band) current.push(hit);
+    else bands.push([hit]);
+  }
+  return bands.flatMap((members) => [...members].sort((left, right) => right.metadata.at.localeCompare(left.metadata.at)));
+}
+
 function recalled(hit: Hit, title: string): RecalledConversation {
   const { metadata } = hit;
   return {
@@ -162,11 +177,11 @@ export async function indexTurn(turn: RecallTurn): Promise<void> {
   });
 }
 
-/** The person's past conversations closest to a question, best first: one per thread, only threads that still exist and are theirs, in their own words (what a model reads of them is masked by `recall_memory`'s model view). */
-export async function searchConversations(userId: string, query: string, options: { excludeThreadId?: string | null; limit?: number } = {}): Promise<RecalledConversation[]> {
+/** The person's past conversations closest to a question, best first and the newer first among scores within `sameMatchBand` of each other (0.02 unless the caller widens it): one per thread, only threads that still exist and are theirs, in their own words (what a model reads of them is masked by `recall_memory`'s model view). */
+export async function searchConversations(userId: string, query: string, options: { excludeThreadId?: string | null; limit?: number; sameMatchBand?: number } = {}): Promise<RecalledConversation[]> {
   const queryVector = await currentEmbedder().query(query);
   const results = await (await vectorStore()).query({ indexName: INDEX_NAME, queryVector, topK: SEARCH_TOP_K, filter: { resource_id: userId } });
-  return bestPerThread(hitsOf(results))
+  return newerWhenClose(bestPerThread(hitsOf(results)), options.sameMatchBand ?? SAME_MATCH_BAND)
     .filter((hit) => hit.metadata.thread_id !== options.excludeThreadId)
     .flatMap((hit) => {
       const title = ownedTitle(hit.metadata.thread_id, userId);
@@ -183,6 +198,23 @@ export async function forgetConversation(userId: string, threadId: string): Prom
 /** Takes the conversations of deleted threads out of recall; it also runs each time the index opens. */
 export async function forgetOrphanedConversations(): Promise<number> {
   return pruneOrphans(await vectorStore());
+}
+
+/** Every turn in the recall index, once each. */
+export async function indexedTurns(): Promise<IndexedTurn[]> {
+  await vectorStore();
+  const { storedVectors } = await import("./exact-vector-store");
+  return (await storedVectors({ url: storeUrl(), indexName: INDEX_NAME })).flatMap((row) => {
+    const parsed = turnMetadataSchema.safeParse(row.metadata);
+    if (!parsed.success || parsed.data.role !== "question") return [];
+    return [{ userId: parsed.data.resource_id, threadId: parsed.data.thread_id, turnId: parsed.data.turn_id, question: parsed.data.question }];
+  });
+}
+
+/** Takes single turns out of recall, question and reply; their threads and other turns stay findable. */
+export async function forgetTurns(turnIds: readonly string[]): Promise<void> {
+  if (turnIds.length === 0) return;
+  await (await vectorStore()).deleteVectors({ indexName: INDEX_NAME, ids: turnIds.flatMap((turnId) => [`${turnId}${QUESTION_SUFFIX}`, `${turnId}${REPLY_SUFFIX}`]) });
 }
 
 /** Takes every conversation of the person out of recall. */

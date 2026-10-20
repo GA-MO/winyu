@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { MetricQuery } from "@/lib/contracts";
-import { asksMonthEnd, rowsNamedIn } from "./asked";
+import { asksAmount, asksMonthEnd, rowsNamedIn } from "./asked";
 
 const BY_UNIT = { metric: "gross_margin", dims: ["business_unit"], filters: {}, range: { from: "2026-11-01", to: "2026-11-26" }, grain: "month", compare: "none", limit: null } as MetricQuery;
 const UNITS = [{ business_unit: "กลุ่มนอนแอลกอฮอล์" }, { business_unit: "กลุ่มเบียร์" }, { business_unit: "กลุ่มนำเข้า" }];
@@ -34,5 +34,20 @@ describe("a question about where the month closes (AI-236)", () => {
     expect(asksMonthEnd("ทีมผมเดือนนี้ถึงเป้าแค่ไหนแล้ว เอเย่นต์ไหนน่าห่วงสุด")).toBe(false);
     expect(asksMonthEnd("เดือนนี้ผมขายได้กี่เปอร์เซ็นต์ของเป้าทั้งเดือนแล้ว")).toBe(false);
     expect(asksMonthEnd(null)).toBe(false);
+  });
+});
+
+describe("asksAmount (AI-349)", () => {
+  test("a question for the amount asks for it", () => {
+    expect(asksAmount("กลับไปที่ภาคแรกที่ดูเมื่อกี้ ยอดรวมเท่าไหร่")).toBe(true);
+    expect(asksAmount("เดือนนี้ขายได้กี่ล้าน")).toBe(true);
+    expect(asksAmount("ภาคใต้ยอดเท่าไร")).toBe(true);
+  });
+
+  test("a question for the share of target or the gap to it does not", () => {
+    expect(asksAmount("เดือนนี้ผมขายได้กี่เปอร์เซ็นต์ของเป้าทั้งเดือนแล้ว")).toBe(false);
+    expect(asksAmount("เดือนนี้ผมทำยอดได้ตามเป้าไหม ยังขาดอีกเท่าไหร่")).toBe(false);
+    expect(asksAmount("ยอดขายเดือนนี้แยกภาค")).toBe(false);
+    expect(asksAmount(null)).toBe(false);
   });
 });

@@ -28,6 +28,7 @@
     "entra:mock": "bun run scripts/entra-mock.ts",
     "memory:bench": "bun run scripts/memory-bench.ts",
     "history:bench": "bun run scripts/history-bench.ts",
+    "recall:prune": "bun run scripts/recall-prune.ts",
     "channels:walk": "bun run scripts/channels-walk.ts"
   },
   "dependencies": {

@@ -17,9 +17,9 @@ function toldWhatToRemember(turn: FinishedTurn): boolean {
   return turn.tools.some((tool) => MEMORY_TOOLS.has(tool));
 }
 
-/** Whether the turn only recalled earlier conversations: its reply retells them and holds no query of its own, so indexing it would put a copy without data above the thread it came from (AI-345). */
-function onlyRecalled(turn: FinishedTurn): boolean {
-  return turn.tools.length > 0 && turn.tools.every((tool) => tool === RECALL_TOOL);
+/** Whether a turn that called these tools only recalled earlier conversations: its reply retells them and holds no query of its own, so indexing it would put a copy without data above the thread it came from (AI-345). */
+export function onlyRecalled(tools: readonly string[]): boolean {
+  return tools.length > 0 && tools.every((tool) => tool === RECALL_TOOL);
 }
 
 /** The words of the reply to the thread's latest question, card blocks left out; empty when the agent wrote none. */
@@ -42,7 +42,7 @@ export function refusedOrInjected(turn: Pick<FinishedTurn, "userId" | "turnId" |
 export async function learnFromTurn(turn: FinishedTurn): Promise<MemoryFact[]> {
   const memoryCommand = toldWhatToRemember(turn);
   const facts = await finishTurn(turn.userId, turn.threadId, turn.question, turn.queries, { learn: !memoryCommand && !refusedOrInjected(turn) });
-  if (!turn.threadId || memoryCommand || onlyRecalled(turn)) return facts;
+  if (!turn.threadId || memoryCommand || onlyRecalled(turn.tools)) return facts;
   const reply = await latestReplyText(turn.threadId, turn.userId);
   if (!reply) return facts;
   await indexTurn({ userId: turn.userId, threadId: turn.threadId, turnId: turn.turnId, at: new Date().toISOString(), question: turn.question, reply, queries: [...turn.queries] });

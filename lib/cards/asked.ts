@@ -4,6 +4,8 @@ import { groupDimsOf, labelAlong } from "./rows";
 const MIN_NAME_LENGTH = 3;
 const SPACES = /\s+/g;
 const MONTH_CLOSE = /จะปิด|ปิดเดือน|ปิดที่|จะถึงเป้า|ทันเป้า/;
+const AMOUNT = /(ยอด|รวม|ขายได้|ทำได้)\S{0,8}(เท่าไหร่|เท่าไร|กี่บาท|กี่ล้าน)/;
+const SHARE_OF_TARGET = /เป้า|เปอร์เซ็นต์|%/;
 
 function squeezed(text: string): string {
   return text.replace(SPACES, "");
@@ -62,4 +64,11 @@ export function labelsNamedIn(question: string | null, labels: readonly string[]
 /** Whether a question asks where the running month will close ("จะปิดที่กี่เปอร์เซ็นต์", "จะปิดเดือนได้ถึงเป้าไหม") rather than how far it has come. */
 export function asksMonthEnd(question: string | null): boolean {
   return question !== null && MONTH_CLOSE.test(squeezed(question));
+}
+
+/** Whether a question asks for an amount ("ยอดรวมเท่าไหร่", "ขายได้กี่ล้าน") and not its share of target, so a card compared with target still leads with the amount (AI-349). */
+export function asksAmount(question: string | null): boolean {
+  if (question === null) return false;
+  const text = squeezed(question);
+  return AMOUNT.test(text) && !SHARE_OF_TARGET.test(text);
 }

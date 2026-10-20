@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { recallMemoryInputSchema, type MemoryFact } from "@/lib/contracts";
+import { bangkokDate, formatThaiDate } from "@/lib/data/dates";
 import { similarity } from "@/lib/engine/memory-match";
 import { isUsable, memoryStatus, type MemoryStatus } from "@/lib/engine/memory-status";
 import { searchConversations } from "@/lib/harness/adapters/mastra/recall";
@@ -14,6 +15,8 @@ const NO_MEMORY = "ยังไม่มีข้อมูลที่จำไ�
 const DEFAULT_MEMORY_LIMIT = 8;
 const RECALL_MIN_SIMILARITY = 0.25;
 const TURNS_KEPT = 64;
+const ASKS_LATEST = /เมื่อกี้|เมื่อกี๊|ตะกี้|ตะกี๊|เมื่อสักครู่|ล่าสุด/;
+const LATEST_MATCH_BAND = 0.04;
 
 type RecalledFact = MemoryFact & { status: MemoryStatus };
 
@@ -33,9 +36,15 @@ function rememberedFacts(userId: string, query: string): RecalledFact[] {
     .map(({ fact }) => ({ ...fact, status: memoryStatus(fact) }));
 }
 
+/** How close two conversations' scores must be for the newer to come first: wider when the person asks for the one just had ("เมื่อกี้", "ล่าสุด"), in their question or the model's search. */
+function sameMatchBandFor(query: string, question: string): number | undefined {
+  return ASKS_LATEST.test(`${question} ${query}`) ? LATEST_MATCH_BAND : undefined;
+}
+
 async function pastConversations(userId: string, query: string): Promise<RecalledConversation[]> {
+  const turn = currentTurn();
   try {
-    return await searchConversations(userId, query, { excludeThreadId: currentTurn().threadId });
+    return await searchConversations(userId, query, { excludeThreadId: turn.threadId, sameMatchBand: sameMatchBandFor(query, turn.question ?? "") });
   } catch (error) {
     console.error("conversation recall failed", error);
     return [];
@@ -65,8 +74,14 @@ function summaryOf({ data, conversations }: Recalled): string {
   return TH.memory.recalledSummary(data.length, conversations.length);
 }
 
+/** The day a conversation was had as the card shows it, a Thai date in Bangkok ("20 ต.ค. 2569"), so a thread from after midnight is not read as the day before (AI-350). */
+function bangkokDayOf(at: string): string {
+  const moment = new Date(at);
+  return Number.isNaN(moment.getTime()) ? at : formatThaiDate(bangkokDate(moment));
+}
+
 function maskedConversation(conversation: RecalledConversation): RecalledConversation {
-  return { ...conversation, title: maskNumbers(conversation.title), question: maskNumbers(conversation.question), reply: maskNumbers(conversation.reply) };
+  return { ...conversation, title: maskNumbers(conversation.title), question: maskNumbers(conversation.question), reply: maskNumbers(conversation.reply), at: bangkokDayOf(conversation.at) };
 }
 
 /** What the model reads of a recall: the person's past words with every number masked, so an old figure can never be repeated as if current, and a note that they are the past; the card shows them as said. */

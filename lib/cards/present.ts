@@ -155,6 +155,7 @@ const WORST_WHEN_LOW: ReadonlySet<MetricId> = new Set(["target_attainment", "day
 const WORST_WHEN_HIGH: ReadonlySet<MetricId> = new Set(["ar_overdue", "forecast_mape"]);
 const MAX_RANK_ROWS = 8;
 const MAX_ALERTS = 4;
+const MAX_SCORECARD_TILES = 3;
 const MAX_HISTORY_POINTS = 12;
 const LEADING_PERCENT = /^[+−-]?[\d,]+(?:\.\d+)?%/;
 const MASKED = "***";
@@ -728,7 +729,32 @@ function scopeNameOf(query: MetricQuery, result: OkResult): string {
   return dim && values && values.length > 1 ? `${values.length} ${TH.dash.dimUnit[dim]}` : labels[0];
 }
 
-/** One number about one scope (R1, R2, a total): its share of target when there is one (a year so far with what the rest of the year must make up), else its change against the window it is compared with, each named, plus where the month ends. */
+function targetLead(facts: Facts, name: string, attainment: number, overTarget: boolean, projection: Tile | null): Lead {
+  const { query, result } = facts;
+  const tone: Tone = attainment < PERCENT ? "bad" : "neutral";
+  const trend = attainment < PERCENT ? "down" : "neutral";
+  if (result.headline.projection && overTarget) return monthToDateLead(name, attainment, result.headline.value, result.headline.projection);
+  if (overTarget && spansYear(query)) return yearLead(facts, attainment);
+  const paced = isPacedTarget(query, result.provenance.asOf);
+  const actual = overTarget ? tileOf(TH.read.actual, result.headline.value, null) : null;
+  return {
+    hero: { label: name, value: percentText(attainment), unit: paced ? TH.read.ofPacedTarget : TH.read.ofTarget, delta: null, trend, tone, detail: null },
+    tiles: [actual, projection].filter((tile): tile is Tile => tile !== null),
+    verdict: paced ? paceVerdict(name, attainment) : summaryVerdict({ label: name, attainment, change: null, changeText: null, flat: false, versus: "", value: result.headline.value }),
+  };
+}
+
+/** A target lead turned to answer a question for the amount: the amount leads, the share of target the lead was going to show stands first beside it, and the verdict still says the pace (AI-349). */
+function amountFirst(lead: Lead, amount: string): Lead {
+  const share = tileOf(TH.read.doneSoFar, lead.hero.value, lead.hero.unit);
+  return {
+    hero: { label: lead.hero.label, value: amount, unit: null, delta: null, trend: "neutral", tone: "neutral", detail: null },
+    tiles: [share, ...lead.tiles.filter((tile) => tile.label !== TH.read.actual)].slice(0, MAX_SCORECARD_TILES),
+    verdict: lead.verdict,
+  };
+}
+
+/** One number about one scope (R1, R2, a total): its share of target when there is one, or the amount first when that is what was asked (`asksAmount`), else its change against the window it is compared with, each named, plus where the month ends. */
 function summaryLead(facts: Facts, name: string, subject: string): Lead {
   const { query, result, rows } = facts;
   const [row] = rows;
@@ -736,17 +762,8 @@ function summaryLead(facts: Facts, name: string, subject: string): Lead {
   const attainment = overTarget ? (result.headline.deltaPercent === null ? null : PERCENT + result.headline.deltaPercent) : query.metric === "target_attainment" ? (row && rows.length === 1 ? numericOf(row, "value") : percentIn(result.headline.value)) : null;
   const projection = result.headline.projection ? tileOf(TH.read.monthEnd, result.headline.projection.attainment, TH.read.ofMonthTarget) : null;
   if (attainment !== null) {
-    const tone: Tone = attainment < PERCENT ? "bad" : "neutral";
-    const trend = attainment < PERCENT ? "down" : "neutral";
-    if (result.headline.projection && overTarget) return monthToDateLead(name, attainment, result.headline.value, result.headline.projection);
-    if (overTarget && spansYear(query)) return yearLead(facts, attainment);
-    const paced = isPacedTarget(query, result.provenance.asOf);
-    const actual = overTarget ? tileOf(TH.read.actual, result.headline.value, null) : null;
-    return {
-      hero: { label: name, value: percentText(attainment), unit: paced ? TH.read.ofPacedTarget : TH.read.ofTarget, delta: null, trend, tone, detail: null },
-      tiles: [actual, projection].filter((tile): tile is Tile => tile !== null),
-      verdict: paced ? paceVerdict(name, attainment) : summaryVerdict({ label: name, attainment, change: null, changeText: null, flat: false, versus: "", value: result.headline.value }),
-    };
+    const lead = targetLead(facts, name, attainment, overTarget, projection);
+    return overTarget && result.headline.asksAmount ? amountFirst(lead, result.headline.value) : lead;
   }
   const move = headlineMoveOf(query, result);
   const change = metricFormat(query.metric) === "percent" ? (result.headline.deltaPoints ?? null) : result.headline.deltaPercent;

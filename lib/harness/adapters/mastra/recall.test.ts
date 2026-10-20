@@ -4,7 +4,7 @@ import { useEmbedder } from "@/lib/server/recall/embedder";
 import { TRIGRAM_EMBEDDER } from "@/lib/server/recall/trigram-embedder";
 import type { Embedder, RecallTurn } from "@/lib/server/recall/types";
 import { threadForRun, threads } from "@/lib/server/threads-read";
-import { forgetConversation, forgetConversations, forgetOrphanedConversations, indexTurn, prepareRecallIndex, recallableThreads, searchConversations } from "./recall";
+import { forgetConversation, forgetConversations, forgetOrphanedConversations, forgetTurns, indexedTurns, indexTurn, prepareRecallIndex, recallableThreads, searchConversations } from "./recall";
 
 const USER = "u_recall_test";
 const OTHER = "u_recall_other";
@@ -21,6 +21,18 @@ const WIDER_EMBEDDER: Embedder = {
 
 function padded(vector: number[]): number[] {
   return [...vector, ...new Array<number>(WIDER_DIMENSION - vector.length).fill(0)];
+}
+
+/** Scores fixed by text: a passage listed in `scores` meets the query at that cosine, every other text at none. */
+function scoredEmbedder(scores: Record<string, number>): Embedder {
+  const dimension = TRIGRAM_EMBEDDER.dimension;
+  const at = (score: number) => [score, Math.sqrt(1 - score * score), ...new Array<number>(dimension - 2).fill(0)];
+  return {
+    id: "scored",
+    dimension,
+    passages: async (texts) => texts.map((text) => at(scores[text] ?? 0)),
+    query: async () => at(1),
+  };
 }
 
 let turnCount = 0;
@@ -102,6 +114,32 @@ describe("conversation recall", () => {
     expect((await recallableThreads(OTHER)).map((thread) => thread.threadId)).toEqual(["t_drop_other"]);
     await forgetConversations(USER);
     expect(await recallableThreads(USER)).toEqual([]);
+  });
+
+  test("forgetting one turn takes its question and reply out of recall and leaves the thread's other turns", async () => {
+    const asked = turn(USER, "t_turns", "อัตราการลาออกแต่ละฝ่ายเป็นยังไง", "ฝ่ายขายสูงสุด");
+    const recalledOnly = turn(USER, "t_turns", "จำได้ไหมว่าคุยเรื่องลาออก", "เคยคุยเรื่องอัตราการลาออก");
+    await indexTurn(asked);
+    await indexTurn(recalledOnly);
+    await forgetTurns([recalledOnly.turnId]);
+    await forgetTurns([recalledOnly.turnId]);
+    expect((await indexedTurns()).filter((found) => found.userId === USER).map((found) => found.turnId)).toEqual([asked.turnId]);
+    expect((await recallableThreads(USER)).map((thread) => [thread.threadId, thread.turns])).toEqual([["t_turns", 1]]);
+  });
+
+  test("of two conversations that match almost equally the newer comes first, and a wider band lets a newer one a little further down lead (เมื่อกี้)", async () => {
+    useEmbedder(scoredEmbedder({ "ลาออกเมื่อวาน": 0.9, "ลาออกวันนี้": 0.885, "ลาออกเมื่อเช้า": 0.87, "ลาออกบ่าย": 0.8 }));
+    try {
+      await indexTurn(turn(USER, "t_yesterday", "ลาออกเมื่อวาน", "-"));
+      await indexTurn(turn(USER, "t_morning", "ลาออกเมื่อเช้า", "-"));
+      await indexTurn(turn(USER, "t_today", "ลาออกวันนี้", "-"));
+      await indexTurn(turn(USER, "t_afternoon", "ลาออกบ่าย", "-"));
+      expect((await searchConversations(USER, "ลาออก", { limit: 4 })).map((found) => found.threadId)).toEqual(["t_today", "t_yesterday", "t_morning", "t_afternoon"]);
+      expect((await searchConversations(USER, "ลาออก", { limit: 4, sameMatchBand: 0.04 })).map((found) => found.threadId)).toEqual(["t_today", "t_morning", "t_yesterday", "t_afternoon"]);
+    } finally {
+      await forgetConversations(USER);
+      useEmbedder(TRIGRAM_EMBEDDER);
+    }
   });
 
   test("an embedder of another vector size re-embeds the stored conversations instead of losing them", async () => {

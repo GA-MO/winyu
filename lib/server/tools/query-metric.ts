@@ -15,7 +15,7 @@ import { runMetric } from "@/lib/server/metrics";
 import { askedQuery } from "@/lib/semantic/resolved";
 import { excludedIn, filtersWithout } from "@/lib/semantic/exclusion";
 import { namesOf } from "@/lib/semantic/dictionary";
-import { asksMonthEnd, rowsNamedIn } from "@/lib/cards/asked";
+import { asksAmount, asksMonthEnd, rowsNamedIn } from "@/lib/cards/asked";
 import { changeTextOf, deltaPercentOf, groupDimsOf, labelAlong, timeDimOf } from "@/lib/cards/rows";
 import { actionsForMetric, actionsForRefusal, followUpsForMetric } from "@/lib/server/next-actions";
 import { currentAccess, currentTurn, recordQuery } from "@/lib/server/request-context";
@@ -226,7 +226,8 @@ export const queryMetricTool = defineTool({
     const summary = [result.summary, ...notes].join(" · ");
     const named = askedRows(result.query, result.rows);
     const closing = Boolean(result.headline.projection) && asksMonthEnd(askedQuestion());
-    const answered = await withParity({ ...result, headline: { ...result.headline, ...(named.length > 0 ? { asked: named } : {}), ...(closing ? { asksMonthEnd: true } : {}) } }, access);
+    const amount = result.query.compare === "target" && asksAmount(askedQuestion());
+    const answered = await withParity({ ...result, headline: { ...result.headline, ...(named.length > 0 ? { asked: named } : {}), ...(closing ? { asksMonthEnd: true } : {}), ...(amount ? { asksAmount: true } : {}) } }, access);
     const nextActions = actionsForMetric(access, answered, dictionary);
     return { ...answered, summary, provenance, nextActions, followUps: followUpsForMetric(access, answered, dictionary, nextActions) };
   },

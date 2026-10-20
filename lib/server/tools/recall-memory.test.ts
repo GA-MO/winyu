@@ -65,6 +65,12 @@ describe("recall_memory", () => {
     expect(forModel.conversationsAre).toBe(TH.memory.pastConversations);
   });
 
+  test("hands the model the day a conversation was had in Bangkok, as the card shows it, so a thread from after midnight is not the day before (AI-350)", () => {
+    const conversation = { threadId: PAST, title: "ลาออก", at: "2026-10-19T17:37:49.257Z", question: QUESTION, reply: "ฝ่ายขาย", queries: [], score: 0.9 };
+    const forModel = recallForModel({ ok: true, summary: "x", data: [], conversations: [conversation] }) as { conversations: { at: string }[] };
+    expect(forModel.conversations[0]?.at).toBe("20 ต.ค. 2569");
+  });
+
   test("returns only what Winyu trusts: a fact still being learned or one whose day is over stays out", async () => {
     plant("สนใจอัตราการลาออกของฝ่ายขาย", { confidence: 0.45 });
     plant("สนใจอัตราการลาออกรายฝ่าย", { confidence: 0.75 });
