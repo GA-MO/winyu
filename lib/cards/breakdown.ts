@@ -247,6 +247,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   const format = overTarget ? percentText : (value: number) => formatMetricValue(query.metric, value);
   const fold = foldLine(input.unit, () => line.aboveWords, measuresOf, format);
   const goalUnit = input.target.paced ? TH.read.ofPacedTarget : TH.read.ofTarget;
+  const amount = overTarget && result.headline.asksAmount ? `${TH.read.actual} ${result.headline.value}` : null;
   const monthDetail = month ? joinedText([TH.read.paceMark(percentText(at)), month.left ? `${TH.read.leftToDate} ${month.left} ${TH.read.toMonthTarget}` : null]) : null;
   if (input.threshold) {
     return {
@@ -266,7 +267,7 @@ function lineReading(input: BreakdownInput, line: LevelLine): Breakdown {
   return {
     form: "line",
     baseline: at,
-    overall: overTime ? null : month ? { label: input.scope, sub: joinedText([TH.read.ofMonthTarget, monthDetail]), second: null, measure: percentIn(month.attainment), fill: 0, text: month.attainment, change: null, tone: overallTone, exception: true, valued: true } : { label: input.scope, sub: ofTarget ? goalUnit : null, second: null, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
+    overall: overTime ? null : month ? { label: input.scope, sub: joinedText([TH.read.ofMonthTarget, monthDetail]), second: amount, measure: percentIn(month.attainment), fill: 0, text: month.attainment, change: null, tone: overallTone, exception: true, valued: true } : { label: input.scope, sub: ofTarget ? goalUnit : null, second: amount, measure: overallMeasure, fill: 0, text: overallText, change: null, tone: overallTone, exception: true, valued: true },
     rows,
     verdict: lineVerdict({
       line: line.line,

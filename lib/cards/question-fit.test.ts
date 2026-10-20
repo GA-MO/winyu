@@ -780,3 +780,11 @@ describe("a question for the total of one region answered against target leads w
     expect(card.hero?.value).toBe("86.5%");
   });
 });
+
+describe("a question for the total answered by a breakdown against target names the total under the overall row (AI-349, round 17 B2)", () => {
+  test("the CEO's regions against target asked 'ยอดรวมเท่าไหร่' carry ยอดจริง 1,549.4 ล้านบาท beside the 83.9% overall, and a pace question does not", () => {
+    const asked = presentCard({ title: "t", query: BOARD_QUERY, result: resultOf(BOARD_QUERY, BOARD_ROWS, { value: "1,549.4 ล้านบาท", deltaPercent: -3.2, compareLabel: "เทียบเป้าตามเวลา", projection: PROJECTION, asksAmount: true }) });
+    expect(stripOf(asked.body).overall).toMatchObject({ text: "83.9%", second: `${TH.read.actual} 1,549.4 ล้านบาท` });
+    expect(stripOf(presentCard({ title: "t", query: BOARD_QUERY, result: BOARD_RESULT }).body).overall?.second ?? null).toBeNull();
+  });
+});
