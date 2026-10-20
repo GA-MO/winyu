@@ -9,7 +9,7 @@ setDefaultTimeout(30_000);
 const scripted = new ScriptedModel();
 const metered = wrapLanguageModel({ model: scripted.model, middleware: [meterMiddleware(scripted.model.modelId)] });
 const scriptedModels = scripted.modelsModule();
-mock.module("@/lib/server/models", () => ({ ...scriptedModels, agentModel: () => ({ id: "scripted", name: "scripted", chat: () => metered, model: () => metered }) }));
+mock.module("@/lib/server/models", () => ({ ...scriptedModels, agentModel: () => ({ ...scriptedModels.agentModel(), chat: () => metered, chatFallback: () => metered, model: () => metered }) }));
 
 const { studioApi } = await import("./studio");
 const { modelCalls } = await import("@/lib/server/model-ledger");

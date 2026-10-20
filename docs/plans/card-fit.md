@@ -108,7 +108,7 @@ Every rule is checked for $0: replay the listed cases at `/dev/replay?cases=…`
 
 ## Card style (user decision 2026-10-16)
 
-The user compared three styles on real recorded results (prototype `app/dev/card-variants`, branch `worktree-agent-aec5e6183fd53c073`, commit `49f8388`) and chose: "ใช้ B เป็นแบบหลักของการ์ดที่แยกตามแถว (เทียบเป้า จัดอันดับ อะไรตกหรือขึ้นมากสุด) ถ้าเกิน 8 แถวให้สลับเป็น A อัตโนมัติ ส่วน C เก็บไว้ใช้กับการ์ดสรุปหลายตัวเลข".
+The user compared three styles on real recorded results (prototype `app/dev/card-variants`, on main since `3c6289a`; first built as `49f8388` on an agent branch) and chose: "ใช้ B เป็นแบบหลักของการ์ดที่แยกตามแถว (เทียบเป้า จัดอันดับ อะไรตกหรือขึ้นมากสุด) ถ้าเกิน 8 แถวให้สลับเป็น A อัตโนมัติ ส่วน C เก็บไว้ใช้กับการ์ดสรุปหลายตัวเลข".
 
 - **B, picture first**, for breakdown cards (R3 target, R4 change, R5 ranking, R6 level line, R7 threshold): a verdict sentence as the headline, one strip of bars on a shared scale around the deciding line with the overall row on top as the hero, exceptions drawn thick in the danger or success colour with values, normal rows thin and muted without values except the extremes.
 - **A, verdict and exceptions**, automatically when a breakdown has more than 8 rows: the verdict, the hero number with one coloured change, only the exception rows drawn, the normal rows folded into one muted line that expands.
